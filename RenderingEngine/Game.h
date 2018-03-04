@@ -1,5 +1,6 @@
 #pragma once
 
+#include <memory>
 #include "DXCore.h"
 #include "SimpleShader.h"
 #include <DirectXMath.h>
@@ -10,6 +11,7 @@
 #include "Lights.h"
 #include "WICTextureLoader.h"
 #include "Renderer.h"
+#include "Terrain.h"
 
 class Game 
 	: public DXCore
@@ -51,6 +53,7 @@ private:
 	Material*	fabricMaterial;
 	Material*	woodMaterial;
 	Camera*		camera;
+	std::unique_ptr<Terrain> terrain;
 
 	POINT prevMousePos;
 	Renderer *renderer;

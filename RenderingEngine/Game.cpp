@@ -89,6 +89,10 @@ void Game::Init()
 	CreateCamera();
 	InitializeEntities();
 	InitializeRenderer();
+	terrain = std::unique_ptr<Terrain>(new Terrain());
+	terrain->Initialize("../../Assets/Terrain/heightmap.bmp", device, context);
+	terrain->SetMaterial(material);
+	terrain->SetPosition(-25, -25, 5);
 	// Tell the input assembler stage of the pipeline what kind of
 	// geometric primitives (points, lines or triangles) we want to draw.  
 	// Essentially: "What kind of shape should the GPU draw with our data?"
@@ -166,7 +170,7 @@ void Game::InitializeEntities()
 	models.insert(std::pair<std::string, Mesh*>("cube", new Mesh("../../Assets/Models/cube.obj", device)));
 	models.insert(std::pair<std::string, Mesh*>("helix", new Mesh("../../Assets/Models/helix.obj", device)));
 	models.insert(std::pair<std::string, Mesh*>("torus", new Mesh("../../Assets/Models/torus.obj", device)));
-	
+
 	entities.push_back(new Entity(models["cube"], woodMaterial));
 	entities.push_back(new Entity(models["sphere"], material));
 	entities.push_back(new Entity(models["helix"], woodMaterial));
@@ -232,6 +236,7 @@ void Game::Draw(float deltaTime, float totalTime)
 {
 	const float color[4] = { 0.11f, 0.11f, 0.11f, 0.0f };
 	renderer->ClearScreen(color);
+	renderer->DrawEntity(terrain.get());
 	for (auto entity : entities)
 	{
 		renderer->DrawEntity(entity);

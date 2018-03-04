@@ -19,6 +19,7 @@ public:
 	XMFLOAT4X4 GetWorldMatrix();
 	XMFLOAT3 GetPosition();
 	XMFLOAT3 GetScale();
+	void SetMaterial(Material* mat);
 	void SetPosition(XMFLOAT3 pos);
 	void SetRotationZ(float angle);
 	void SetPosition(float x, float y, float z);

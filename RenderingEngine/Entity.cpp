@@ -56,6 +56,11 @@ XMFLOAT3 Entity::GetScale()
 	return scale;
 }
 
+void Entity::SetMaterial(Material * mat)
+{
+	material = mat;
+}
+
 void Entity::Move(XMFLOAT3 offset)
 {
 	auto pos = XMLoadFloat3(&position);
