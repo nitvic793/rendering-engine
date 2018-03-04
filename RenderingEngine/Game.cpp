@@ -104,10 +104,12 @@ void Game::Init()
 void Game::LoadShaders()
 {
 	vertexShader = new SimpleVertexShader(device, context);
-	vertexShader->LoadShaderFile(L"VertexShader.cso");
+	//vertexShader->LoadShaderFile(L"VertexShader.cso");
+	vertexShader->LoadShaderFile(L"VS_WaterShader.cso");
 
 	pixelShader = new SimplePixelShader(device, context);
-	pixelShader->LoadShaderFile(L"PixelShader.cso");
+	pixelShader->LoadShaderFile(L"PS_WaterShader.cso");
+	//pixelShader->LoadShaderFile(L"PixelShader.cso");
 }
 
 // --------------------------------------------------------
@@ -119,8 +121,28 @@ void Game::CreateCamera()
 	camera = new Camera((float)width / height);
 }
 
+void Game::CreateQuad()
+{
+	int quadsize = 10;
+	Vertex vertices[4] = {};
+	// Load the vertex array with data.
+	vertices[0].Position = XMFLOAT3(-quadsize, 0.0f, 0.0f);
+
+	vertices[1].Position = XMFLOAT3(-quadsize, +0.0f, +quadsize);
+
+	vertices[2].Position = XMFLOAT3(+quadsize, +0.0f, +quadsize);
+
+	vertices[3].Position = XMFLOAT3(+quadsize, +0.0f, +0.0f);
+
+	UINT indices[] = { 0, 1, 2, 0, 2, 3 };
+
+	models.insert(std::pair<std::string, Mesh*>("quad", new Mesh(vertices,4,indices,6,device)));
+	entities.push_back(new Entity(models["quad"], fabricMaterial));
+}
+
 void Game::InitializeEntities()
 {
+	
 	light.AmbientColor = XMFLOAT4(0.1f, 0.1f, 0.1f, 0);
 	light.DiffuseColor = XMFLOAT4(0.4f, 0.4f, 0.9f, 1.f);
 	light.Direction = XMFLOAT3(1.f, 0, 0.f);
@@ -167,17 +189,21 @@ void Game::InitializeEntities()
 	models.insert(std::pair<std::string, Mesh*>("helix", new Mesh("../../Assets/Models/helix.obj", device)));
 	models.insert(std::pair<std::string, Mesh*>("torus", new Mesh("../../Assets/Models/torus.obj", device)));
 	
-	entities.push_back(new Entity(models["cube"], woodMaterial));
+	//---------------------------------------------------------------
+	CreateQuad();
+	//----------------------------------------------------------------
+
+	/*entities.push_back(new Entity(models["cube"], woodMaterial));
 	entities.push_back(new Entity(models["sphere"], material));
 	entities.push_back(new Entity(models["helix"], woodMaterial));
 	entities.push_back(new Entity(models["torus"], material));
 	entities.push_back(new Entity(models["cylinder"], fabricMaterial));
-
+	
 	entities[0]->SetPosition(3.f, 0.f, 2.f);
 	entities[1]->SetPosition(0.f, 3.f, 0.f);
 	entities[2]->SetPosition(0.f, -3.f, 0.f);
 	entities[3]->SetPosition(-3.f, 0.f, 0.f);
-	entities[4]->SetPosition(-3.f, 3.f, 0.f);
+	entities[4]->SetPosition(-3.f, 3.f, 0.f);*/
 }
 
 void Game::InitializeRenderer()
@@ -206,7 +232,7 @@ void Game::Update(float deltaTime, float totalTime)
 	//Update Camera
 	camera->Update(deltaTime);
 	//Update entities
-	entities[1]->SetRotationZ(sin(totalTime));
+	//entities[1]->SetRotationZ(sin(totalTime));
 	if (GetAsyncKeyState(VK_ESCAPE))
 		Quit();
 
@@ -222,7 +248,7 @@ void Game::Update(float deltaTime, float totalTime)
 		offset.x -= speed;
 	if (GetAsyncKeyState(VK_RIGHT) & 0x8000)
 		offset.x += speed;
-	entities[1]->Move(offset);
+	//entities[1]->Move(offset);
 }
 
 // --------------------------------------------------------

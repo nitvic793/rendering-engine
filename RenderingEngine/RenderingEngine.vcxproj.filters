@@ -47,6 +47,9 @@
     <ClCompile Include="Renderer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Water.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DXCore.h">
@@ -79,12 +82,21 @@
     <ClInclude Include="Renderer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Water.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="PixelShader.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
     <FxCompile Include="VertexShader.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="VS_WaterShader.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="PS_WaterShader.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
   </ItemGroup>

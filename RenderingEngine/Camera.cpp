@@ -99,7 +99,7 @@ void Camera::Update(float deltaTime)
 
 Camera::Camera(float aspectRatio)
 {
-	position = XMFLOAT3(0.f, 0.f, -15.f);
+	position = XMFLOAT3(0.f, 2.f, -15.f);
 	direction = XMFLOAT3(0.f, 0.f, 1.f);
 	rotationX = rotationY = 0.f;
 

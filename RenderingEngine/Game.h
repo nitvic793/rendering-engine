@@ -36,6 +36,7 @@ private:
 	void CreateCamera();
 	void InitializeEntities();
 	void InitializeRenderer();
+	void CreateQuad();
 
 	ID3D11ShaderResourceView*	metalSRV;
 	ID3D11ShaderResourceView*	metalNormalSRV;

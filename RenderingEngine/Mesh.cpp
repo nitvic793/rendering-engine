@@ -179,7 +179,7 @@ Mesh::Mesh(const char *objFile, ID3D11Device *device)
 //------------------------------------------
 void Mesh::Initialize(Vertex *vertices, UINT vertexCount, UINT *indices, UINT indexCount, ID3D11Device *device)
 {
-	CalculateTangents(vertices, vertexCount, indices, indexCount);
+	//CalculateTangents(vertices, vertexCount, indices, indexCount);
 	this->indexCount = indexCount;
 
 	D3D11_BUFFER_DESC vbd;
