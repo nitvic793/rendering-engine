@@ -5,7 +5,7 @@
 - Normal Mapping 
 - Basic Terrain 
 
-[terrainImage]: https://github.com/nitvic793/rendering-engine/raw/master/src/Docs/Images/terrain.png "Terrain Example"
+[terrainImage]: https://raw.githubusercontent.com/nitvic793/rendering-engine/master/Docs/Images/terrain.png "Terrain Example"
 ![alt text][terrainImage] 
 
 ## To-do
