@@ -99,6 +99,8 @@
     <FxCompile Include="PS_WaterShader.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
+    <FxCompile Include="VS_ReflectionShader.hlsl" />
+    <FxCompile Include="PS_ReflectionShader.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

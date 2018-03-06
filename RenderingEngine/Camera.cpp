@@ -53,6 +53,42 @@ void Camera::SetProjectionMatrix(float aspectRatio)
 	XMStoreFloat4x4(&projectionMatrix, XMMatrixTranspose(P));
 }
 
+void Camera::RenderReflectionMatrix(float height)
+{
+	XMFLOAT3 up, reflPosition, lookAt;
+	float radians;
+
+
+	// Setup the vector that points upwards.
+	up.x = 0.0f;
+	up.y = 1.0f;
+	up.z = 0.0f;
+
+	// Setup the position of the camera in the world.
+	// For planar reflection invert the Y position of the camera.
+	reflPosition.x = position.x;
+	reflPosition.y = -position.y + (height * 2.0f);
+	reflPosition.z = position.z;
+
+	// Calculate the rotation in radians.
+	radians = rotationY * 0.0174532925f;
+
+	// Setup where the camera is looking.
+	lookAt.x = sinf(radians) + position.x;
+	lookAt.y = reflPosition.y;
+	lookAt.z = cosf(radians) + position.z;
+
+	// Create the view matrix from the three vectors.
+	XMStoreFloat4x4(&reflectionMatrix,XMMatrixLookAtLH(XMLoadFloat3(&reflPosition), XMLoadFloat3(&lookAt), XMLoadFloat3(&up)));
+
+	return;
+}
+
+XMFLOAT4X4 Camera::GetReflectionMatrix()
+{
+	return reflectionMatrix;
+}
+
 void Camera::Update(float deltaTime)
 {
 	float speed = 10.f;

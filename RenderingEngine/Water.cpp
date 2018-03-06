@@ -2,32 +2,73 @@
 using namespace DirectX;
 
 
-Water::Water()
+Water::Water(int _length,int _breadth)
 {
+	XMStoreFloat4x4(&reflectionmatrix, XMMatrixTranspose(XMMatrixIdentity()));
+	reflectionBuffer = 0;
+	length = _length;
+	breadth = _breadth;
+	vertices = new Vertex[length * breadth];
 }
 
 
 Water::~Water()
 {
+	delete indices;
+	delete vertices;
 }
 
-
-const int u = 128;
-const int v = 64;
-const int IndicesCount = (u - 1)*(v - 1) * 6;
-void Water::GenerateLandscape()
+// -----------------------------------------------------
+// Generate the triangles/quad for the water surface
+// -----------------------------------------------------
+void Water::GenerateWaterMesh()
 {
-	int waterRadius = 10;
-	Vertex vertices[6];
-	// Load the vertex array with data.
-	vertices[0].Position = XMFLOAT3(-waterRadius, 0.0f, waterRadius);  // Top left.
+	const int x = length;
+	const int y = breadth;
+	const int IndicesCount = (x - 1)*(y - 1) * 6;
+	indices = new UINT[IndicesCount];
+	
+	for (int i = 0; i < x; i++)
+	{
+		for (int j = 0; j < y; j++)
+		{
+			//vertices[j*x + i].Position = XMFLOAT3(i, 0, j);
+			vertices[j*x + i].Position.x = i;
+			vertices[j*x + i].Position.y = 0;
+			vertices[j*x + i].Position.z = j;
+		}
+	}
 
-	vertices[1].Position = XMFLOAT3(waterRadius, 0.0f, waterRadius);  // Top right.
+	for (int i = 0; i<(x - 1); i++)
+		for (int j = 0; j<(y - 1); j++)
+		{
+			unsigned int indexa = j * (x - 1) + i;
+			unsigned int indexb = j * y + i;
+			indices[indexa * 6 + 0] = indexb;
+			indices[indexa * 6 + 1] = indexb + 1 + x;
+			indices[indexa * 6 + 2] = indexb + 1;
 
-	vertices[2].Position = XMFLOAT3(-waterRadius, 0.0f, -waterRadius);  // Bottom left.
+			indices[indexa * 6 + 3] = indexb;
+			indices[indexa * 6 + 4] = indexb + x;
+			indices[indexa * 6 + 5] = indexb + x + 1;
+		}
+}
 
-	vertices[3].Position = XMFLOAT3(waterRadius, 0.0f, -waterRadius);  // Bottom right.
+UINT* Water::GetIndices()
+{
+	return indices;
+}
 
-	int indices[6] = {0,1,2,2,1,4};
+Vertex* Water::GetVertices()
+{
+	return vertices;
+}
 
+UINT Water::GetVertexCount()
+{
+	return length * breadth;
+}
+UINT Water::GetIndexCount()
+{
+	return (length - 1) * (breadth - 1) * 6;
 }

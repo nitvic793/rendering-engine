@@ -10,6 +10,7 @@
 #include "Lights.h"
 #include "WICTextureLoader.h"
 #include "Renderer.h"
+#include "Water.h"
 
 class Game 
 	: public DXCore
@@ -36,7 +37,7 @@ private:
 	void CreateCamera();
 	void InitializeEntities();
 	void InitializeRenderer();
-	void CreateQuad();
+	void CreateWater();
 
 	ID3D11ShaderResourceView*	metalSRV;
 	ID3D11ShaderResourceView*	metalNormalSRV;
@@ -44,13 +45,18 @@ private:
 	ID3D11ShaderResourceView*	fabricNormalSRV;
 	ID3D11ShaderResourceView*	woodSRV;
 	ID3D11ShaderResourceView*	woodNormalSRV;
+	ID3D11ShaderResourceView*	waterSRV;
+	ID3D11ShaderResourceView*	waterNormalSRV;
 	ID3D11SamplerState*			sampler;
 	SimpleVertexShader*			vertexShader;
 	SimplePixelShader*			pixelShader;
+	SimpleVertexShader*			vertexShaderWater;
+	SimplePixelShader*			pixelShaderWater;
 
 	Material*	material;
 	Material*	fabricMaterial;
 	Material*	woodMaterial;
+	Material*	waterMaterial;
 	Camera*		camera;
 
 	POINT prevMousePos;
@@ -62,6 +68,9 @@ private:
 	std::unordered_map<std::string, DirectionalLight> lights;
 	std::unordered_map<std::string, Light*> lightsMap;
 	std::unordered_map<std::string, Mesh*> models;
-	std::vector<Entity*> entities;	
+	std::vector<Entity*> entities;
+
+	float time;
+	Water * water;
 };
 

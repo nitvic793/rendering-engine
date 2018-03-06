@@ -74,6 +74,13 @@ Game::~Game()
 	fabricNormalSRV->Release();
 	woodNormalSRV->Release();
 	sampler->Release();
+	
+	waterSRV->Release();
+	waterNormalSRV->Release();
+	delete waterMaterial;
+	delete vertexShaderWater;
+	delete pixelShaderWater;
+	delete water;
 }
 
 // --------------------------------------------------------
@@ -104,12 +111,14 @@ void Game::Init()
 void Game::LoadShaders()
 {
 	vertexShader = new SimpleVertexShader(device, context);
-	//vertexShader->LoadShaderFile(L"VertexShader.cso");
-	vertexShader->LoadShaderFile(L"VS_WaterShader.cso");
+	vertexShaderWater = new SimpleVertexShader(device, context);
+	vertexShader->LoadShaderFile(L"VertexShader.cso");
+	vertexShaderWater->LoadShaderFile(L"VS_WaterShader.cso");
 
 	pixelShader = new SimplePixelShader(device, context);
-	pixelShader->LoadShaderFile(L"PS_WaterShader.cso");
-	//pixelShader->LoadShaderFile(L"PixelShader.cso");
+	pixelShaderWater = new SimplePixelShader(device, context);
+	pixelShaderWater->LoadShaderFile(L"PS_WaterShader.cso");
+	pixelShader->LoadShaderFile(L"PixelShader.cso");
 }
 
 // --------------------------------------------------------
@@ -121,23 +130,29 @@ void Game::CreateCamera()
 	camera = new Camera((float)width / height);
 }
 
-void Game::CreateQuad()
+void Game::CreateWater()
 {
-	int quadsize = 10;
-	Vertex vertices[4] = {};
-	// Load the vertex array with data.
-	vertices[0].Position = XMFLOAT3(-quadsize, 0.0f, 0.0f);
+	//-------------Single quad test------------------------
+	//int quadsize = 10;
+	//Vertex vertices[4] = {};
+	//// Load the vertex array with data.
+	//vertices[0].Position = XMFLOAT3(-quadsize, 0.0f, -quadsize);
 
-	vertices[1].Position = XMFLOAT3(-quadsize, +0.0f, +quadsize);
+	//vertices[1].Position = XMFLOAT3(-quadsize, +0.0f, +quadsize);
 
-	vertices[2].Position = XMFLOAT3(+quadsize, +0.0f, +quadsize);
+	//vertices[2].Position = XMFLOAT3(+quadsize, +0.0f, +quadsize);
 
-	vertices[3].Position = XMFLOAT3(+quadsize, +0.0f, +0.0f);
+	//vertices[3].Position = XMFLOAT3(+quadsize, +0.0f, -quadsize);
 
-	UINT indices[] = { 0, 1, 2, 0, 2, 3 };
-
-	models.insert(std::pair<std::string, Mesh*>("quad", new Mesh(vertices,4,indices,6,device)));
-	entities.push_back(new Entity(models["quad"], fabricMaterial));
+	//UINT indices[] = { 0, 1, 2, 0, 2, 3 };
+	//-------------Single quad test------------------------
+	
+	time = 0.0f;
+	water = new Water(64,64);
+	water->GenerateWaterMesh();
+	vertexShaderWater->SetFloat("time",time);
+	models.insert(std::pair<std::string, Mesh*>("quad", new Mesh(water->GetVertices(),water->GetVertexCount(),water->GetIndices(), water->GetIndexCount(),device)));
+	entities.push_back(new Entity(models["quad"], waterMaterial));
 }
 
 void Game::InitializeEntities()
@@ -167,6 +182,9 @@ void Game::InitializeEntities()
 	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/fabricNormal.png", nullptr, &fabricNormalSRV);
 	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/wood.jpg", nullptr, &woodSRV);
 	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/woodNormal.png", nullptr, &woodNormalSRV);
+	
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/waterColor.png", nullptr, &waterSRV);
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/waterNormal.jpg", nullptr, &waterNormalSRV);
 
 	D3D11_SAMPLER_DESC samplerDesc = {};
 	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
@@ -181,6 +199,8 @@ void Game::InitializeEntities()
 	material = new Material(vertexShader, pixelShader, metalSRV, metalNormalSRV, sampler);
 	fabricMaterial = new Material(vertexShader, pixelShader, fabricSRV, fabricNormalSRV, sampler);
 	woodMaterial = new Material(vertexShader, pixelShader, woodSRV, woodNormalSRV, sampler);
+	
+	waterMaterial = new Material(vertexShaderWater, pixelShaderWater, waterSRV, waterNormalSRV, sampler);
 
 	models.insert(std::pair<std::string, Mesh*>("sphere", new Mesh("../../Assets/Models/sphere.obj", device)));
 	models.insert(std::pair<std::string, Mesh*>("cone", new Mesh("../../Assets/Models/cone.obj", device)));
@@ -189,11 +209,11 @@ void Game::InitializeEntities()
 	models.insert(std::pair<std::string, Mesh*>("helix", new Mesh("../../Assets/Models/helix.obj", device)));
 	models.insert(std::pair<std::string, Mesh*>("torus", new Mesh("../../Assets/Models/torus.obj", device)));
 	
-	//---------------------------------------------------------------
-	CreateQuad();
+	//----------------------------------------------------------------
+	CreateWater();
 	//----------------------------------------------------------------
 
-	/*entities.push_back(new Entity(models["cube"], woodMaterial));
+	entities.push_back(new Entity(models["cube"], woodMaterial));
 	entities.push_back(new Entity(models["sphere"], material));
 	entities.push_back(new Entity(models["helix"], woodMaterial));
 	entities.push_back(new Entity(models["torus"], material));
@@ -203,7 +223,7 @@ void Game::InitializeEntities()
 	entities[1]->SetPosition(0.f, 3.f, 0.f);
 	entities[2]->SetPosition(0.f, -3.f, 0.f);
 	entities[3]->SetPosition(-3.f, 0.f, 0.f);
-	entities[4]->SetPosition(-3.f, 3.f, 0.f);*/
+	entities[4]->SetPosition(-3.f, 3.f, 0.f);
 }
 
 void Game::InitializeRenderer()
@@ -229,10 +249,12 @@ void Game::OnResize()
 // --------------------------------------------------------
 void Game::Update(float deltaTime, float totalTime)
 {
+	time += 0.002f;
+	vertexShaderWater->SetFloat("time", time);
 	//Update Camera
 	camera->Update(deltaTime);
 	//Update entities
-	//entities[1]->SetRotationZ(sin(totalTime));
+	entities[1]->SetRotationZ(sin(totalTime));
 	if (GetAsyncKeyState(VK_ESCAPE))
 		Quit();
 
@@ -248,7 +270,7 @@ void Game::Update(float deltaTime, float totalTime)
 		offset.x -= speed;
 	if (GetAsyncKeyState(VK_RIGHT) & 0x8000)
 		offset.x += speed;
-	//entities[1]->Move(offset);
+	entities[1]->Move(offset);
 }
 
 // --------------------------------------------------------
