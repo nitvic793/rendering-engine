@@ -373,11 +373,12 @@ bool Terrain::Initialize(const char * filename, ID3D11Device * device, ID3D11Dev
 		{
 			height = bitmapImage[k];
 
-			index = (terrainHeight * j) + i;
+			index = (terrainWidth * (terrainHeight - 1 - j)) + i;
 
 			heightMap[index].x = (float)i;
 			heightMap[index].y = (float)height;
-			heightMap[index].z = (float)j;
+			heightMap[index].z = -(float)j;
+			heightMap[index].z += (float)(terrainHeight - 1);
 
 			k += 3;
 		}
@@ -408,10 +409,11 @@ bool Terrain::Initialize(const char * filename, ID3D11Device * device, ID3D11Dev
 	{
 		for (int i = 0; i<(terrainWidth - 1); i++)
 		{
-			int index1 = (terrainHeight * j) + i;          // Bottom left.
-			int index2 = (terrainHeight * j) + (i + 1);      // Bottom right.
-			int index3 = (terrainHeight * (j + 1)) + i;      // Upper left.
-			int index4 = (terrainHeight * (j + 1)) + (i + 1);  // Upper right.
+			int index1 = (terrainWidth * j) + i;          // Upper left.
+			int index2 = (terrainWidth * j) + (i + 1);      // Upper right.
+			int index3 = (terrainWidth * (j + 1)) + i;      // Bottom left.
+			int index4 = (terrainWidth * (j + 1)) + (i + 1);  // Bottom right.
+
 
 															 // Upper left.
 			tv = textureCoords[index3].y;
@@ -420,7 +422,8 @@ bool Terrain::Initialize(const char * filename, ID3D11Device * device, ID3D11Dev
 			if (tv == 1.0f) { tv = 0.0f; }
 
 			vertices[index].Position = XMFLOAT3(heightMap[index3].x, heightMap[index3].y, heightMap[index3].z);
-			vertices[index].UV = XMFLOAT2(textureCoords[index3].x, tv);
+			vertices[index].UV = XMFLOAT2(0, 0);
+			//vertices[index].UV = XMFLOAT2(textureCoords[index3].x, tv);
 			vertices[index].Normal = XMFLOAT3(heightNormals[index3].x, heightNormals[index3].y, heightNormals[index3].z);
 			indices[index] = index;
 			index++;
@@ -434,21 +437,24 @@ bool Terrain::Initialize(const char * filename, ID3D11Device * device, ID3D11Dev
 			if (tv == 1.0f) { tv = 0.0f; }
 
 			vertices[index].Position = XMFLOAT3(heightMap[index4].x, heightMap[index4].y, heightMap[index4].z);
-			vertices[index].UV = XMFLOAT2(tu, tv);
+			vertices[index].UV = XMFLOAT2(1, 0);
+			//vertices[index].UV = XMFLOAT2(tu, tv);
 			vertices[index].Normal = XMFLOAT3(heightNormals[index4].x, heightNormals[index4].y, heightNormals[index4].z);
 			indices[index] = index;
 			index++;
 
 			// Bottom left.
 			vertices[index].Position = XMFLOAT3(heightMap[index1].x, heightMap[index1].y, heightMap[index1].z);
-			vertices[index].UV = XMFLOAT2(textureCoords[index1].x, textureCoords[index1].y);
+			vertices[index].UV = XMFLOAT2(0,1);
+			//vertices[index].UV = XMFLOAT2(textureCoords[index1].x, textureCoords[index1].y);
 			vertices[index].Normal = XMFLOAT3(heightNormals[index1].x, heightNormals[index1].y, heightNormals[index1].z);
 			indices[index] = index;
 			index++;
 
 			// Bottom left.
 			vertices[index].Position = XMFLOAT3(heightMap[index1].x, heightMap[index1].y, heightMap[index1].z);
-			vertices[index].UV = XMFLOAT2(textureCoords[index1].x, textureCoords[index1].y);
+			vertices[index].UV = XMFLOAT2(0, 1);
+			//vertices[index].UV = XMFLOAT2(textureCoords[index1].x, textureCoords[index1].y);
 			vertices[index].Normal = XMFLOAT3(heightNormals[index1].x, heightNormals[index1].y, heightNormals[index1].z);
 			indices[index] = index;
 			index++;
@@ -462,7 +468,8 @@ bool Terrain::Initialize(const char * filename, ID3D11Device * device, ID3D11Dev
 			if (tv == 1.0f) { tv = 0.0f; }
 
 			vertices[index].Position = XMFLOAT3(heightMap[index4].x, heightMap[index4].y, heightMap[index4].z);
-			vertices[index].UV = XMFLOAT2(tu, tv);
+			vertices[index].UV = XMFLOAT2(1, 0);
+			//vertices[index].UV = XMFLOAT2(tu, tv);
 			vertices[index].Normal = XMFLOAT3(heightNormals[index4].x, heightNormals[index4].y, heightNormals[index4].z);
 			indices[index] = index;
 			index++;
@@ -474,7 +481,8 @@ bool Terrain::Initialize(const char * filename, ID3D11Device * device, ID3D11Dev
 			if (tu == 0.0f) { tu = 1.0f; }
 
 			vertices[index].Position = XMFLOAT3(heightMap[index2].x, heightMap[index2].y, heightMap[index2].z);
-			vertices[index].UV = XMFLOAT2(tu, textureCoords[index2].y);
+			vertices[index].UV = XMFLOAT2(1, 1);
+			//vertices[index].UV = XMFLOAT2(tu, textureCoords[index2].y);
 			vertices[index].Normal = XMFLOAT3(heightNormals[index2].x, heightNormals[index2].y, heightNormals[index2].z);
 			indices[index] = index;
 			index++;

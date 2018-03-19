@@ -23,7 +23,6 @@ Game::Game(HINSTANCE hInstance)
 	// Initialize fields
 	vertexShader = 0;
 	pixelShader = 0;
-	material = nullptr;
 	camera = nullptr;
 
 #if defined(DEBUG) || defined(_DEBUG)
@@ -60,20 +59,11 @@ Game::~Game()
 
 	lightsMap.clear();
 	models.clear();
-	delete material;
-	delete fabricMaterial;
-	delete woodMaterial;
 	delete vertexShader;
 	delete pixelShader;
 	delete camera;
 	delete renderer;
-	metalSRV->Release();
-	fabricSRV->Release();
-	woodSRV->Release();
-	metalNormalSRV->Release();
-	fabricNormalSRV->Release();
-	woodNormalSRV->Release();
-	sampler->Release();
+	delete resources;
 }
 
 // --------------------------------------------------------
@@ -85,13 +75,17 @@ void Game::Init()
 	// Helper methods for loading shaders, creating some basic
 	// geometry to draw and some simple camera matrices.
 	//  - You'll be expanding and/or replacing these later
+
+	resources = new Resources(device, context);
+	resources->LoadResources();
 	LoadShaders();
 	CreateCamera();
 	InitializeEntities();
 	InitializeRenderer();
+	
 	terrain = std::unique_ptr<Terrain>(new Terrain());
 	terrain->Initialize("../../Assets/Terrain/heightmap.bmp", device, context);
-	terrain->SetMaterial(material);
+	terrain->SetMaterial(resources->materials["metal"]);
 	terrain->SetPosition(-25, -25, 5);
 	// Tell the input assembler stage of the pipeline what kind of
 	// geometric primitives (points, lines or triangles) we want to draw.  
@@ -143,39 +137,11 @@ void Game::InitializeEntities()
 	lights.insert(std::pair<std::string, DirectionalLight>("light", light));
 	lights.insert(std::pair<std::string, DirectionalLight>("secondaryLight", secondaryLight));
 
-	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/metal.jpg", nullptr, &metalSRV);
-	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/metalNormal.png", nullptr, &metalNormalSRV);
-	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/fabric.jpg", nullptr, &fabricSRV);
-	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/fabricNormal.png", nullptr, &fabricNormalSRV);
-	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/wood.jpg", nullptr, &woodSRV);
-	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/woodNormal.png", nullptr, &woodNormalSRV);
-
-	D3D11_SAMPLER_DESC samplerDesc = {};
-	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-	samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-	samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-	samplerDesc.Filter = D3D11_FILTER_ANISOTROPIC;
-	samplerDesc.MaxAnisotropy = 16;
-	samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
-
-	device->CreateSamplerState(&samplerDesc, &sampler);
-
-	material = new Material(vertexShader, pixelShader, metalSRV, metalNormalSRV, sampler);
-	fabricMaterial = new Material(vertexShader, pixelShader, fabricSRV, fabricNormalSRV, sampler);
-	woodMaterial = new Material(vertexShader, pixelShader, woodSRV, woodNormalSRV, sampler);
-
-	models.insert(std::pair<std::string, Mesh*>("sphere", new Mesh("../../Assets/Models/sphere.obj", device)));
-	models.insert(std::pair<std::string, Mesh*>("cone", new Mesh("../../Assets/Models/cone.obj", device)));
-	models.insert(std::pair<std::string, Mesh*>("cylinder", new Mesh("../../Assets/Models/cylinder.obj", device)));
-	models.insert(std::pair<std::string, Mesh*>("cube", new Mesh("../../Assets/Models/cube.obj", device)));
-	models.insert(std::pair<std::string, Mesh*>("helix", new Mesh("../../Assets/Models/helix.obj", device)));
-	models.insert(std::pair<std::string, Mesh*>("torus", new Mesh("../../Assets/Models/torus.obj", device)));
-
-	entities.push_back(new Entity(models["cube"], woodMaterial));
-	entities.push_back(new Entity(models["sphere"], material));
-	entities.push_back(new Entity(models["helix"], woodMaterial));
-	entities.push_back(new Entity(models["torus"], material));
-	entities.push_back(new Entity(models["cylinder"], fabricMaterial));
+	entities.push_back(new Entity(resources->meshes["cube"], resources->materials["wood"]));
+	entities.push_back(new Entity(resources->meshes["sphere"], resources->materials["metal"]));
+	entities.push_back(new Entity(resources->meshes["helix"], resources->materials["wood"]));
+	entities.push_back(new Entity(resources->meshes["torus"], resources->materials["metal"]));
+	entities.push_back(new Entity(resources->meshes["cylinder"], resources->materials["fabric"]));
 
 	entities[0]->SetPosition(3.f, 0.f, 2.f);
 	entities[1]->SetPosition(0.f, 3.f, 0.f);

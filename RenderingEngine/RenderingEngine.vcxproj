@@ -120,6 +120,7 @@
     <ClCompile Include="Material.cpp" />
     <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="Renderer.cpp" />
+    <ClCompile Include="Resources.cpp" />
     <ClCompile Include="SimpleShader.cpp" />
     <ClCompile Include="Terrain.cpp" />
   </ItemGroup>
@@ -132,6 +133,7 @@
     <ClInclude Include="Material.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="Renderer.h" />
+    <ClInclude Include="Resources.h" />
     <ClInclude Include="SimpleShader.h" />
     <ClInclude Include="Terrain.h" />
     <ClInclude Include="Vertex.h" />

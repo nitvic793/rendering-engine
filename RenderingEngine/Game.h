@@ -12,6 +12,7 @@
 #include "WICTextureLoader.h"
 #include "Renderer.h"
 #include "Terrain.h"
+#include "Resources.h"
 
 class Game 
 	: public DXCore
@@ -39,24 +40,14 @@ private:
 	void InitializeEntities();
 	void InitializeRenderer();
 
-	ID3D11ShaderResourceView*	metalSRV;
-	ID3D11ShaderResourceView*	metalNormalSRV;
-	ID3D11ShaderResourceView*	fabricSRV;
-	ID3D11ShaderResourceView*	fabricNormalSRV;
-	ID3D11ShaderResourceView*	woodSRV;
-	ID3D11ShaderResourceView*	woodNormalSRV;
-	ID3D11SamplerState*			sampler;
 	SimpleVertexShader*			vertexShader;
 	SimplePixelShader*			pixelShader;
-
-	Material*	material;
-	Material*	fabricMaterial;
-	Material*	woodMaterial;
 	Camera*		camera;
 	std::unique_ptr<Terrain> terrain;
 
 	POINT prevMousePos;
 	Renderer *renderer;
+	Resources *resources;
 
 	DirectionalLight light;
 	DirectionalLight secondaryLight;
