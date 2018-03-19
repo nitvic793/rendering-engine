@@ -4,6 +4,8 @@
 
 void Resources::LoadResources()
 {
+	//Ideally all below resources should be read off of a config file and loaded from there. 
+
 	//Load Textures
 	ID3D11ShaderResourceView *srv;
 	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/metal.jpg", nullptr, &srv);
@@ -18,7 +20,14 @@ void Resources::LoadResources()
 	shaderResourceViews.insert(SRVMapType("wood", srv));
 	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/woodNormal.png", nullptr, &srv);
 	shaderResourceViews.insert(SRVMapType("woodNormal", srv));
-
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/grass01.jpg", nullptr, &srv);
+	shaderResourceViews.insert(SRVMapType("grass", srv));
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/grass01_n.jpg", nullptr, &srv);
+	shaderResourceViews.insert(SRVMapType("grassNormal", srv));
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/spear.png", nullptr, &srv);
+	shaderResourceViews.insert(SRVMapType("spear", srv));
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/spearNormal.png", nullptr, &srv);
+	shaderResourceViews.insert(SRVMapType("spearNormal", srv));
 	//Load Sampler
 	D3D11_SAMPLER_DESC samplerDesc = {};
 	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
@@ -30,6 +39,7 @@ void Resources::LoadResources()
 
 	device->CreateSamplerState(&samplerDesc, &sampler);
 
+	//Load Shaders
 	auto vertexShader = new SimpleVertexShader(device, context);
 	vertexShader->LoadShaderFile(L"VertexShader.cso");
 	vertexShaders.insert(VertexShaderMapType("default",vertexShader));
@@ -38,16 +48,21 @@ void Resources::LoadResources()
 	pixelShader->LoadShaderFile(L"PixelShader.cso");
 	pixelShaders.insert(PixelShaderMapType("default",pixelShader));
 
+	//Load Materials
 	materials.insert(MaterialMapType("metal", new Material(vertexShader, pixelShader, shaderResourceViews["metal"], shaderResourceViews["metalNormal"], sampler)));
 	materials.insert(MaterialMapType("fabric", new Material(vertexShader, pixelShader, shaderResourceViews["fabric"], shaderResourceViews["fabricNormal"], sampler)));
 	materials.insert(MaterialMapType("wood", new Material(vertexShader, pixelShader, shaderResourceViews["wood"], shaderResourceViews["woodNormal"], sampler)));
+	materials.insert(MaterialMapType("grass", new Material(vertexShader, pixelShader, shaderResourceViews["grass"], shaderResourceViews["grassNormal"], sampler)));
+	materials.insert(MaterialMapType("spear", new Material(vertexShader, pixelShader, shaderResourceViews["spear"], shaderResourceViews["spearNormal"], sampler)));
 
+	//Load Meshes
 	meshes.insert(std::pair<std::string, Mesh*>("sphere", new Mesh("../../Assets/Models/sphere.obj", device)));
 	meshes.insert(std::pair<std::string, Mesh*>("cone", new Mesh("../../Assets/Models/cone.obj", device)));
 	meshes.insert(std::pair<std::string, Mesh*>("cylinder", new Mesh("../../Assets/Models/cylinder.obj", device)));
 	meshes.insert(std::pair<std::string, Mesh*>("cube", new Mesh("../../Assets/Models/cube.obj", device)));
 	meshes.insert(std::pair<std::string, Mesh*>("helix", new Mesh("../../Assets/Models/helix.obj", device)));
 	meshes.insert(std::pair<std::string, Mesh*>("torus", new Mesh("../../Assets/Models/torus.obj", device)));
+	meshes.insert(std::pair<std::string, Mesh*>("spear", new Mesh("../../Assets/Models/spear.obj", device)));
 }
 
 Resources::Resources(ID3D11Device *device, ID3D11DeviceContext *context)

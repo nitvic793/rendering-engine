@@ -22,6 +22,7 @@ public:
 	void SetMaterial(Material* mat);
 	void SetPosition(XMFLOAT3 pos);
 	void SetRotationZ(float angle);
+	void SetRotation(float roll, float pitch, float yaw);
 	void SetPosition(float x, float y, float z);
 	void SetScale(float x, float y, float z);
 	void Move(XMFLOAT3 offset);

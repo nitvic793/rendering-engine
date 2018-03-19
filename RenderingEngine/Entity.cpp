@@ -18,8 +18,8 @@ Entity::~Entity()
 
 XMFLOAT4X4 Entity::GetWorldMatrix()
 {
-	XMMATRIX trans = XMMatrixTranslation(position.x, position.y, position.z);
-	XMMATRIX rotY = XMMatrixRotationZ(rotation.z);
+	XMMATRIX trans = XMMatrixTranslation(position.x, position.y, position.z);	
+	XMMATRIX rotY = XMMatrixRotationRollPitchYawFromVector(XMLoadFloat3(&rotation));
 	XMMATRIX scle = XMMatrixScaling(scale.x, scale.y, scale.z);
 	XMMATRIX world = scle * rotY * trans;
 	//world = XMMatrixMultiply(XMMatrixIdentity(), world);
@@ -35,6 +35,13 @@ void Entity::SetPosition(XMFLOAT3 pos)
 void Entity::SetRotationZ(float angle)
 {
 	rotation.z = angle;
+}
+
+void Entity::SetRotation(float roll, float pitch, float yaw)
+{
+	rotation.x = roll;
+	rotation.y = pitch;
+	rotation.z = yaw;
 }
 
 void Entity::SetPosition(float x, float y, float z)

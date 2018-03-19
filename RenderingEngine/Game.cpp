@@ -82,10 +82,10 @@ void Game::Init()
 	CreateCamera();
 	InitializeEntities();
 	InitializeRenderer();
-	
+
 	terrain = std::unique_ptr<Terrain>(new Terrain());
 	terrain->Initialize("../../Assets/Terrain/heightmap.bmp", device, context);
-	terrain->SetMaterial(resources->materials["metal"]);
+	terrain->SetMaterial(resources->materials["grass"]);
 	terrain->SetPosition(-25, -25, 5);
 	// Tell the input assembler stage of the pipeline what kind of
 	// geometric primitives (points, lines or triangles) we want to draw.  
@@ -137,13 +137,15 @@ void Game::InitializeEntities()
 	lights.insert(std::pair<std::string, DirectionalLight>("light", light));
 	lights.insert(std::pair<std::string, DirectionalLight>("secondaryLight", secondaryLight));
 
-	entities.push_back(new Entity(resources->meshes["cube"], resources->materials["wood"]));
+	entities.push_back(new Entity(resources->meshes["spear"], resources->materials["spear"]));
 	entities.push_back(new Entity(resources->meshes["sphere"], resources->materials["metal"]));
 	entities.push_back(new Entity(resources->meshes["helix"], resources->materials["wood"]));
 	entities.push_back(new Entity(resources->meshes["torus"], resources->materials["metal"]));
 	entities.push_back(new Entity(resources->meshes["cylinder"], resources->materials["fabric"]));
 
-	entities[0]->SetPosition(3.f, 0.f, 2.f);
+	entities[0]->SetPosition(0.4f, 0.f, -14.9f);
+	entities[0]->SetRotation(180 * XM_PI / 180, 0, 90 * XM_PI / 180);
+	//entities[0]->SetScale(0.01f, 0.01f, 0.01f);
 	entities[1]->SetPosition(0.f, 3.f, 0.f);
 	entities[2]->SetPosition(0.f, -3.f, 0.f);
 	entities[3]->SetPosition(-3.f, 0.f, 0.f);
