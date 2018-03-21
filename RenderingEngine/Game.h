@@ -52,7 +52,7 @@ private:
 	DirectionalLight light;
 	DirectionalLight secondaryLight;
 	PointLight pointLight;
-	std::unordered_map<std::string, DirectionalLight> lights;
+
 	std::unordered_map<std::string, Light*> lightsMap;
 	std::unordered_map<std::string, Mesh*> models;
 	std::vector<Entity*> entities;	

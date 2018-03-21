@@ -16,8 +16,8 @@ Game::Game(HINSTANCE hInstance)
 	: DXCore(
 		hInstance,		   // The application's handle
 		"DirectX Game",	   // Text for the window's title bar
-		1280,			   // Width of the window's client area
-		720,			   // Height of the window's client area
+		1366,			   // Width of the window's client area
+		768,			   // Height of the window's client area
 		true)			   // Show extra stats (fps) in title bar?
 {
 	// Initialize fields
@@ -75,7 +75,11 @@ void Game::Init()
 	// Helper methods for loading shaders, creating some basic
 	// geometry to draw and some simple camera matrices.
 	//  - You'll be expanding and/or replacing these later
-
+	RECT rect;
+	GetWindowRect(this->hWnd, &rect);
+	prevMousePos.x = width / 2;
+	prevMousePos.y = height / 2 - 30;
+	SetCursorPos(rect.left + width / 2, rect.top + height / 2);
 	resources = new Resources(device, context);
 	resources->LoadResources();
 	LoadShaders();
@@ -120,28 +124,26 @@ void Game::CreateCamera()
 void Game::InitializeEntities()
 {
 	light.AmbientColor = XMFLOAT4(0.1f, 0.1f, 0.1f, 0);
-	light.DiffuseColor = XMFLOAT4(0.4f, 0.4f, 0.9f, 1.f);
+	light.DiffuseColor = XMFLOAT4(0.9f, 0.9f, 0.9f, 1.f);
 	light.Direction = XMFLOAT3(1.f, 0, 0.f);
 
 	secondaryLight.AmbientColor = XMFLOAT4(0.1f, 0.1f, 0.1f, 0);
-	secondaryLight.DiffuseColor = XMFLOAT4(0.9f, 0.4f, 0.4f, 1);
+	secondaryLight.DiffuseColor = XMFLOAT4(0.5f, 0.5f, 0.5f, 1);
 	secondaryLight.Direction = XMFLOAT3(0, -1, 0);
 
-	pointLight.Color = XMFLOAT4(0.4f, 0.9f, 0.4f, 1);
+	pointLight.Color = XMFLOAT4(0.6f, 0.6f, 0.6f, 1);
 	pointLight.Position = XMFLOAT3(0, 0, 0);
+	pointLight.Range = 20.f;
 
 	lightsMap.insert(std::pair<std::string, Light*>("light", new Light{ &light, Directional }));
 	lightsMap.insert(std::pair<std::string, Light*>("secondaryLight", new Light{ &secondaryLight, Directional }));
 	lightsMap.insert(std::pair<std::string, Light*>("pointLight", new Light{ &pointLight, Point }));
 
-	lights.insert(std::pair<std::string, DirectionalLight>("light", light));
-	lights.insert(std::pair<std::string, DirectionalLight>("secondaryLight", secondaryLight));
-
 	entities.push_back(new Entity(resources->meshes["spear"], resources->materials["spear"]));
 	entities.push_back(new Entity(resources->meshes["sphere"], resources->materials["metal"]));
 	entities.push_back(new Entity(resources->meshes["helix"], resources->materials["wood"]));
-	entities.push_back(new Entity(resources->meshes["torus"], resources->materials["metal"]));
-	entities.push_back(new Entity(resources->meshes["cylinder"], resources->materials["fabric"]));
+	entities.push_back(new Entity(resources->meshes["torus"], resources->materials["fabric"]));
+	entities.push_back(new Entity(resources->meshes["boat"], resources->materials["boat"]));
 
 	entities[0]->SetPosition(0.4f, 0.f, -14.9f);
 	entities[0]->SetRotation(180 * XM_PI / 180, 0, 90 * XM_PI / 180);
@@ -149,7 +151,8 @@ void Game::InitializeEntities()
 	entities[1]->SetPosition(0.f, 3.f, 0.f);
 	entities[2]->SetPosition(0.f, -3.f, 0.f);
 	entities[3]->SetPosition(-3.f, 0.f, 0.f);
-	entities[4]->SetPosition(-3.f, 3.f, 0.f);
+	entities[4]->SetPosition(-3.f, -7.f, -5.f);
+	entities[4]->SetRotation(0, 180.f * XM_PI / 180, 0);
 }
 
 void Game::InitializeRenderer()
@@ -167,6 +170,7 @@ void Game::OnResize()
 {
 	// Handle base-level DX resize stuff
 	DXCore::OnResize();
+	renderer->SetDepthStencilView(depthStencilView);
 	camera->SetProjectionMatrix((float)width / height);
 }
 
@@ -177,6 +181,10 @@ void Game::Update(float deltaTime, float totalTime)
 {
 	//Update Camera
 	camera->Update(deltaTime);
+	for (auto entity : entities)
+	{
+		entity->Update(deltaTime, totalTime);
+	}
 	//Update entities
 	entities[1]->SetRotationZ(sin(totalTime));
 	if (GetAsyncKeyState(VK_ESCAPE))
@@ -254,14 +262,14 @@ void Game::OnMouseUp(WPARAM buttonState, int x, int y)
 // --------------------------------------------------------
 void Game::OnMouseMove(WPARAM buttonState, int x, int y)
 {
-	if (buttonState & 0x0001)
-	{
-		float speed = 0.1f;
-		float deltaX = (float)x - prevMousePos.x;
-		float deltaY = (float)y - prevMousePos.y;
-		camera->RotateX(speed * deltaY * XM_PI / 180);
-		camera->RotateY(speed * deltaX * XM_PI / 180);
-	}
+	//if (buttonState & 0x0001)
+	//{
+	float speed = 0.6f;
+	float deltaX = (float)x - prevMousePos.x;
+	float deltaY = (float)y - prevMousePos.y;
+	camera->RotateX(speed * deltaY * XM_PI / 180);
+	camera->RotateY(speed * deltaX * XM_PI / 180);
+	//}
 	// Save the previous mouse position, so we have it for the future
 	prevMousePos.x = x;
 	prevMousePos.y = y;

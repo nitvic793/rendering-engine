@@ -1,5 +1,10 @@
 #include "Renderer.h"
 
+void Renderer::SetDepthStencilView(ID3D11DepthStencilView * depthStencilView)
+{
+	this->depthStencilView = depthStencilView;
+}
+
 void Renderer::ClearScreen(const float color[4])
 {
 	context->ClearRenderTargetView(backBufferRTV, color);

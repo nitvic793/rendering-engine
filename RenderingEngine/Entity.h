@@ -30,6 +30,7 @@ public:
 	void SetLights(std::unordered_map<std::string, DirectionalLight> lights);
 	void SetLights(std::unordered_map<std::string, Light*> lights);
 	void SetCameraPosition(XMFLOAT3 position);
+	virtual void Update(float deltaTime, float totalTime);
 	Mesh *GetMesh();
 	Entity(Mesh *m, Material* mat);
 	~Entity();

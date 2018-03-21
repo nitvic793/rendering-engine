@@ -24,6 +24,7 @@ typedef std::map<std::string, Material*> MaterialMap;
 
 class Resources
 {
+	static Resources* mInstance;
 	ID3D11Device *device;
 	ID3D11DeviceContext *context;
 	
@@ -34,7 +35,7 @@ public:
 	SRVMap shaderResourceViews;
 	VertexShaderMap vertexShaders;
 	PixelShaderMap pixelShaders;
-
+	static Resources* GetInstance();
 	void LoadResources();
 	Resources(ID3D11Device *device, ID3D11DeviceContext *context);
 	~Resources();

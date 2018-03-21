@@ -12,12 +12,14 @@ struct DirectionalLight : public ILight
 	XMFLOAT4 AmbientColor;
 	XMFLOAT4 DiffuseColor;
 	XMFLOAT3 Direction;
+	float Padding;
 };
 
 struct PointLight : public ILight
 {
 	XMFLOAT4 Color;
 	XMFLOAT3 Position;
+	float Range;
 };
 
 

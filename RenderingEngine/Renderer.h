@@ -15,6 +15,7 @@ class Renderer
 	Camera *camera;
 	std::unordered_map<std::string, Light*> lights;
 public:
+	void SetDepthStencilView(ID3D11DepthStencilView *depthStencilView);
 	void ClearScreen(const float color[4]);
 	void SetCamera(Camera* cam);
 	void SetLights(std::unordered_map<std::string, Light*> lightsMap);

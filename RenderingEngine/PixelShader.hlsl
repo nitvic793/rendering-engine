@@ -1,4 +1,6 @@
 
+#define MAX_LIGHTS 32
+
 struct VertexToPixel
 {
 	float4 position		: SV_POSITION;
@@ -13,50 +15,74 @@ struct DirectionalLight
 	float4 AmbientColor;
 	float4 DiffuseColor;
 	float3 Direction;
+	float Padding;
 };
 
 struct PointLight
 {
 	float4 Color;
 	float3 Position;
+	float Range;
 };
+
+
 
 cbuffer externalData : register(b0)
 {
 	DirectionalLight light;
-	DirectionalLight secondaryLight;
+	DirectionalLight secondaryLight;	
 	PointLight pointLight;
+
+	DirectionalLight dirLights[MAX_LIGHTS];
+	PointLight pointLights[MAX_LIGHTS];
+	int DirectionalLightCount;
+	int PointLightCount;
 	float3 cameraPosition;
-	bool UseNormal;
 }
 
 Texture2D diffuseTexture : register(t0);
 Texture2D normalTexture : register(t1);
+Texture2D roughnessTexture : register(t2);
 SamplerState basicSampler : register(s0);
 
-float4 calculateDirectionalLight(float3 normal, DirectionalLight light)
+// Range-based attenuation function
+float Attenuate(float3 lightPosition, float lightRange, float3 worldPos)
+{
+	float dist = distance(lightPosition, worldPos);
+
+	// Ranged-based attenuation
+	float att = saturate(1.0f - (dist * dist / (lightRange * lightRange)));
+
+	// Soft falloff
+	return att * att;
+}
+
+float calculateSpecular(float3 normal, float3 worldPos, float3 dirToLight, float3 camPos)
+{
+	float3 dirToCamera = normalize(camPos - worldPos);
+	float3 halfwayVector = normalize(dirToLight + dirToCamera);
+	//float3 refl = reflect(-dirToLight, normal);
+	float shininess = 64;
+	//float spec = pow(saturate(dot(dirToCamera, refl)), shininess);
+	return shininess == 0 ? 0.0f : pow(max(dot(halfwayVector, normal), 0), shininess);
+	//return spec;
+}
+
+float4 calculateDirectionalLight(float3 normal, float3 worldPos, DirectionalLight light, float roughness)
 {
 	float3 dirToLight = normalize(-light.Direction);
 	float NdotL = dot(normal, dirToLight);
 	NdotL = saturate(NdotL);
-	return light.DiffuseColor * NdotL + light.AmbientColor;
+	float spec = calculateSpecular(normal, worldPos, dirToLight, cameraPosition) * roughness;
+	return spec + light.DiffuseColor * NdotL + light.AmbientColor;
 }
 
-float calculateSpecular(float3 normal, float3 worldPos, float3 dirToPointLight, float3 camPos)
-{
-	float3 dirToCamera = normalize(camPos - worldPos);
-	float3 refl = reflect(-dirToPointLight, normal);
-	float specExp = 64;
-	float spec = pow(saturate(dot(dirToCamera, refl)), specExp);
-	return spec;
-}
-
-float4 calculatePointLight(float3 normal, float3 worldPos, PointLight light)
+float4 calculatePointLight(float3 normal, float3 worldPos, PointLight light, float roughness)
 {
 	float3 dirToPointLight = normalize(light.Position - worldPos);
 	float pointNdotL = dot(normal, dirToPointLight);
 	pointNdotL = saturate(pointNdotL);
-	float spec = calculateSpecular(normal, worldPos, dirToPointLight, cameraPosition);
+	float spec = calculateSpecular(normal, worldPos, dirToPointLight, cameraPosition) * roughness;
 	return spec + light.Color * pointNdotL;
 }
 
@@ -78,8 +104,23 @@ float4 main(VertexToPixel input) : SV_TARGET
 	float3 finalNormal = calculateNormalFromMap(input.uv, input.normal, input.tangent);
 	input.normal = normalize(input.normal);
 	finalNormal = normalize(finalNormal);
-	float4 dirLight = calculateDirectionalLight(finalNormal, light) * surfaceColor;
-	float4 secDirLight = calculateDirectionalLight(finalNormal, secondaryLight) * surfaceColor;
-	float4 pLight = calculatePointLight(finalNormal, input.worldPos, pointLight)  * surfaceColor;
-	return dirLight + secDirLight + pLight;
+	float4 totalColor = float4(0, 0, 0, 0);
+	float roughness = roughnessTexture.Sample(basicSampler, input.uv).r;
+
+	int i = 0;
+	for (i = 0; i < DirectionalLightCount; ++i)
+	{
+		totalColor += calculateDirectionalLight(finalNormal, input.worldPos, dirLights[i], roughness) * surfaceColor;
+	}
+
+	for (i = 0; i < PointLightCount; ++i)
+	{
+		totalColor += calculatePointLight(finalNormal, input.worldPos, pointLights[i], roughness)  * surfaceColor;
+	}
+
+	/*float4 dirLight = calculateDirectionalLight(finalNormal, dirLights[0]) * surfaceColor;
+	float4 secDirLight = calculateDirectionalLight(finalNormal, dirLights[1]) * surfaceColor;
+	float4 pLight = calculatePointLight(finalNormal, input.worldPos, pointLights[0])  * surfaceColor;*/
+	//return dirLight + secDirLight + pLight;
+	return totalColor;
 }
