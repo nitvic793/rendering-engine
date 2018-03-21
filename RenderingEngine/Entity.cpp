@@ -131,8 +131,8 @@ void Entity::SetLights(std::unordered_map<std::string, Light*> lights)
 	int pointLightCount = (int)pointLights.size();
 	pixelShader->SetInt("DirectionalLightCount", dirLightCount);
 	pixelShader->SetInt("PointLightCount", pointLightCount);
-	pixelShader->SetData("dirLights", dirLights.data(), sizeof(DirectionalLight) * 32);
-	pixelShader->SetData("pointLights", pointLights.data(), sizeof(PointLight) * 32);
+	pixelShader->SetData("dirLights", dirLights.data(), sizeof(DirectionalLight) * MAX_LIGHTS);
+	pixelShader->SetData("pointLights", pointLights.data(), sizeof(PointLight) * MAX_LIGHTS);
 
 	for (auto lightPair : lights)
 	{

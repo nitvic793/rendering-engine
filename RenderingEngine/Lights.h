@@ -1,6 +1,9 @@
 #pragma once
 
 #include <DirectXMath.h>
+
+#define MAX_LIGHTS 32
+
 using namespace DirectX;
 
 enum LightType { Directional, Point };
