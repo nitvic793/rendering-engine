@@ -9,6 +9,7 @@
 #include "Material.h"
 #include "Camera.h"
 #include "Lights.h"
+#include "DDSTextureLoader.h"
 #include "WICTextureLoader.h"
 #include "Renderer.h"
 #include "Terrain.h"
@@ -56,5 +57,11 @@ private:
 	std::unordered_map<std::string, Light*> lightsMap;
 	std::unordered_map<std::string, Mesh*> models;
 	std::vector<Entity*> entities;	
+
+	ID3D11SamplerState* sampler;
+
+	ID3D11ShaderResourceView* skySRV;
+	ID3D11RasterizerState* skyRastState;
+	ID3D11DepthStencilState* skyDepthState;
 };
 

@@ -69,6 +69,14 @@ void Resources::LoadResources()
 	pixelShader->LoadShaderFile(L"PixelShader.cso");
 	pixelShaders.insert(PixelShaderMapType("default",pixelShader));
 
+	auto skyVS = new SimpleVertexShader(device, context);
+	vertexShader->LoadShaderFile(L"SkyVS.cso");
+	vertexShaders.insert(VertexShaderMapType("sky", skyVS));
+
+	auto skyPS = new SimplePixelShader(device, context);
+	pixelShader->LoadShaderFile(L"SkyPS.cso");
+	pixelShaders.insert(PixelShaderMapType("sky", skyPS));
+
 	//Load Materials
 	materials.insert(MaterialMapType("metal", new Material(vertexShader, pixelShader, shaderResourceViews["metal"], shaderResourceViews["metalNormal"], shaderResourceViews["metalSpecular"], sampler)));
 	materials.insert(MaterialMapType("fabric", new Material(vertexShader, pixelShader, shaderResourceViews["fabric"], shaderResourceViews["fabricNormal"], sampler)));
