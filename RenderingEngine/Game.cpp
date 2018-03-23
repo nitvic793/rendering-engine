@@ -64,8 +64,6 @@ Game::~Game()
 	delete camera;
 	delete renderer;
 	delete resources;
-
-	skySRV->Release();
 }
 
 // --------------------------------------------------------
@@ -98,8 +96,7 @@ void Game::Init()
 	// Essentially: "What kind of shape should the GPU draw with our data?"
 	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-	CreateDDSTextureFromFile(device, L"../../Assets/Textures/SunnyCubeMap.dds", 0, &skySRV);
-	resources->shaderResourceViews.insert(SRVMapType("cubemap", skySRV));
+
 
 	// Create a sampler state that holds options for sampling
 	// The descriptions should always just be local variables
@@ -130,8 +127,6 @@ void Game::Init()
 	// geometric primitives (points, lines or triangles) we want to draw.  
 	// Essentially: "What kind of shape should the GPU draw with our data?"
 	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-	resources->meshes.insert(std::pair<std::string, Mesh*>("skybox", new Mesh("../../Assets/Models/cube.obj", device)));
 }
 
 // --------------------------------------------------------
@@ -255,26 +250,16 @@ void Game::Draw(float deltaTime, float totalTime)
 		renderer->DrawEntity(entity);
 	}
 
-	Entity* ge = entities[0];
-	ID3D11Buffer* vb = ge->GetMesh()->GetVertexBuffer();
-	ID3D11Buffer* ib = ge->GetMesh()->GetIndexBuffer();
 
 	// Set buffers in the input assembler
 	UINT stride = sizeof(Vertex);
 	UINT offset = 0;
-	context->IASetVertexBuffers(0, 1, &vb, &stride, &offset);
-	context->IASetIndexBuffer(ib, DXGI_FORMAT_R32_UINT, 0);
-
-	// Finally do the actual drawing
-	context->DrawIndexed(ge->GetMesh()->GetIndexCount(), 0, 0);
-
-
 
 	// After I draw any and all opaque entities, I want to draw the sky
-	ID3D11Buffer* skyVB = resources->meshes["skybox"]->GetVertexBuffer();
-	ID3D11Buffer* skyIB = resources->meshes["skybox"]->GetIndexBuffer();
-	context->IASetVertexBuffers(0, 1, &vb, &stride, &offset);
-	context->IASetIndexBuffer(ib, DXGI_FORMAT_R32_UINT, 0);
+	ID3D11Buffer* skyVB = resources->meshes["cube"]->GetVertexBuffer();
+	ID3D11Buffer* skyIB = resources->meshes["cube"]->GetIndexBuffer();
+	context->IASetVertexBuffers(0, 1, &skyVB, &stride, &offset);
+	context->IASetIndexBuffer(skyIB, DXGI_FORMAT_R32_UINT, 0);
 
 	// Set up the sky shaders
 	resources->vertexShaders["sky"]->SetMatrix4x4("view", camera->GetViewMatrix());
@@ -282,14 +267,14 @@ void Game::Draw(float deltaTime, float totalTime)
 	resources->vertexShaders["sky"]->CopyAllBufferData();
 	resources->vertexShaders["sky"]->SetShader();
 
-	resources->pixelShaders["sky"]->SetShaderResourceView("SkyTexture", skySRV);
+	resources->pixelShaders["sky"]->SetShaderResourceView("SkyTexture", resources->shaderResourceViews["cubemap"]);
 	resources->pixelShaders["sky"]->SetSamplerState("BasicSampler", sampler);
 	resources->pixelShaders["sky"]->SetShader();
 
 	// Set up the render states necessary for the sky
 	context->RSSetState(skyRastState);
 	context->OMSetDepthStencilState(skyDepthState, 0);
-	context->DrawIndexed(resources->meshes["skybox"]->GetIndexCount(), 0, 0);
+	context->DrawIndexed(resources->meshes["cube"]->GetIndexCount(), 0, 0);
 
 	// When done rendering, reset any and all states for the next frame
 	context->RSSetState(0);
