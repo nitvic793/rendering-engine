@@ -64,6 +64,10 @@ Game::~Game()
 	delete camera;
 	delete renderer;
 	delete resources;
+
+	skyDepthState->Release();
+	sampler->Release();
+	skyRastState->Release();
 }
 
 // --------------------------------------------------------
