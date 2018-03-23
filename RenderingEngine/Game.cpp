@@ -64,6 +64,10 @@ Game::~Game()
 	delete camera;
 	delete renderer;
 	delete resources;
+
+	skyDepthState->Release();
+	sampler->Release();
+	skyRastState->Release();
 }
 
 // --------------------------------------------------------
@@ -91,6 +95,38 @@ void Game::Init()
 	terrain->Initialize("../../Assets/Terrain/heightmap.bmp", device, context);
 	terrain->SetMaterial(resources->materials["grass"]);
 	terrain->SetPosition(-25, -25, 5);
+	// Tell the input assembler stage of the pipeline what kind of
+	// geometric primitives (points, lines or triangles) we want to draw.  
+	// Essentially: "What kind of shape should the GPU draw with our data?"
+	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+
+
+	// Create a sampler state that holds options for sampling
+	// The descriptions should always just be local variables
+	D3D11_SAMPLER_DESC samplerDesc = {}; // The {} part zeros out the struct!
+	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+	samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+	samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+	samplerDesc.Filter = D3D11_FILTER_ANISOTROPIC;
+	samplerDesc.MaxAnisotropy = 16;
+	samplerDesc.MaxLOD = D3D11_FLOAT32_MAX; // Setting this allows for mip maps to work! (if they exist)
+
+											// Ask DirectX for the actual object
+	device->CreateSamplerState(&samplerDesc, &sampler);
+
+	// Create states for sky rendering
+	D3D11_RASTERIZER_DESC rs = {};
+	rs.CullMode = D3D11_CULL_FRONT;
+	rs.FillMode = D3D11_FILL_SOLID;
+	device->CreateRasterizerState(&rs, &skyRastState);
+
+	D3D11_DEPTH_STENCIL_DESC ds = {};
+	ds.DepthEnable = true;
+	ds.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+	ds.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
+	device->CreateDepthStencilState(&ds, &skyDepthState);
+
 	// Tell the input assembler stage of the pipeline what kind of
 	// geometric primitives (points, lines or triangles) we want to draw.  
 	// Essentially: "What kind of shape should the GPU draw with our data?"
@@ -229,6 +265,36 @@ void Game::Draw(float deltaTime, float totalTime)
 	{
 		renderer->DrawEntity(entity);
 	}
+
+
+	// Set buffers in the input assembler
+	UINT stride = sizeof(Vertex);
+	UINT offset = 0;
+
+	// After I draw any and all opaque entities, I want to draw the sky
+	ID3D11Buffer* skyVB = resources->meshes["cube"]->GetVertexBuffer();
+	ID3D11Buffer* skyIB = resources->meshes["cube"]->GetIndexBuffer();
+	context->IASetVertexBuffers(0, 1, &skyVB, &stride, &offset);
+	context->IASetIndexBuffer(skyIB, DXGI_FORMAT_R32_UINT, 0);
+
+	// Set up the sky shaders
+	resources->vertexShaders["sky"]->SetMatrix4x4("view", camera->GetViewMatrix());
+	resources->vertexShaders["sky"]->SetMatrix4x4("projection", camera->GetProjectionMatrix());
+	resources->vertexShaders["sky"]->CopyAllBufferData();
+	resources->vertexShaders["sky"]->SetShader();
+
+	resources->pixelShaders["sky"]->SetShaderResourceView("SkyTexture", resources->shaderResourceViews["cubemap"]);
+	resources->pixelShaders["sky"]->SetSamplerState("BasicSampler", sampler);
+	resources->pixelShaders["sky"]->SetShader();
+
+	// Set up the render states necessary for the sky
+	context->RSSetState(skyRastState);
+	context->OMSetDepthStencilState(skyDepthState, 0);
+	context->DrawIndexed(resources->meshes["cube"]->GetIndexCount(), 0, 0);
+
+	// When done rendering, reset any and all states for the next frame
+	context->RSSetState(0);
+	context->OMSetDepthStencilState(0, 0);
 
 	renderer->Present();
 }
