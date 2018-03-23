@@ -399,10 +399,10 @@ bool Terrain::Initialize(const char * filename, ID3D11Device * device, ID3D11Dev
 	CalculateNormals();
 	CalculateUVCoordinates();
 	int vertexCount = (terrainWidth - 1) * (terrainHeight - 1) * 6;
-	int indexCount = vertexCount;
+	indexCount = vertexCount;
 	index = 0;
-	Vertex *vertices = new Vertex[vertexCount];
-	UINT *indices = new UINT[indexCount];
+	vertices = new Vertex[vertexCount];
+	indices = new UINT[indexCount];
 	float tu, tv;
 
 	for (int j = 0; j<(terrainHeight - 1); j++)

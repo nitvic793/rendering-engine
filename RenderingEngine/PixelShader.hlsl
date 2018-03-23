@@ -25,14 +25,8 @@ struct PointLight
 	float Range;
 };
 
-
-
 cbuffer externalData : register(b0)
 {
-	DirectionalLight light;
-	DirectionalLight secondaryLight;	
-	PointLight pointLight;
-
 	DirectionalLight dirLights[MAX_LIGHTS];
 	PointLight pointLights[MAX_LIGHTS];
 	int DirectionalLightCount;

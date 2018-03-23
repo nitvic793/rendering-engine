@@ -15,6 +15,9 @@ class Terrain : public Entity
 	XMFLOAT3* heightMap;
 	XMFLOAT3* heightNormals;
 	XMFLOAT2* textureCoords;
+	Vertex *vertices;
+	UINT *indices;
+	int indexCount;
 public:
 	void CalculateNormals();
 	void CalculateUVCoordinates(); 

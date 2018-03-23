@@ -13,6 +13,7 @@ class Camera
 	float rotationX;
 public:
 	XMFLOAT3 GetPosition();
+	XMFLOAT3 GetDirection();
 	void RotateX(float x);
 	void RotateY(float y);
 	XMFLOAT4X4 GetViewMatrix();

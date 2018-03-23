@@ -7,6 +7,16 @@ XMFLOAT3 Camera::GetPosition()
 	return position;
 }
 
+XMFLOAT3 Camera::GetDirection()
+{
+	XMVECTOR dir = XMVectorSet(direction.x, direction.y, direction.z, 0);
+	auto rotQuaternion = XMQuaternionRotationRollPitchYaw(rotationX, rotationY, 0);
+	dir = XMVector3Rotate(dir, rotQuaternion);
+	XMFLOAT3 direction;
+	XMStoreFloat3(&direction, dir);
+	return direction;
+}
+
 void Camera::RotateX(float x)
 {
 	rotationX += x;

@@ -29,6 +29,9 @@ void Resources::LoadResources()
 	shaderResourceViews.insert(SRVMapType("grass", srv));
 	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/grass01_n.jpg", nullptr, &srv);
 	shaderResourceViews.insert(SRVMapType("grassNormal", srv));
+
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/grass01_h.jpg", nullptr, &srv);
+	shaderResourceViews.insert(SRVMapType("grassSpecular", srv));
 	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/spear.png", nullptr, &srv);
 	shaderResourceViews.insert(SRVMapType("spear", srv));
 	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/spearNormal.png", nullptr, &srv);
@@ -73,7 +76,7 @@ void Resources::LoadResources()
 	materials.insert(MaterialMapType("metal", new Material(vertexShader, pixelShader, shaderResourceViews["metal"], shaderResourceViews["metalNormal"], shaderResourceViews["metalSpecular"], sampler)));
 	materials.insert(MaterialMapType("fabric", new Material(vertexShader, pixelShader, shaderResourceViews["fabric"], shaderResourceViews["fabricNormal"], sampler)));
 	materials.insert(MaterialMapType("wood", new Material(vertexShader, pixelShader, shaderResourceViews["wood"], shaderResourceViews["woodNormal"], sampler)));
-	materials.insert(MaterialMapType("grass", new Material(vertexShader, pixelShader, shaderResourceViews["grass"], shaderResourceViews["grassNormal"], sampler)));
+	materials.insert(MaterialMapType("grass", new Material(vertexShader, pixelShader, shaderResourceViews["grass"], shaderResourceViews["grassNormal"], shaderResourceViews["grassSpecular"], sampler)));
 	materials.insert(MaterialMapType("spear", new Material(vertexShader, pixelShader, shaderResourceViews["spear"], shaderResourceViews["spearNormal"], sampler)));
 	materials.insert(MaterialMapType("boat", new Material(vertexShader, pixelShader, shaderResourceViews["boat"], shaderResourceViews["boatNormal"], sampler)));
 

@@ -123,6 +123,8 @@ void Game::CreateCamera()
 
 void Game::InitializeEntities()
 {
+	ShowCursor(false);
+
 	light.AmbientColor = XMFLOAT4(0.1f, 0.1f, 0.1f, 0);
 	light.DiffuseColor = XMFLOAT4(0.9f, 0.9f, 0.9f, 1.f);
 	light.Direction = XMFLOAT3(1.f, 0, 0.f);
@@ -185,6 +187,16 @@ void Game::Update(float deltaTime, float totalTime)
 	{
 		entity->Update(deltaTime, totalTime);
 	}
+
+	auto dir = camera->GetDirection();
+	auto spearPos = entities[0]->GetPosition();
+	auto dirV = XMVectorSet(0,0,-1,0);
+	auto posV = XMLoadFloat3(&spearPos);
+
+	posV = posV + posV * XMVector3Normalize(dirV) * deltaTime/10;
+
+	XMStoreFloat3(&spearPos, posV);
+	entities[0]->SetPosition(spearPos);
 	//Update entities
 	entities[1]->SetRotationZ(sin(totalTime));
 	if (GetAsyncKeyState(VK_ESCAPE))
