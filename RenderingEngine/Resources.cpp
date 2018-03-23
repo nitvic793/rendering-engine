@@ -1,6 +1,4 @@
 #include "Resources.h"
-#include "DDSTextureLoader.h"
-
 
 Resources* Resources::mInstance = nullptr;
 
@@ -51,9 +49,6 @@ void Resources::LoadResources()
 	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/boattexnm.jpg", nullptr, &srv);
 	shaderResourceViews.insert(SRVMapType("boatNormal", srv));
 
-	CreateDDSTextureFromFile(device, L"../../Assets/Textures/SunnyCubeMap.dds", 0, &srv);
-	shaderResourceViews.insert(SRVMapType("cubemap", srv));
-
 	//Load Sampler
 	D3D11_SAMPLER_DESC samplerDesc = {};
 	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
@@ -75,11 +70,11 @@ void Resources::LoadResources()
 	pixelShaders.insert(PixelShaderMapType("default",pixelShader));
 
 	auto skyVS = new SimpleVertexShader(device, context);
-	skyVS->LoadShaderFile(L"SkyVS.cso");
+	vertexShader->LoadShaderFile(L"SkyVS.cso");
 	vertexShaders.insert(VertexShaderMapType("sky", skyVS));
 
 	auto skyPS = new SimplePixelShader(device, context);
-	skyPS->LoadShaderFile(L"SkyPS.cso");
+	pixelShader->LoadShaderFile(L"SkyPS.cso");
 	pixelShaders.insert(PixelShaderMapType("sky", skyPS));
 
 	//Load Materials
