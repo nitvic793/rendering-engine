@@ -56,6 +56,8 @@ private:
 	PointLight pointLight;
 
 	ProjectileEntity *currentProjectile;
+	XMFLOAT3 projectilePreviousPosition;
+	XMFLOAT3 projectilePreviousRotation;
 	std::unordered_map<std::string, Light*> lightsMap;
 	std::unordered_map<std::string, Mesh*> models;
 	std::vector<Entity*> entities;	

@@ -194,8 +194,8 @@ void Game::InitializeEntities()
 
 	entities[0]->SetPosition(1.f, 1.f, 1.9f);
 	//entities[0]->SetRotation(180 * XM_PI / 180, 0, 90 * XM_PI / 180);
-	//entities[0]->SetScale(0.01f, 0.01f, 0.01f);
-	entities[1]->SetPosition(-3.f, -7.f, -5.f);
+	entities[1]->SetScale(0.6f, 0.6f, 0.6f);
+	entities[1]->SetPosition(-2.f, -7.f, -7.f);
 	entities[1]->SetRotation(0, 180.f * XM_PI / 180, 0);
 }
 
@@ -228,6 +228,7 @@ void Game::Update(float deltaTime, float totalTime)
 
 	if ((GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0)
 	{
+		projectilePreviousPosition = currentProjectile->GetPosition();
 		currentProjectile->Shoot(0.8f, camera->GetDirection());
 	}
 

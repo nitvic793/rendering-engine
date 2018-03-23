@@ -93,7 +93,7 @@ void Camera::Update(float deltaTime)
 		pos = pos + rightDir * speed * deltaTime;;
 	}
 
-	if (GetAsyncKeyState(VK_SPACE) & 0x8000)
+	/*if (GetAsyncKeyState(VK_SPACE) & 0x8000)
 	{
 		pos = pos + XMVectorSet(0, speed * deltaTime, 0, 0);
 	}
@@ -101,7 +101,7 @@ void Camera::Update(float deltaTime)
 	if (GetAsyncKeyState('X') & 0x8000)
 	{
 		pos = pos + XMVectorSet(0, -speed * deltaTime, 0, 0);
-	}
+	}*/
 
 	XMStoreFloat3(&position, pos);
 }
