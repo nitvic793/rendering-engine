@@ -9,6 +9,8 @@ class Camera
 	XMFLOAT4X4 projectionMatrix;
 	XMFLOAT3 position;
 	XMFLOAT3 direction;
+	XMFLOAT3 tdirection;
+
 	float rotationY;
 	float rotationX;
 public:

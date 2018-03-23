@@ -14,6 +14,7 @@
 #include "Renderer.h"
 #include "Terrain.h"
 #include "Resources.h"
+#include "ProjectileEntity.h"
 
 class Game 
 	: public DXCore
@@ -54,6 +55,7 @@ private:
 	DirectionalLight secondaryLight;
 	PointLight pointLight;
 
+	ProjectileEntity *currentProjectile;
 	std::unordered_map<std::string, Light*> lightsMap;
 	std::unordered_map<std::string, Mesh*> models;
 	std::vector<Entity*> entities;	

@@ -20,9 +20,9 @@ Entity::~Entity()
 XMFLOAT4X4 Entity::GetWorldMatrix()
 {
 	XMMATRIX trans = XMMatrixTranslation(position.x, position.y, position.z);
-	XMMATRIX rotY = XMMatrixRotationRollPitchYawFromVector(XMLoadFloat3(&rotation));
+	XMMATRIX rot = XMMatrixRotationRollPitchYawFromVector(XMLoadFloat3(&rotation));
 	XMMATRIX scle = XMMatrixScaling(scale.x, scale.y, scale.z);
-	XMMATRIX world = scle * rotY * trans;
+	XMMATRIX world = scle * rot * trans;
 	//world = XMMatrixMultiply(XMMatrixIdentity(), world);
 	XMStoreFloat4x4(&worldMatrix, XMMatrixTranspose(world));
 	return worldMatrix;
@@ -62,6 +62,16 @@ void Entity::SetScale(float x, float y, float z)
 XMFLOAT3 Entity::GetScale()
 {
 	return scale;
+}
+
+void Entity::RotateX(float angle)
+{
+	rotation.x += angle;
+}
+
+void Entity::RotateY(float angle)
+{
+	rotation.y += angle;
 }
 
 void Entity::SetMaterial(Material * mat)

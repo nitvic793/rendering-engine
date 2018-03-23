@@ -68,6 +68,8 @@ Game::~Game()
 	skyDepthState->Release();
 	sampler->Release();
 	skyRastState->Release();
+
+	delete currentProjectile;
 }
 
 // --------------------------------------------------------
@@ -86,15 +88,13 @@ void Game::Init()
 	SetCursorPos(rect.left + width / 2, rect.top + height / 2);
 	resources = new Resources(device, context);
 	resources->LoadResources();
+	
 	LoadShaders();
 	CreateCamera();
 	InitializeEntities();
 	InitializeRenderer();
 
-	terrain = std::unique_ptr<Terrain>(new Terrain());
-	terrain->Initialize("../../Assets/Terrain/heightmap.bmp", device, context);
-	terrain->SetMaterial(resources->materials["grass"]);
-	terrain->SetPosition(-25, -25, 5);
+
 	// Tell the input assembler stage of the pipeline what kind of
 	// geometric primitives (points, lines or triangles) we want to draw.  
 	// Essentially: "What kind of shape should the GPU draw with our data?"
@@ -161,6 +161,11 @@ void Game::InitializeEntities()
 {
 	ShowCursor(false);
 
+	terrain = std::unique_ptr<Terrain>(new Terrain());
+	terrain->Initialize("../../Assets/Terrain/heightmap.bmp", device, context);
+	terrain->SetMaterial(resources->materials["grass"]);
+
+	terrain->SetPosition(-125, -8, -150);
 	light.AmbientColor = XMFLOAT4(0.1f, 0.1f, 0.1f, 0);
 	light.DiffuseColor = XMFLOAT4(0.9f, 0.9f, 0.9f, 1.f);
 	light.Direction = XMFLOAT3(1.f, 0, 0.f);
@@ -177,20 +182,21 @@ void Game::InitializeEntities()
 	lightsMap.insert(std::pair<std::string, Light*>("secondaryLight", new Light{ &secondaryLight, Directional }));
 	lightsMap.insert(std::pair<std::string, Light*>("pointLight", new Light{ &pointLight, Point }));
 
-	entities.push_back(new Entity(resources->meshes["spear"], resources->materials["spear"]));
+	currentProjectile = new ProjectileEntity(resources->meshes["spear"], resources->materials["spear"]);
+	currentProjectile->SetRotation(180 * XM_PI / 180, 0, 90 * XM_PI / 180);
+	currentProjectile->SetPosition(0.4f, 0.f, -14.9f);
+	currentProjectile->SetScale(1.5f, 1.5f, 1.5f);
+	//entities.push_back(new Entity(resources->meshes["spear"], resources->materials["spear"]));
 	entities.push_back(new Entity(resources->meshes["sphere"], resources->materials["metal"]));
-	entities.push_back(new Entity(resources->meshes["helix"], resources->materials["wood"]));
-	entities.push_back(new Entity(resources->meshes["torus"], resources->materials["fabric"]));
+	//entities.push_back(new Entity(resources->meshes["helix"], resources->materials["wood"]));
+	//entities.push_back(new Entity(resources->meshes["torus"], resources->materials["fabric"]));
 	entities.push_back(new Entity(resources->meshes["boat"], resources->materials["boat"]));
 
-	entities[0]->SetPosition(0.4f, 0.f, -14.9f);
-	entities[0]->SetRotation(180 * XM_PI / 180, 0, 90 * XM_PI / 180);
+	entities[0]->SetPosition(1.f, 1.f, 1.9f);
+	//entities[0]->SetRotation(180 * XM_PI / 180, 0, 90 * XM_PI / 180);
 	//entities[0]->SetScale(0.01f, 0.01f, 0.01f);
-	entities[1]->SetPosition(0.f, 3.f, 0.f);
-	entities[2]->SetPosition(0.f, -3.f, 0.f);
-	entities[3]->SetPosition(-3.f, 0.f, 0.f);
-	entities[4]->SetPosition(-3.f, -7.f, -5.f);
-	entities[4]->SetRotation(0, 180.f * XM_PI / 180, 0);
+	entities[1]->SetPosition(-3.f, -7.f, -5.f);
+	entities[1]->SetRotation(0, 180.f * XM_PI / 180, 0);
 }
 
 void Game::InitializeRenderer()
@@ -217,40 +223,35 @@ void Game::OnResize()
 // --------------------------------------------------------
 void Game::Update(float deltaTime, float totalTime)
 {
+	if (GetAsyncKeyState(VK_ESCAPE))
+		Quit();
+
+	if ((GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0)
+	{
+		currentProjectile->Shoot(0.8f, camera->GetDirection());
+	}
+
+	auto distance = XMVectorGetX( XMVector3Length(XMLoadFloat3(&currentProjectile->GetPosition()) - XMLoadFloat3(&camera->GetPosition())));
+	
+	if (fabsf(distance) > 50)
+	{
+		currentProjectile->SetHasBeenShot(false);
+		//currentProjectile->SetRotation(180 * XM_PI / 180, 0, 90 * XM_PI / 180);
+		currentProjectile->SetPosition(0.4f, 0.f, -14.9f);
+	}
+
 	//Update Camera
 	camera->Update(deltaTime);
 	for (auto entity : entities)
 	{
 		entity->Update(deltaTime, totalTime);
 	}
-
-	auto dir = camera->GetDirection();
-	auto spearPos = entities[0]->GetPosition();
-	auto dirV = XMVectorSet(0,0,-1,0);
-	auto posV = XMLoadFloat3(&spearPos);
-
-	posV = posV + posV * XMVector3Normalize(dirV) * deltaTime/10;
-
-	XMStoreFloat3(&spearPos, posV);
-	entities[0]->SetPosition(spearPos);
+	//currentProjectile->SetPosition(camera->GetPosition());
+	currentProjectile->Update(deltaTime,totalTime);
+	
 	//Update entities
-	entities[1]->SetRotationZ(sin(totalTime));
-	if (GetAsyncKeyState(VK_ESCAPE))
-		Quit();
+	entities[1]->SetRotationZ(sin(totalTime)/20);
 
-	XMFLOAT3 offset(0, 0, 0);
-	float speed = 10.f * deltaTime;
-
-	//Move entity 2 with arrow keys
-	if (GetAsyncKeyState(VK_UP) & 0x8000)
-		offset.y += speed;
-	if (GetAsyncKeyState(VK_DOWN) & 0x8000)
-		offset.y -= speed;
-	if (GetAsyncKeyState(VK_LEFT) & 0x8000)
-		offset.x -= speed;
-	if (GetAsyncKeyState(VK_RIGHT) & 0x8000)
-		offset.x += speed;
-	entities[1]->Move(offset);
 }
 
 // --------------------------------------------------------
@@ -265,6 +266,7 @@ void Game::Draw(float deltaTime, float totalTime)
 	{
 		renderer->DrawEntity(entity);
 	}
+	renderer->DrawEntity(currentProjectile);
 
 
 	// Set buffers in the input assembler
@@ -340,6 +342,7 @@ void Game::OnMouseUp(WPARAM buttonState, int x, int y)
 // --------------------------------------------------------
 void Game::OnMouseMove(WPARAM buttonState, int x, int y)
 {
+
 	//if (buttonState & 0x0001)
 	//{
 	float speed = 0.6f;
@@ -347,10 +350,18 @@ void Game::OnMouseMove(WPARAM buttonState, int x, int y)
 	float deltaY = (float)y - prevMousePos.y;
 	camera->RotateX(speed * deltaY * XM_PI / 180);
 	camera->RotateY(speed * deltaX * XM_PI / 180);
+
+	currentProjectile->RotateY(speed * deltaX * XM_PI / 180);
+	currentProjectile->RotateX(speed * deltaY * XM_PI / 180);
 	//}
 	// Save the previous mouse position, so we have it for the future
 	prevMousePos.x = x;
 	prevMousePos.y = y;
+
+	if (buttonState & 0x0001)
+	{
+	
+	}
 }
 
 // --------------------------------------------------------
