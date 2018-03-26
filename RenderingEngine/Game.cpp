@@ -70,6 +70,7 @@ Game::~Game()
 	skyRastState->Release();
 
 	delete currentProjectile;
+	delete water;
 }
 
 // --------------------------------------------------------
@@ -157,6 +158,18 @@ void Game::CreateCamera()
 	camera = new Camera((float)width / height);
 }
 
+void Game::CreateWater()
+{
+	time = 0.0f;
+	translate = 0.0f;
+	water = new Water(64, 64);
+	water->GenerateWaterMesh();
+	water->CalculateUVCoordinates();
+	resources->vertexShaders["water"]->SetFloat("time", time);
+	models.insert(std::pair<std::string, Mesh*>("quad", new Mesh(water->GetVertices(), water->GetVertexCount(), water->GetIndices(), water->GetIndexCount(), device)));
+	entities.push_back(new Entity(models["quad"], resources->materials["water"]));
+}
+
 void Game::InitializeEntities()
 {
 	ShowCursor(false);
@@ -192,6 +205,8 @@ void Game::InitializeEntities()
 	//entities.push_back(new Entity(resources->meshes["torus"], resources->materials["fabric"]));
 	entities.push_back(new Entity(resources->meshes["boat"], resources->materials["boat"]));
 
+	CreateWater();
+
 	entities[0]->SetPosition(1.f, 1.f, 1.9f);
 	//entities[0]->SetRotation(180 * XM_PI / 180, 0, 90 * XM_PI / 180);
 	entities[1]->SetScale(0.6f, 0.6f, 0.6f);
@@ -223,6 +238,18 @@ void Game::OnResize()
 // --------------------------------------------------------
 void Game::Update(float deltaTime, float totalTime)
 {
+	// Water .........................................
+	time += 0.001f;
+	translate += 0.001f;
+	if (translate > 1.0f)
+	{
+		translate -= 1.0f;
+	}
+
+	resources->vertexShaders["water"]->SetFloat("time", time);
+	resources->pixelShaders["water"]->SetFloat("translate", translate);
+	//.................................................
+
 	if (GetAsyncKeyState(VK_ESCAPE))
 		Quit();
 

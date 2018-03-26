@@ -15,6 +15,7 @@
 #include "Terrain.h"
 #include "Resources.h"
 #include "ProjectileEntity.h"
+#include "Water.h"
 
 class Game 
 	: public DXCore
@@ -67,5 +68,9 @@ private:
 	ID3D11ShaderResourceView* skySRV;
 	ID3D11RasterizerState* skyRastState;
 	ID3D11DepthStencilState* skyDepthState;
+
+	float time, translate;
+	Water * water;
+	void CreateWater();
 };
 

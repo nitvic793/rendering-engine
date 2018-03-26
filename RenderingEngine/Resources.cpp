@@ -57,6 +57,12 @@ void Resources::LoadResources()
 	CreateDDSTextureFromFile(device, L"../../Assets/Textures/SunnyCubeMap.dds", 0, &srv);
 	shaderResourceViews.insert(SRVMapType("cubemap", srv));
 
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/waterColor.png", nullptr, &srv);
+	shaderResourceViews.insert(SRVMapType("waterColor", srv));
+
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/waterNormal.png", nullptr, &srv);
+	shaderResourceViews.insert(SRVMapType("waterNormal", srv));
+
 	//Load Sampler
 	D3D11_SAMPLER_DESC samplerDesc = {};
 	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
@@ -85,6 +91,14 @@ void Resources::LoadResources()
 	skyPS->LoadShaderFile(L"SkyPS.cso");
 	pixelShaders.insert(PixelShaderMapType("sky", skyPS));
 
+	auto waterVS = new SimpleVertexShader(device, context);
+	waterVS->LoadShaderFile(L"VS_WaterShader.cso");
+	vertexShaders.insert(VertexShaderMapType("water", waterVS));
+
+	auto waterPS = new SimplePixelShader(device, context);
+	waterPS->LoadShaderFile(L"PS_WaterShader.cso");
+	pixelShaders.insert(PixelShaderMapType("water", waterPS));
+
 	//Load Materials
 	materials.insert(MaterialMapType("metal", new Material(vertexShader, pixelShader, shaderResourceViews["metal"], shaderResourceViews["metalNormal"], shaderResourceViews["metalSpecular"], sampler)));
 	materials.insert(MaterialMapType("fabric", new Material(vertexShader, pixelShader, shaderResourceViews["fabric"], shaderResourceViews["fabricNormal"], sampler)));
@@ -92,6 +106,7 @@ void Resources::LoadResources()
 	materials.insert(MaterialMapType("grass", new Material(vertexShader, pixelShader, shaderResourceViews["grass"], shaderResourceViews["grassNormal"], shaderResourceViews["grassSpecular"], sampler)));
 	materials.insert(MaterialMapType("spear", new Material(vertexShader, pixelShader, shaderResourceViews["spear"], shaderResourceViews["spearNormal"], sampler)));
 	materials.insert(MaterialMapType("boat", new Material(vertexShader, pixelShader, shaderResourceViews["boat"], shaderResourceViews["boatNormal"], sampler)));
+	materials.insert(MaterialMapType("water", new Material(waterVS, waterPS, shaderResourceViews["waterColor"], shaderResourceViews["waterNormal"], sampler)));
 
 	//Load Meshes
 	meshes.insert(std::pair<std::string, Mesh*>("sphere", new Mesh("../../Assets/Models/sphere.obj", device)));
