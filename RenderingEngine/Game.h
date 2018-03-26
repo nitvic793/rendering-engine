@@ -70,7 +70,7 @@ private:
 	std::unordered_map<std::string, Mesh*> models;
 	std::vector<Entity*> entities;
 
-	float time;
+	float time,translate;
 	Water * water;
 };
 

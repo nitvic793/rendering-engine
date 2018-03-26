@@ -9,6 +9,7 @@ Water::Water(int _length,int _breadth)
 	length = _length;
 	breadth = _breadth;
 	vertices = new Vertex[length * breadth];
+	indices = new UINT[length * breadth * 6];
 }
 
 
@@ -26,16 +27,21 @@ void Water::GenerateWaterMesh()
 	const int x = length;
 	const int y = breadth;
 	const int IndicesCount = (x - 1)*(y - 1) * 6;
-	indices = new UINT[IndicesCount];
 	
 	for (int i = 0; i < x; i++)
 	{
 		for (int j = 0; j < y; j++)
 		{
-			//vertices[j*x + i].Position = XMFLOAT3(i, 0, j);
+			// Vertex positions
 			vertices[j*x + i].Position.x = i;
 			vertices[j*x + i].Position.y = 0;
 			vertices[j*x + i].Position.z = j;
+			
+			// Vertex normals
+			vertices[j*x + i].Normal.x = 0;
+			vertices[j*x + i].Normal.y = 1;
+			vertices[j*x + i].Normal.z = 0;
+
 		}
 	}
 
@@ -71,4 +77,59 @@ UINT Water::GetVertexCount()
 UINT Water::GetIndexCount()
 {
 	return (length - 1) * (breadth - 1) * 6;
+}
+
+void Water::CalculateUVCoordinates()
+{
+	int incrementCount, i, j, tuCount, tvCount;
+	float incrementValue, tuCoordinate, tvCoordinate;
+	//textureCoords = new XMFLOAT2[terrainHeight * terrainWidth];
+
+	// Calculate how much to increment the texture coordinates by.
+	incrementValue = (float)16 / (float)breadth;
+
+	// Calculate how many times to repeat the texture.
+	incrementCount = breadth / 16;
+
+	// Initialize the tu and tv coordinate values.
+	tuCoordinate = 0.0f;
+	tvCoordinate = 1.0f;
+
+	// Initialize the tu and tv coordinate indexes.
+	tuCount = 0;
+	tvCount = 0;
+
+	// Loop through the entire height map and calculate the tu and tv texture coordinates for each vertex.
+	for (j = 0; j<length; j++)
+	{
+		for (i = 0; i<breadth; i++)
+		{
+			// Store the texture coordinate in the height map.
+			vertices[(length * j) + i].UV.x = tuCoordinate; //u
+			vertices[(length * j) + i].UV.y = tvCoordinate; //v
+
+																	 // Increment the tu texture coordinate by the increment value and increment the index by one.
+			tuCoordinate += incrementValue;
+			tuCount++;
+
+			// Check if at the far right end of the texture and if so then start at the beginning again.
+			if (tuCount == incrementCount)
+			{
+				tuCoordinate = 0.0f;
+				tuCount = 0;
+			}
+		}
+
+		// Increment the tv texture coordinate by the increment value and increment the index by one.
+		tvCoordinate -= incrementValue;
+		tvCount++;
+
+		// Check if at the top of the texture and if so then start at the bottom again.
+		if (tvCount == incrementCount)
+		{
+			tvCoordinate = 1.0f;
+			tvCount = 0;
+		}
+	}
+
 }

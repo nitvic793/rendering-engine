@@ -5,7 +5,7 @@
 #include "Lights.h"
 #include <unordered_map>
 #include "Entity.h"
-
+#include "Water.h"
 class Renderer
 {
 	ID3D11DepthStencilView *depthStencilView;
@@ -20,6 +20,10 @@ public:
 	void SetLights(std::unordered_map<std::string, Light*> lightsMap);
 	void DrawEntity(Entity *entity);
 	void Present();
+	void RenderToTexture(ID3D11Device* device,ID3D11DeviceContext*	context);
+	void RenderReflection(Entity* entity);
+	void DrawReflectionTexture();
+	void createwater(ID3D11Device* device, ID3D11SamplerState* sampler, SimpleVertexShader* vertexShader, SimplePixelShader* pixelShader);
 	Renderer(ID3D11DeviceContext *ctx, ID3D11RenderTargetView *backBuffer, ID3D11DepthStencilView *depthStencil, IDXGISwapChain *inSwapChain);
 	~Renderer();
 };

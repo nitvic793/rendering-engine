@@ -31,8 +31,8 @@ VertexToPixel main(VertexShaderInput input)
 	matrix worldViewProj = mul(mul(world, view), projection);
 
 	//----------------------------Water Motion-----------------------------------
-	int u = 128;
-	int v = 128;
+	int u = 64;
+	int v = 64;
 
 	float s_X = 0;
 	float s_Y = 0;
@@ -53,12 +53,14 @@ VertexToPixel main(VertexShaderInput input)
 		s_X += X[0] / 64 - 0.5f;
 		s_Y += X[1] / 64 - 0.5f;
 		s_Z += y;
+		
 	}
 	input.position[0] = s_X;
 	input.position[2] = s_Y;
 	input.position[1] = s_Z;
 	input.position *= 7.5f;
-
+	input.normal = float4(0,0,1,1);
+	//input.normal = normalize(cross(ddx_coarse(input.position.xyz), ddy_coarse(input.position.xyz));
 	//---------------------------------------------------------------
 	output.worldPos = mul(float4(input.position, 1.0f), world).xyz;
 	output.position = mul(float4(input.position, 1.0f), worldViewProj);

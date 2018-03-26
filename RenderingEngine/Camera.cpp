@@ -80,7 +80,7 @@ void Camera::RenderReflectionMatrix(float height)
 
 	// Create the view matrix from the three vectors.
 	XMStoreFloat4x4(&reflectionMatrix,XMMatrixLookAtLH(XMLoadFloat3(&reflPosition), XMLoadFloat3(&lookAt), XMLoadFloat3(&up)));
-
+	XMStoreFloat4x4(&reflectionMatrix, XMMatrixTranspose(XMLoadFloat4x4(&reflectionMatrix)));
 	return;
 }
 

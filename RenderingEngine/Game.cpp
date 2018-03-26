@@ -143,13 +143,23 @@ void Game::CreateWater()
 	//vertices[2].Position = XMFLOAT3(+quadsize, +0.0f, +quadsize);
 
 	//vertices[3].Position = XMFLOAT3(+quadsize, +0.0f, -quadsize);
+	//
+	//vertices[0].Normal = XMFLOAT3(0, 1.0f, 0);
 
+	//vertices[1].Normal = XMFLOAT3(0, 1.0f, 0);
+
+	//vertices[2].Normal = XMFLOAT3(0, 1.0f, 0);
+
+	//vertices[3].Normal = XMFLOAT3(0, 1.0f, 0);
 	//UINT indices[] = { 0, 1, 2, 0, 2, 3 };
+	//models.insert(std::pair<std::string, Mesh*>("quad", new Mesh(vertices, 4, indices, 6, device)));
 	//-------------Single quad test------------------------
-	
+	//
 	time = 0.0f;
+	translate = 0.0f;
 	water = new Water(64,64);
 	water->GenerateWaterMesh();
+	water->CalculateUVCoordinates();
 	vertexShaderWater->SetFloat("time",time);
 	models.insert(std::pair<std::string, Mesh*>("quad", new Mesh(water->GetVertices(),water->GetVertexCount(),water->GetIndices(), water->GetIndexCount(),device)));
 	entities.push_back(new Entity(models["quad"], waterMaterial));
@@ -167,7 +177,7 @@ void Game::InitializeEntities()
 	secondaryLight.Direction = XMFLOAT3(0, -1, 0);
 
 	pointLight.Color = XMFLOAT4(0.4f, 0.9f, 0.4f, 1);
-	pointLight.Position = XMFLOAT3(0, 0, 0);
+	pointLight.Position = XMFLOAT3(0, 1, 0);
 
 	lightsMap.insert(std::pair<std::string, Light*>("light", new Light{ &light, Directional }));
 	lightsMap.insert(std::pair<std::string, Light*>("secondaryLight", new Light{ &secondaryLight, Directional }));
@@ -184,7 +194,7 @@ void Game::InitializeEntities()
 	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/woodNormal.png", nullptr, &woodNormalSRV);
 	
 	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/waterColor.png", nullptr, &waterSRV);
-	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/waterNormal.jpg", nullptr, &waterNormalSRV);
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/waterNormal.png", nullptr, &waterNormalSRV);
 
 	D3D11_SAMPLER_DESC samplerDesc = {};
 	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
@@ -224,6 +234,8 @@ void Game::InitializeEntities()
 	entities[2]->SetPosition(0.f, -3.f, 0.f);
 	entities[3]->SetPosition(-3.f, 0.f, 0.f);
 	entities[4]->SetPosition(-3.f, 3.f, 0.f);
+
+	
 }
 
 void Game::InitializeRenderer()
@@ -249,8 +261,15 @@ void Game::OnResize()
 // --------------------------------------------------------
 void Game::Update(float deltaTime, float totalTime)
 {
-	time += 0.002f;
+	time += 0.001f;
+	translate += 0.001f;
+	if (translate > 1.0f)
+	{
+		translate -= 1.0f;
+	}
+
 	vertexShaderWater->SetFloat("time", time);
+	pixelShaderWater->SetFloat("translate", translate);
 	//Update Camera
 	camera->Update(deltaTime);
 	//Update entities
@@ -284,7 +303,6 @@ void Game::Draw(float deltaTime, float totalTime)
 	{
 		renderer->DrawEntity(entity);
 	}
-
 	renderer->Present();
 }
 

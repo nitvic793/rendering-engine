@@ -21,5 +21,6 @@ public:
 	Vertex* GetVertices();
 	UINT GetVertexCount();
 	UINT GetIndexCount();
+	void CalculateUVCoordinates();
 };
 
