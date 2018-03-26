@@ -1,5 +1,10 @@
 #include "Renderer.h"
 
+void Renderer::SetDepthStencilView(ID3D11DepthStencilView * depthStencilView)
+{
+	this->depthStencilView = depthStencilView;
+}
+
 void Renderer::ClearScreen(const float color[4])
 {
 	context->ClearRenderTargetView(backBufferRTV, color);
@@ -32,6 +37,22 @@ void Renderer::DrawEntity(Entity* entity)
 	context->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
 	context->IASetIndexBuffer(mesh->GetIndexBuffer(), DXGI_FORMAT_R32_UINT, 0);
 	context->DrawIndexed((UINT)mesh->GetIndexCount(), 0, 0);
+}
+
+void Renderer::DrawAsLineList(Entity * entity)
+{
+	UINT stride = sizeof(Vertex);
+	UINT offset = 0;
+	entity->SetCameraPosition(camera->GetPosition());
+	entity->SetLights(lights);
+	entity->PrepareMaterial(camera->GetViewMatrix(), camera->GetProjectionMatrix());
+	auto mesh = entity->GetMesh();
+	auto vertexBuffer = mesh->GetVertexBuffer();
+	context->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
+	context->IASetIndexBuffer(mesh->GetIndexBuffer(), DXGI_FORMAT_R32_UINT, 0);
+	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST); //Set to Line list
+	context->DrawIndexed((UINT)mesh->GetIndexCount(), 0, 0);
+	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST); //Reset to triangle list
 }
 
 void Renderer::Present()

@@ -10,10 +10,13 @@ class Camera
 	XMFLOAT4X4 reflectionMatrix;
 	XMFLOAT3 position;
 	XMFLOAT3 direction;
+	XMFLOAT3 tdirection;
+
 	float rotationY;
 	float rotationX;
 public:
 	XMFLOAT3 GetPosition();
+	XMFLOAT3 GetDirection();
 	void RotateX(float x);
 	void RotateY(float y);
 	XMFLOAT4X4 GetViewMatrix();

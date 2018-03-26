@@ -1,4 +1,5 @@
 #include "Entity.h"
+#include <algorithm>
 
 Entity::Entity(Mesh *m, Material* mat)
 {
@@ -19,9 +20,9 @@ Entity::~Entity()
 XMFLOAT4X4 Entity::GetWorldMatrix()
 {
 	XMMATRIX trans = XMMatrixTranslation(position.x, position.y, position.z);
-	XMMATRIX rotY = XMMatrixRotationZ(rotation.z);
+	XMMATRIX rot = XMMatrixRotationRollPitchYawFromVector(XMLoadFloat3(&rotation));
 	XMMATRIX scle = XMMatrixScaling(scale.x, scale.y, scale.z);
-	XMMATRIX world = scle * rotY * trans;
+	XMMATRIX world = scle * rot * trans;
 	//world = XMMatrixMultiply(XMMatrixIdentity(), world);
 	XMStoreFloat4x4(&worldMatrix, XMMatrixTranspose(world));
 	return worldMatrix;
@@ -35,6 +36,13 @@ void Entity::SetPosition(XMFLOAT3 pos)
 void Entity::SetRotationZ(float angle)
 {
 	rotation.z = angle;
+}
+
+void Entity::SetRotation(float roll, float pitch, float yaw)
+{
+	rotation.x = roll;
+	rotation.y = pitch;
+	rotation.z = yaw;
 }
 
 void Entity::SetPosition(float x, float y, float z)
@@ -56,6 +64,21 @@ XMFLOAT3 Entity::GetScale()
 	return scale;
 }
 
+void Entity::RotateX(float angle)
+{
+	rotation.x += angle;
+}
+
+void Entity::RotateY(float angle)
+{
+	rotation.y += angle;
+}
+
+void Entity::SetMaterial(Material * mat)
+{
+	material = mat;
+}
+
 void Entity::Move(XMFLOAT3 offset)
 {
 	auto pos = XMLoadFloat3(&position);
@@ -73,9 +96,11 @@ void Entity::PrepareMaterial(XMFLOAT4X4 viewMatrix, XMFLOAT4X4 projectionMatrix)
 	vertexShader->SetMatrix4x4("projection", projectionMatrix);
 	pixelShader->SetSamplerState("basicSampler", material->GetSampler());
 	pixelShader->SetShaderResourceView("diffuseTexture", material->GetSRV());
-	if(material->GetNormalSRV())
-	pixelShader->SetShaderResourceView("normalTexture", material->GetNormalSRV());
+	if (material->GetNormalSRV())
+		pixelShader->SetShaderResourceView("normalTexture", material->GetNormalSRV());
 	else pixelShader->SetShaderResourceView("normalTexture", nullptr);
+
+	pixelShader->SetShaderResourceView("roughnessTexture", material->GetRoughnessSRV());
 	vertexShader->CopyAllBufferData();
 	pixelShader->CopyAllBufferData();
 	vertexShader->SetShader();
@@ -95,18 +120,42 @@ void Entity::SetLights(std::unordered_map<std::string, DirectionalLight> lights)
 void Entity::SetLights(std::unordered_map<std::string, Light*> lights)
 {
 	auto pixelShader = material->GetPixelShader();
+	std::vector<DirectionalLight> dirLights;
+	std::vector<PointLight> pointLights;
+	std::for_each(lights.begin(), lights.end(), [&](std::pair<const std::string, Light*>  & element) {
+		switch (element.second->Type)
+		{
+		case Directional:
+		{
+			auto light = *element.second->GetLight<DirectionalLight>();
+			dirLights.push_back(light);
+			break;
+		}
+		case Point:
+			auto light = *element.second->GetLight<PointLight>();
+			pointLights.push_back(light);
+			break;
+		}
+	});
+	int dirLightCount = (int)dirLights.size();
+	int pointLightCount = (int)pointLights.size();
+	pixelShader->SetInt("DirectionalLightCount", dirLightCount);
+	pixelShader->SetInt("PointLightCount", pointLightCount);
+	pixelShader->SetData("dirLights", dirLights.data(), sizeof(DirectionalLight) * MAX_LIGHTS);
+	pixelShader->SetData("pointLights", pointLights.data(), sizeof(PointLight) * MAX_LIGHTS);
+
 	for (auto lightPair : lights)
 	{
 		auto light = lightPair.second;
-		switch(light->Type)
-		{ 
+		switch (light->Type)
+		{
 		case Directional:
 			pixelShader->SetData(lightPair.first, light->GetLight<DirectionalLight>(), sizeof(DirectionalLight));
 			break;
 		case Point:
 			pixelShader->SetData(lightPair.first, light->GetLight<PointLight>(), sizeof(PointLight));
 			break;
-		}		
+		}
 	}
 }
 
@@ -114,6 +163,10 @@ void Entity::SetCameraPosition(XMFLOAT3 position)
 {
 	auto pixelShader = material->GetPixelShader();
 	pixelShader->SetFloat3("cameraPosition", position);
+}
+
+void Entity::Update(float deltaTime, float totalTime)
+{
 }
 
 Mesh *Entity::GetMesh()

@@ -7,6 +7,15 @@ XMFLOAT3 Camera::GetPosition()
 	return position;
 }
 
+XMFLOAT3 Camera::GetDirection()
+{
+	XMVECTOR dir = XMVectorSet(direction.x, direction.y, direction.z, 0);
+	auto rotQuaternion = XMQuaternionRotationRollPitchYaw(rotationX, rotationY, 0);
+	dir = XMVector3Rotate(dir, rotQuaternion);
+	XMStoreFloat3(&tdirection, dir);
+	return tdirection;
+}
+
 void Camera::RotateX(float x)
 {
 	rotationX += x;
@@ -49,7 +58,7 @@ void Camera::SetProjectionMatrix(float aspectRatio)
 		0.25f * XM_PI,
 		aspectRatio,
 		0.1f,
-		100.0f);
+		1000.0f);
 	XMStoreFloat4x4(&projectionMatrix, XMMatrixTranspose(P));
 }
 
@@ -120,7 +129,7 @@ void Camera::Update(float deltaTime)
 		pos = pos + rightDir * speed * deltaTime;;
 	}
 
-	if (GetAsyncKeyState(VK_SPACE) & 0x8000)
+	/*if (GetAsyncKeyState(VK_SPACE) & 0x8000)
 	{
 		pos = pos + XMVectorSet(0, speed * deltaTime, 0, 0);
 	}
@@ -128,7 +137,7 @@ void Camera::Update(float deltaTime)
 	if (GetAsyncKeyState('X') & 0x8000)
 	{
 		pos = pos + XMVectorSet(0, -speed * deltaTime, 0, 0);
-	}
+	}*/
 
 	XMStoreFloat3(&position, pos);
 }
@@ -152,7 +161,7 @@ Camera::Camera(float aspectRatio)
 		0.25f * XM_PI,		// Field of View Angle
 		aspectRatio,		// Aspect ratio
 		0.1f,						// Near clip plane distance
-		100.0f);					// Far clip plane distance
+		300.0f);					// Far clip plane distance
 	XMStoreFloat4x4(&projectionMatrix, XMMatrixTranspose(P));
 }
 

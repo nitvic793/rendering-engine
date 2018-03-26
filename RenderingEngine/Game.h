@@ -1,5 +1,6 @@
 #pragma once
 
+#include <memory>
 #include "DXCore.h"
 #include "SimpleShader.h"
 #include <DirectXMath.h>
@@ -8,9 +9,12 @@
 #include "Material.h"
 #include "Camera.h"
 #include "Lights.h"
+#include "DDSTextureLoader.h"
 #include "WICTextureLoader.h"
 #include "Renderer.h"
-#include "Water.h"
+#include "Terrain.h"
+#include "Resources.h"
+#include "ProjectileEntity.h"
 
 class Game 
 	: public DXCore
@@ -37,40 +41,31 @@ private:
 	void CreateCamera();
 	void InitializeEntities();
 	void InitializeRenderer();
-	void CreateWater();
 
-	ID3D11ShaderResourceView*	metalSRV;
-	ID3D11ShaderResourceView*	metalNormalSRV;
-	ID3D11ShaderResourceView*	fabricSRV;
-	ID3D11ShaderResourceView*	fabricNormalSRV;
-	ID3D11ShaderResourceView*	woodSRV;
-	ID3D11ShaderResourceView*	woodNormalSRV;
-	ID3D11ShaderResourceView*	waterSRV;
-	ID3D11ShaderResourceView*	waterNormalSRV;
-	ID3D11SamplerState*			sampler;
 	SimpleVertexShader*			vertexShader;
 	SimplePixelShader*			pixelShader;
-	SimpleVertexShader*			vertexShaderWater;
-	SimplePixelShader*			pixelShaderWater;
-
-	Material*	material;
-	Material*	fabricMaterial;
-	Material*	woodMaterial;
-	Material*	waterMaterial;
 	Camera*		camera;
+	std::unique_ptr<Terrain> terrain;
 
 	POINT prevMousePos;
 	Renderer *renderer;
+	Resources *resources;
 
 	DirectionalLight light;
 	DirectionalLight secondaryLight;
 	PointLight pointLight;
-	std::unordered_map<std::string, DirectionalLight> lights;
+
+	ProjectileEntity *currentProjectile;
+	XMFLOAT3 projectilePreviousPosition;
+	XMFLOAT3 projectilePreviousRotation;
 	std::unordered_map<std::string, Light*> lightsMap;
 	std::unordered_map<std::string, Mesh*> models;
-	std::vector<Entity*> entities;
+	std::vector<Entity*> entities;	
 
-	float time,translate;
-	Water * water;
+	ID3D11SamplerState* sampler;
+
+	ID3D11ShaderResourceView* skySRV;
+	ID3D11RasterizerState* skyRastState;
+	ID3D11DepthStencilState* skyDepthState;
 };
 
