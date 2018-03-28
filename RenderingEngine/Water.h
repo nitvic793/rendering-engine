@@ -4,6 +4,7 @@
 #include "Vertex.h"
 #include "Mesh.h"
 #include <memory>
+#include "Entity.h"
 class Water
 {
 private:

@@ -83,13 +83,12 @@ void Water::CalculateUVCoordinates()
 {
 	int incrementCount, i, j, tuCount, tvCount;
 	float incrementValue, tuCoordinate, tvCoordinate;
-	//textureCoords = new XMFLOAT2[terrainHeight * terrainWidth];
 
 	// Calculate how much to increment the texture coordinates by.
-	incrementValue = (float)16 / (float)breadth;
+	incrementValue = (float)8 / (float)breadth;
 
 	// Calculate how many times to repeat the texture.
-	incrementCount = breadth / 16;
+	incrementCount = breadth / 8;
 
 	// Initialize the tu and tv coordinate values.
 	tuCoordinate = 0.0f;

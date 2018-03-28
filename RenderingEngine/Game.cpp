@@ -162,12 +162,14 @@ void Game::CreateWater()
 {
 	time = 0.0f;
 	translate = 0.0f;
-	water = new Water(64, 64);
+	water = new Water(1000, 1000);
 	water->GenerateWaterMesh();
 	water->CalculateUVCoordinates();
 	resources->vertexShaders["water"]->SetFloat("time", time);
 	models.insert(std::pair<std::string, Mesh*>("quad", new Mesh(water->GetVertices(), water->GetVertexCount(), water->GetIndices(), water->GetIndexCount(), device)));
-	entities.push_back(new Entity(models["quad"], resources->materials["water"]));
+	waterObject = new Entity(models["quad"], resources->materials["water"]);
+	waterObject->SetPosition(-125, -7, -150);
+	entities.push_back(waterObject);
 }
 
 void Game::InitializeEntities()
@@ -178,7 +180,7 @@ void Game::InitializeEntities()
 	terrain->Initialize("../../Assets/Terrain/heightmap.bmp", device, context);
 	terrain->SetMaterial(resources->materials["grass"]);
 
-	terrain->SetPosition(-125, -8, -150);
+	terrain->SetPosition(-125, -8.5, -150);
 	light.AmbientColor = XMFLOAT4(0.1f, 0.1f, 0.1f, 0);
 	light.DiffuseColor = XMFLOAT4(0.9f, 0.9f, 0.9f, 1.f);
 	light.Direction = XMFLOAT3(1.f, 0, 0.f);

@@ -71,6 +71,7 @@ private:
 
 	float time, translate;
 	Water * water;
+	Entity * waterObject;
 	void CreateWater();
 };
 
