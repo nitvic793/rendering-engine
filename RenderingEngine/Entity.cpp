@@ -11,10 +11,30 @@ Entity::Entity(Mesh *m, Material* mat)
 	XMStoreFloat3(&rotation, v);
 	mesh = m;
 	material = mat;
+	if (m != nullptr)
+	{
+		auto minV = m->GetMinDimensions();
+		auto maxV = m->GetMaxDimensions();
+		XMFLOAT3 center = XMFLOAT3((maxV.x - minV.x) / 2, (maxV.y - minV.y) / 2, (maxV.z - minV.z) / 2);
+		boundingBox.Extents = center;
+		auto actualCenter = XMVectorAdd(XMLoadFloat3(&center), XMLoadFloat3(&position));
+		XMStoreFloat3(&center, actualCenter);
+		boundingBox.Center = center;
+	}	
 }
 
 Entity::~Entity()
 {
+}
+
+BoundingBox Entity::GetBoundingBox()
+{
+	auto bBox = boundingBox;
+	bBox.Center = position;
+	bBox.Extents.x *= scale.x;
+	bBox.Extents.y *= scale.y;
+	bBox.Extents.z *= scale.z;
+	return bBox;
 }
 
 XMFLOAT4X4 Entity::GetWorldMatrix()
@@ -31,6 +51,7 @@ XMFLOAT4X4 Entity::GetWorldMatrix()
 void Entity::SetPosition(XMFLOAT3 pos)
 {
 	position = pos;
+	boundingBox.Center = position;
 }
 
 void Entity::SetRotationZ(float angle)
@@ -50,6 +71,7 @@ void Entity::SetPosition(float x, float y, float z)
 	this->position.x = x;
 	this->position.y = y;
 	this->position.z = z;
+	boundingBox.Center = position;
 }
 
 void Entity::SetScale(float x, float y, float z)

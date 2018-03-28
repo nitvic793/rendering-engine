@@ -3,6 +3,7 @@
 #include "Mesh.h"
 #include "Material.h"
 #include "Lights.h"
+#include <DirectXCollision.h>
 
 using namespace DirectX;
 class Entity
@@ -12,10 +13,11 @@ protected:
 	DirectX::XMFLOAT3 position;
 	DirectX::XMFLOAT3 scale;
 	DirectX::XMFLOAT3 rotation;
-
+	BoundingBox boundingBox;
 	Mesh *mesh;
 	Material* material;
 public:
+	BoundingBox GetBoundingBox();
 	XMFLOAT4X4 GetWorldMatrix();
 	XMFLOAT3 GetPosition();
 	XMFLOAT3 GetScale();

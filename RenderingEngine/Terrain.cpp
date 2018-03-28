@@ -1,5 +1,15 @@
 #include "Terrain.h"
 
+const int Terrain::GetTerrainHeight()
+{
+	return terrainHeight;
+}
+
+const int Terrain::GetTerrainWidth()
+{
+	return terrainWidth;
+}
+
 void Terrain::CalculateNormals()
 {
 	int i, j, index1, index2, index3, index, count;
