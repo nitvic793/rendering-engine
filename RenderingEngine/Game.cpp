@@ -199,7 +199,7 @@ void Game::InitializeEntities()
 
 	currentProjectile = new ProjectileEntity(resources->meshes["spear"], resources->materials["spear"]);
 	currentProjectile->SetRotation(180 * XM_PI / 180, 0, 90 * XM_PI / 180);
-	currentProjectile->SetPosition(0.4f, 0.f, -14.9f);
+	currentProjectile->SetPosition(0.4f, 2.f, -14.9f);
 	currentProjectile->SetScale(1.5f, 1.5f, 1.5f);
 	//entities.push_back(new Entity(resources->meshes["spear"], resources->materials["spear"]));
 	entities.push_back(new Entity(resources->meshes["sphere"], resources->materials["metal"]));
@@ -272,7 +272,7 @@ void Game::Update(float deltaTime, float totalTime)
 	{
 		currentProjectile->SetHasBeenShot(false);
 		//currentProjectile->SetRotation(180 * XM_PI / 180, 0, 90 * XM_PI / 180);
-		currentProjectile->SetPosition(0.4f, 0.f, -14.9f);
+		currentProjectile->SetPosition(0.4f, 2.f, -14.9f);
 	}
 
 	//Update Camera
