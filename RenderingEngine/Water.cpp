@@ -33,9 +33,9 @@ void Water::GenerateWaterMesh()
 		for (int j = 0; j < y; j++)
 		{
 			// Vertex positions
-			vertices[j*x + i].Position.x = i;
+			vertices[j*x + i].Position.x = (float)i;
 			vertices[j*x + i].Position.y = 0;
-			vertices[j*x + i].Position.z = j;
+			vertices[j*x + i].Position.z = (float)j;
 			
 			// Vertex normals
 			vertices[j*x + i].Normal.x = 0;

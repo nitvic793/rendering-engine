@@ -88,8 +88,8 @@ void Renderer::RenderToTexture(ID3D11Device* device, ID3D11DeviceContext*	contex
 	ID3D11ShaderResourceView* shaderResourceViewMap;
 
 	// Our map camera's view and projection matrices
-	XMMATRIX mapView;
-	XMMATRIX mapProjection;
+	//XMMATRIX mapView;
+	//XMMATRIX mapProjection;
 
 	D3D11_TEXTURE2D_DESC textureDesc;
 	D3D11_RENDER_TARGET_VIEW_DESC renderTargetViewDesc;
@@ -160,10 +160,12 @@ void Renderer::RenderReflection(Entity* entity)
 	context->IASetIndexBuffer(mesh->GetIndexBuffer(), DXGI_FORMAT_R32_UINT, 0);
 	context->DrawIndexed((UINT)mesh->GetIndexCount(), 0, 0);
 }
+
 Material* reflMat;
 Water * water;
 Mesh* ms;
 Entity* entity;
+
 void Renderer::createwater(ID3D11Device* device, ID3D11SamplerState* sampler, SimpleVertexShader* vertexShader, SimplePixelShader* pixelShader)
 {
 	reflMat = new Material(vertexShader, pixelShader, shaderResourceViewMap, sampler);
