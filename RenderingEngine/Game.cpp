@@ -89,7 +89,7 @@ void Game::Init()
 	SetCursorPos(rect.left + width / 2, rect.top + height / 2);
 	resources = new Resources(device, context);
 	resources->LoadResources();
-	
+
 	LoadShaders();
 	CreateCamera();
 	InitializeEntities();
@@ -258,11 +258,16 @@ void Game::Update(float deltaTime, float totalTime)
 	if ((GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0)
 	{
 		projectilePreviousPosition = currentProjectile->GetPosition();
-		currentProjectile->Shoot(0.8f, camera->GetDirection());
+		currentProjectile->Shoot(0.6f, camera->GetDirection());
 	}
 
-	auto distance = XMVectorGetX( XMVector3Length(XMLoadFloat3(&currentProjectile->GetPosition()) - XMLoadFloat3(&camera->GetPosition())));
-	
+	if (currentProjectile->GetBoundingBox().Intersects(entities[0]->GetBoundingBox()))
+	{
+		printf("Hit!");
+	}
+
+	auto distance = XMVectorGetX(XMVector3Length(XMLoadFloat3(&currentProjectile->GetPosition()) - XMLoadFloat3(&camera->GetPosition())));
+
 	if (fabsf(distance) > 50)
 	{
 		currentProjectile->SetHasBeenShot(false);
@@ -277,10 +282,10 @@ void Game::Update(float deltaTime, float totalTime)
 		entity->Update(deltaTime, totalTime);
 	}
 	//currentProjectile->SetPosition(camera->GetPosition());
-	currentProjectile->Update(deltaTime,totalTime);
-	
+	currentProjectile->Update(deltaTime, totalTime);
+
 	//Update entities
-	entities[1]->SetRotationZ(sin(totalTime)/20);
+	entities[1]->SetRotation(cos(totalTime) / 20, 180.f * XM_PI / 180, -sin(totalTime) / 20);
 
 }
 
@@ -390,7 +395,7 @@ void Game::OnMouseMove(WPARAM buttonState, int x, int y)
 
 	if (buttonState & 0x0001)
 	{
-	
+
 	}
 }
 

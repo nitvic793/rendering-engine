@@ -171,6 +171,19 @@ Mesh::Mesh(const char *objFile, ID3D11Device *device)
 
 	// Close the file and create the actual buffers
 	obj.close();
+	minDimensions = XMFLOAT3(FLT_MAX, FLT_MAX, FLT_MAX);
+	maxDimensions = XMFLOAT3(-FLT_MAX, -FLT_MAX, -FLT_MAX);
+	for (auto vertex : verts)
+	{
+		auto pos = vertex.Position;
+		if (pos.x < minDimensions.x)minDimensions.x = pos.x;
+		if (pos.y < minDimensions.y)minDimensions.y = pos.y;
+		if (pos.z < minDimensions.z)minDimensions.z = pos.z;
+		if (pos.x > maxDimensions.x)maxDimensions.x = pos.x;
+		if (pos.y > maxDimensions.y)maxDimensions.y = pos.y;
+		if (pos.z > maxDimensions.z)maxDimensions.z = pos.z;
+	}
+
 	Initialize(verts.data(), (UINT)verts.size(), indices.data(), (UINT)indices.size(), device);
 }
 
@@ -261,7 +274,6 @@ void Mesh::CalculateTangents(Vertex * vertices, UINT vertexCount, UINT * indices
 
 		// Gram-Schmidt orthogonalize
 		auto dot = XMVector3Dot(XMLoadFloat3(&n), XMLoadFloat3(&t));
-		
 		XMStoreFloat3(&vertices[a].Tangent, XMVector3Normalize(XMLoadFloat3(&t) - XMLoadFloat3(&n)* dot));
 
 		// Calculate handedness
@@ -269,6 +281,16 @@ void Mesh::CalculateTangents(Vertex * vertices, UINT vertexCount, UINT * indices
 	}
 
 	delete[] tan1;
+}
+
+XMFLOAT3 Mesh::GetMaxDimensions() const
+{
+	return maxDimensions;
+}
+
+XMFLOAT3 Mesh::GetMinDimensions() const
+{
+	return minDimensions;
 }
 
 

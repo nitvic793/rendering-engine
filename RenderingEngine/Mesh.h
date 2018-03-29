@@ -26,7 +26,11 @@ public:
 	UINT GetIndexCount();
 	void Initialize(Vertex *vertices, UINT vertexCount, UINT *indices, UINT indexCount, ID3D11Device *device);
 	void CalculateTangents(Vertex *vertices, UINT vertexCount, UINT *indices, UINT indexCount);
+	XMFLOAT3 GetMaxDimensions() const;
+	XMFLOAT3 GetMinDimensions() const;
 private:
+	XMFLOAT3 minDimensions;
+	XMFLOAT3 maxDimensions;
 	ID3D11Buffer *vertexBuffer;
 	ID3D11Buffer *indexBuffer; 
 	UINT indexCount;

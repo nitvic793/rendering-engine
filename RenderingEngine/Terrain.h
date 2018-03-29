@@ -19,6 +19,8 @@ class Terrain : public Entity
 	UINT *indices;
 	int indexCount;
 public:
+	const int GetTerrainHeight();
+	const int GetTerrainWidth();
 	void CalculateNormals();
 	void CalculateUVCoordinates(); 
 	void Initialize(ID3D11Device* device, ID3D11DeviceContext* context);
