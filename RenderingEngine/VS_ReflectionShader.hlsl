@@ -46,7 +46,7 @@ VertexToPixel main(VertexShaderInput input)
 	reflectProjectWorld = mul(world, reflectProjectWorld);
 	
 	// Calculate the input position against the reflectProjectWorld matrix.
-	output.reflectionPosition = mul(input.position, reflectProjectWorld);
+	output.reflectionPosition = mul(float4(input.position, 1), reflectProjectWorld);
 
 	return output;
 }

@@ -59,7 +59,7 @@ VertexToPixel main(VertexShaderInput input)
 	input.position[2] = s_Y;
 	input.position[1] = s_Z;
 	input.position *= 7.5f;
-	input.normal = float4(0,0,1,1);
+	input.normal = float3(0,0,1);
 	//input.normal = normalize(cross(ddx_coarse(input.position.xyz), ddy_coarse(input.position.xyz));
 	//---------------------------------------------------------------
 	output.worldPos = mul(float4(input.position, 1.0f), world).xyz;
