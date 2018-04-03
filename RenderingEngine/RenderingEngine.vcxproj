@@ -122,6 +122,7 @@
     <ClCompile Include="ProjectileEntity.cpp" />
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="Resources.cpp" />
+    <ClCompile Include="Ripple.cpp" />
     <ClCompile Include="SimpleShader.cpp" />
     <ClCompile Include="Terrain.cpp" />
     <ClCompile Include="Water.cpp" />
@@ -137,6 +138,7 @@
     <ClInclude Include="ProjectileEntity.h" />
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="Resources.h" />
+    <ClInclude Include="Ripple.h" />
     <ClInclude Include="SimpleShader.h" />
     <ClInclude Include="Terrain.h" />
     <ClInclude Include="Vertex.h" />

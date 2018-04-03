@@ -57,6 +57,10 @@ Game::~Game()
 		delete lights.second;
 	}
 
+	/*for (auto ripple : ripples) {
+		delete ripple;
+	}*/
+
 	lightsMap.clear();
 	models.clear();
 	delete vertexShader;
@@ -94,7 +98,6 @@ void Game::Init()
 	CreateCamera();
 	InitializeEntities();
 	InitializeRenderer();
-
 
 	// Tell the input assembler stage of the pipeline what kind of
 	// geometric primitives (points, lines or triangles) we want to draw.  
@@ -223,6 +226,11 @@ void Game::InitializeRenderer()
 	renderer->SetLights(lightsMap);
 }
 
+void Game::CreateRipple(float x, float y, float z, float duration, float ringSize) {
+	Ripple r = Ripple(x, y, z, duration, ringSize);
+	ripples.push_back(r);
+}
+
 // --------------------------------------------------------
 // Handle resizing DirectX "stuff" to match the new window size.
 // For instance, updating our projection matrix's aspect ratio.
@@ -261,6 +269,10 @@ void Game::Update(float deltaTime, float totalTime)
 		currentProjectile->Shoot(0.6f, camera->GetDirection());
 	}
 
+	if ((GetAsyncKeyState(VK_SPACE) & 0x8000) != 0) {
+		CreateRipple(0.0f, 0.0f, 50.0f, 2.0f, 2.0f);
+	}
+
 	if (currentProjectile->GetBoundingBox().Intersects(entities[0]->GetBoundingBox()))
 	{
 		printf("Hit!");
@@ -286,6 +298,20 @@ void Game::Update(float deltaTime, float totalTime)
 
 	//Update entities
 	entities[1]->SetRotation(cos(totalTime) / 20, 180.f * XM_PI / 180, -sin(totalTime) / 20);
+
+	//Update ripples and Water shader (add support for multiple ripples later)
+	//Delete ripples afterward if they are at max duration
+	
+	for (auto it = ripples.begin(); it != ripples.end(); ) {
+		(*it).Update(deltaTime);
+		if ((*it).AtMaxDuration()) {
+			it = ripples.erase(it);
+			//delete (*it);
+		}
+		else {
+			it++;
+		}
+	}
 
 }
 
@@ -332,6 +358,18 @@ void Game::Draw(float deltaTime, float totalTime)
 	// When done rendering, reset any and all states for the next frame
 	context->RSSetState(0);
 	context->OMSetDepthStencilState(0, 0);
+
+	//Reset water if there are no ripples
+	resources->pixelShaders["water"]->SetFloat3("ripplePosition", XMFLOAT3(0.0f, 0.0f, 0.0f));
+	resources->pixelShaders["water"]->SetFloat("rippleRadius", 0.0f);
+	resources->pixelShaders["water"]->SetFloat("ringSize", 0.0f);
+
+	//Pass ripples to the water shader
+	for (auto ripple : ripples) {
+		resources->pixelShaders["water"]->SetFloat3("ripplePosition", ripple.GetPosition());
+		resources->pixelShaders["water"]->SetFloat("rippleRadius", ripple.GetRadius());
+		resources->pixelShaders["water"]->SetFloat("ringSize", ripple.GetRingSize());
+	}
 
 	renderer->Present();
 }

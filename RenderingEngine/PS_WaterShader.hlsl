@@ -34,6 +34,12 @@ cbuffer externalData : register(b0)
 	float translate;
 }
 
+cbuffer rippleData : register(b1) {
+	float3 ripplePosition;
+	float rippleRadius;
+	float ringSize;
+}
+
 Texture2D diffuseTexture : register(t0);
 Texture2D normalTexture : register(t1);
 SamplerState basicSampler : register(s0);
@@ -89,6 +95,13 @@ float3 calculateNormalFromMap(float2 uv, float3 normal, float3 tangent)
 	float3x3 TBN = float3x3(T, B, N);
 	return normalize(mul(unpackedNormal, TBN));
 }
+
+float calculateDistance(float3 pos1, float3 pos2) {
+	float3 dist = pos2 - pos1;
+	return sqrt((pow(dist.x, 2) + pow(dist.z, 2)));
+	//return sqrt(dist.x ^ 2 + dist.y ^ 2);
+}
+
 float4 main(VertexToPixel input) : SV_TARGET
 {
 	input.uv.x += translate;
@@ -108,6 +121,17 @@ float4 main(VertexToPixel input) : SV_TARGET
 	for (i = 0; i < PointLightCount; ++i)
 	{
 		totalColor += calculatePointLight(finalNormal, input.worldPos, pointLights[i], roughness)  * surfaceColor;
+	}
+
+	//Handle ripples
+	//y position shouldn't matter for now
+	float3 pos1 = input.worldPos;
+	float3 pos2 = ripplePosition;
+	pos1.y = 0.0f;
+	pos2.y = 0.0f;
+	float distance = calculateDistance(pos1, pos2);
+	if (distance >= rippleRadius - 0.5f * ringSize && distance <= rippleRadius + 0.5f * ringSize) {
+		totalColor += float4(0.5f, 0.5f, 0.5f, 1.0f);
 	}
 
 	return totalColor;
