@@ -85,10 +85,12 @@ void Water::CalculateUVCoordinates()
 	float incrementValue, tuCoordinate, tvCoordinate;
 
 	// Calculate how much to increment the texture coordinates by.
-	incrementValue = (float)8 / (float)breadth;
+	// Increase water fidelity by increasing this value
+	// Change numbers in powers of 2
+	incrementValue = (float)32 / (float)breadth;
 
 	// Calculate how many times to repeat the texture.
-	incrementCount = breadth / 8;
+	incrementCount = breadth;
 
 	// Initialize the tu and tv coordinate values.
 	tuCoordinate = 0.0f;
@@ -103,11 +105,10 @@ void Water::CalculateUVCoordinates()
 	{
 		for (i = 0; i<breadth; i++)
 		{
-			// Store the texture coordinate in the height map.
 			vertices[(length * j) + i].UV.x = tuCoordinate; //u
 			vertices[(length * j) + i].UV.y = tvCoordinate; //v
 
-																	 // Increment the tu texture coordinate by the increment value and increment the index by one.
+			// Increment the tu texture coordinate by the increment value and increment the index by one.
 			tuCoordinate += incrementValue;
 			tuCount++;
 

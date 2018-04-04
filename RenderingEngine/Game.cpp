@@ -160,7 +160,7 @@ void Game::CreateCamera()
 
 void Game::CreateWater()
 {
-	time = 0.0f;
+	//time = 0.0f;
 	translate = 0.0f;
 	water = new Water(1000, 1000);
 	water->GenerateWaterMesh();
