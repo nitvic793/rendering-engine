@@ -6,6 +6,14 @@ cbuffer externalData : register(b0)
 	float time;
 };
 
+// gMaxTessDistance < gMinTessDistance as we increase the tessellation when the distance from the eye decreases
+cbuffer cbPerFrame : register(b1)
+{
+	float gMaxTessDistance;	//	distance from the eye where max tesselation is achieved
+	float gMinTessDistance;	//	distance from the eye where min tessalation is achieved
+	float gMinTessFactor;	//	minimum amount of tesselation
+	float gMaxTessFactor;	//	maximum amount of tesselation
+};
 
 struct VertexShaderInput
 {
@@ -23,16 +31,17 @@ struct VertexToPixel
 	float2 uv			: TEXCOORD;
 	float3 worldPos		: POSITION;
 	float3 tangent		: TANGENT;
+	float tessFactor	: TESS;
 };
 
-Texture2D displacementMap : register(t0);
-SamplerState basicSampler : register(s0);
+Texture2D displacementMap : register(t4);
+SamplerState basicSampler : register(s1);
 
 VertexToPixel main(VertexShaderInput input)
 {
 	VertexToPixel output;
-	matrix worldViewProj = mul(mul(world, view), projection);
-	float displacedHeight = displacementMap.Sample(basicSampler, input.uv);
+	
+	float displacedHeight = displacementMap.SampleLevel(basicSampler, input.uv,0).x;
 	//----------------------------Water Motion-----------------------------------
 	/*int u = 64;
 	int v = 64;*/
@@ -60,16 +69,23 @@ VertexToPixel main(VertexShaderInput input)
 	//}
 	//input.position[0] = s_X;
 	//input.position[2] = s_Y;
-	//input.position[1] = s_Z;
+	//input.position[1] = displacedHeight; //s_Z
 	//
 	
 	//---------------------------------------------------------------
 	//input.position *= 100.0f;
+
+	// Transform to world position
+	matrix worldViewProj = mul(mul(world, view), projection);
 	output.worldPos = mul(float4(input.position, 1.0f), world).xyz;
 	output.position = mul(float4(input.position, 1.0f), worldViewProj);
 	output.normal = mul(input.normal, (float3x3)world);
 	output.normal = normalize(output.normal);
 	output.uv = input.uv;
 	output.tangent = normalize(mul(input.tangent, (float3x3)world));
+
+	//
+	//output.uv = mul(float4(input.uv, 0.0f, 1.0f), gTexTransform).xy;
+
 	return output;
 }

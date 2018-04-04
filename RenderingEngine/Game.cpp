@@ -162,7 +162,7 @@ void Game::CreateWater()
 {
 	time = 0.0f;
 	translate = 0.0f;
-	water = new Water(100, 100);
+	water = new Water(4, 4);
 	water->GenerateWaterMesh();
 	water->CalculateUVCoordinates();
 	resources->vertexShaders["water"]->SetFloat("time", time);
@@ -170,7 +170,7 @@ void Game::CreateWater()
 	models.insert(std::pair<std::string, Mesh*>("quad", new Mesh(water->GetVertices(), water->GetVertexCount(), water->GetIndices(), water->GetIndexCount(), device)));
 	waterObject = new Entity(models["quad"], resources->materials["water"]);
 	waterObject->SetPosition(-125, -7, -150);
-	waterObject->SetScale(10, 10, 10);
+	waterObject->SetScale(100, 100, 100);
 	entities.push_back(waterObject);
 	//-------------------------------
 	////Load Sampler
@@ -275,7 +275,7 @@ void Game::Update(float deltaTime, float totalTime)
 	if ((GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0)
 	{
 		projectilePreviousPosition = currentProjectile->GetPosition();
-		currentProjectile->Shoot(0.6f, camera->GetDirection());
+		currentProjectile->Shoot(30.6f * deltaTime, camera->GetDirection());
 	}
 
 	if (currentProjectile->GetBoundingBox().Intersects(entities[0]->GetBoundingBox()))
