@@ -166,6 +166,7 @@ void Game::CreateWater()
 	water->GenerateWaterMesh();
 	water->CalculateUVCoordinates();
 	resources->vertexShaders["water"]->SetFloat("time", time);
+	resources->pixelShaders["water"]->SetShaderResourceView("SkyTexture", resources->shaderResourceViews["cubemap"]);
 	models.insert(std::pair<std::string, Mesh*>("quad", new Mesh(water->GetVertices(), water->GetVertexCount(), water->GetIndices(), water->GetIndexCount(), device)));
 	waterObject = new Entity(models["quad"], resources->materials["water"]);
 	waterObject->SetPosition(-125, -7, -150);
@@ -249,6 +250,7 @@ void Game::Update(float deltaTime, float totalTime)
 	}
 
 	resources->vertexShaders["water"]->SetFloat("time", time);
+	resources->pixelShaders["water"]->SetFloat("translate", translate);
 	resources->pixelShaders["water"]->SetFloat("translate", translate);
 	//.................................................
 

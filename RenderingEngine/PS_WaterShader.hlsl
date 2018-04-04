@@ -37,8 +37,8 @@ cbuffer externalData : register(b0)
 Texture2D diffuseTexture : register(t0);
 Texture2D normalTexture : register(t1);
 SamplerState basicSampler : register(s0);
-
 Texture2D roughnessTexture : register(t2);
+TextureCube SkyTexture		: register(t3);
 // Range-based attenuation function
 float Attenuate(float3 lightPosition, float lightRange, float3 worldPos)
 {
@@ -66,7 +66,7 @@ float4 calculateDirectionalLight(float3 normal, float3 worldPos, DirectionalLigh
 	float3 dirToLight = normalize(-light.Direction);
 	float NdotL = dot(normal, dirToLight);
 	NdotL = saturate(NdotL);
-	float spec = calculateSpecular(normal, worldPos, dirToLight, cameraPosition) * roughness;
+	float spec = calculateSpecular(normal, worldPos, dirToLight, cameraPosition);
 	return spec + light.DiffuseColor * NdotL + light.AmbientColor;
 }
 
@@ -75,7 +75,7 @@ float4 calculatePointLight(float3 normal, float3 worldPos, PointLight light, flo
 	float3 dirToPointLight = normalize(light.Position - worldPos);
 	float pointNdotL = dot(normal, dirToPointLight);
 	pointNdotL = saturate(pointNdotL);
-	float spec = calculateSpecular(normal, worldPos, dirToPointLight, cameraPosition) * roughness;
+	float spec = calculateSpecular(normal, worldPos, dirToPointLight, cameraPosition);
 	return spec + light.Color * pointNdotL;
 }
 
@@ -89,6 +89,16 @@ float3 calculateNormalFromMap(float2 uv, float3 normal, float3 tangent)
 	float3x3 TBN = float3x3(T, B, N);
 	return normalize(mul(unpackedNormal, TBN));
 }
+float4 calculateSkyboxReflection(float3 normal, float3 worldPos, float3 dirToLight)
+{
+	float3 refl = reflect(-dirToLight, normal);
+	float3 dirToCamera = normalize(cameraPosition - worldPos);
+	float pointLightSpecular = pow(saturate(dot(refl, dirToCamera)), 64);
+
+	return SkyTexture.Sample(basicSampler,
+		reflect(-dirToCamera, normal));
+}
+
 float4 main(VertexToPixel input) : SV_TARGET
 {
 	input.uv.x += translate;
@@ -98,16 +108,19 @@ float4 main(VertexToPixel input) : SV_TARGET
 	finalNormal = normalize(finalNormal);
 	float4 totalColor = float4(0, 0, 0, 0);
 	float roughness = roughnessTexture.Sample(basicSampler, input.uv).r;
-
+	return (calculateDirectionalLight(finalNormal, input.worldPos, dirLights[0], roughness) + calculateSkyboxReflection(input.normal, input.worldPos, dirLights[0].Direction)) *surfaceColor;
+	//return calculateSkyboxReflection(input.normal, input.worldPos, dirLights[0].Direction); 
 	int i = 0;
 	for (i = 0; i < DirectionalLightCount; ++i)
 	{
-		totalColor += calculateDirectionalLight(finalNormal, input.worldPos, dirLights[i], roughness) * surfaceColor;
+	
+		totalColor += (calculateDirectionalLight(finalNormal, input.worldPos, dirLights[i], roughness) + calculateSkyboxReflection(input.normal, input.worldPos, dirLights[i].Direction)); //* surfaceColor;
 	}
 
 	for (i = 0; i < PointLightCount; ++i)
 	{
-		totalColor += calculatePointLight(finalNormal, input.worldPos, pointLights[i], roughness)  * surfaceColor;
+		float3 dirToLight = normalize(pointLights[i].Position - input.worldPos);
+		totalColor += (calculatePointLight(finalNormal, input.worldPos, pointLights[i], roughness) + calculateSkyboxReflection(input.normal, input.worldPos, dirToLight));//  *surfaceColor;
 	}
 
 	return totalColor;
