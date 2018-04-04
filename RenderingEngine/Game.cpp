@@ -205,8 +205,8 @@ void Game::InitializeEntities()
 	secondaryLight.DiffuseColor = XMFLOAT4(0.5f, 0.5f, 0.5f, 1);
 	secondaryLight.Direction = XMFLOAT3(0, -1, 0);
 
-	pointLight.Color = XMFLOAT4(0.6f, 0.6f, 0.6f, 1);
-	pointLight.Position = XMFLOAT3(0, 0, 0);
+	pointLight.Color = XMFLOAT4(0.0f, 0.f, 0.f, 1);
+	pointLight.Position = XMFLOAT3(0.4f, 2.f, -14.9f);
 	pointLight.Range = 20.f;
 
 	lightsMap.insert(std::pair<std::string, Light*>("light", new Light{ &light, Directional }));
@@ -258,7 +258,7 @@ void Game::Update(float deltaTime, float totalTime)
 {
 	// Water .........................................
 	time += 0.05f * deltaTime;
-	translate += 0.1f * deltaTime;
+	translate += 0.2f * deltaTime;
 	if (translate > 1.0f)
 	{
 		translate -= 1.0f;

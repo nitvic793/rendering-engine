@@ -49,7 +49,7 @@ VertexToPixel main(VertexShaderInput input)
 	//for (int i = 0; i < 3; i++)
 	//{
 	//	float2 K = float2(1, i);				// K is wave vector
-	//	float w = 1.0 * (i + 1) / 2.0;			// w is frequency
+	//	float w = 1.5 * (i + 1) / 3.0;			// w is frequency
 	//	float a = 0.01;							// a is amplitude
 	//	float2 X = X0 - K * a*sin(dot(K, X0) - w * time * 10);
 	//	float  y = a * cos(dot(K, X0) - w * time * 10);
@@ -61,7 +61,7 @@ VertexToPixel main(VertexShaderInput input)
 	//input.position[0] = s_X;
 	//input.position[2] = s_Y;
 	//input.position[1] = s_Z;
-	
+	//
 	
 	//---------------------------------------------------------------
 	//input.position *= 100.0f;
