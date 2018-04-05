@@ -44,6 +44,6 @@ bool Ripple::AtMaxDuration() {
 //Convert the class into a struct
 RippleData Ripple::GetRippleData() {
 	DirectX::XMFLOAT3 pos = DirectX::XMFLOAT3(x, y, z);
-	RippleData r = RippleData{ pos, radius, ringSize, intensity };
+	RippleData r = RippleData{ pos, radius, ringSize, intensity , 0.0f, 0.0f };
 	return r;
 }

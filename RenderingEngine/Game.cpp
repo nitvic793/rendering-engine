@@ -375,18 +375,15 @@ void Game::Draw(float deltaTime, float totalTime)
 	//resources->pixelShaders["water"]->SetFloat("rippleRadius", 0.0f);
 	//resources->pixelShaders["water"]->SetFloat("ringSize", 0.0f);
 
+	//Convert Ripples to RippleData structs, then
 	//Pass ripples to the water shader
 	std::vector<RippleData> rippleData;
 	for (auto ripple : ripples) {
-		//resources->pixelShaders["water"]->SetFloat3("ripplePosition", ripple.GetPosition());
-		//resources->pixelShaders["water"]->SetFloat("rippleRadius", ripple.GetRadius());
-		//resources->pixelShaders["water"]->SetFloat("ringSize", ripple.GetRingSize());
-		//resources->pixelShaders["water"]->SetFloat("rippleIntensity", ripple.GetIntensity());
-		//rippleData.push_back(ripple.GetRippleData());
+		rippleData.push_back(ripple.GetRippleData());
 	}
-	RippleData a = RippleData{ DirectX::XMFLOAT3(0.f, 0.f, 0.f), 0.5f, 0.5f, 0.5f };
-	rippleData.push_back(a);
-	std::cout << resources->pixelShaders["water"]->SetData("allRipples", rippleData.data(), sizeof(RippleData) * MAX_RIPPLES);
+	if (rippleData.size() > 0) {
+		resources->pixelShaders["water"]->SetData("ripples", rippleData.data(), sizeof(RippleData) * MAX_RIPPLES);
+	}
 	resources->pixelShaders["water"]->SetInt("rippleCount", (int)ripples.size());
 	//if (rippleData.size() > 0)
 	//	std::cout << rippleData[0].rippleRadius << std::endl;

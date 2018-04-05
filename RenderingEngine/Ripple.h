@@ -7,6 +7,9 @@ struct RippleData {
 	float rippleRadius;
 	float ringSize;
 	float rippleIntensity;
+
+	float padding1;
+	float padding2;
 };
 
 class Ripple {

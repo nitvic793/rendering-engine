@@ -1,6 +1,6 @@
 #pragma once
 
-#define MAX_RIPPLES 3
+#define MAX_RIPPLES 32
 
 #include <memory>
 #include "DXCore.h"
