@@ -57,6 +57,10 @@ Game::~Game()
 		delete lights.second;
 	}
 
+	/*for (auto ripple : ripples) {
+		delete ripple;
+	}*/
+
 	lightsMap.clear();
 	models.clear();
 	delete vertexShader;
@@ -82,6 +86,7 @@ void Game::Init()
 	// Helper methods for loading shaders, creating some basic
 	// geometry to draw and some simple camera matrices.
 	//  - You'll be expanding and/or replacing these later
+	projectileHitWater = false;
 	RECT rect;
 	GetWindowRect(this->hWnd, &rect);
 	prevMousePos.x = width / 2;
@@ -94,7 +99,6 @@ void Game::Init()
 	CreateCamera();
 	InitializeEntities();
 	InitializeRenderer();
-
 
 	// Tell the input assembler stage of the pipeline what kind of
 	// geometric primitives (points, lines or triangles) we want to draw.  
@@ -224,6 +228,11 @@ void Game::InitializeRenderer()
 	renderer->SetLights(lightsMap);
 }
 
+void Game::CreateRipple(float x, float y, float z, float duration, float ringSize) {
+	Ripple r = Ripple(x, y, z, duration, ringSize);
+	ripples.push_back(r);
+}
+
 // --------------------------------------------------------
 // Handle resizing DirectX "stuff" to match the new window size.
 // For instance, updating our projection matrix's aspect ratio.
@@ -263,15 +272,29 @@ void Game::Update(float deltaTime, float totalTime)
 		currentProjectile->Shoot(0.6f, camera->GetDirection());
 	}
 
+	if ((GetAsyncKeyState(VK_SPACE) & 0x8000) != 0) {
+		CreateRipple(0.0f, 0.0f, 50.0f, 2.0f, 2.0f);
+	}
+
 	if (currentProjectile->GetBoundingBox().Intersects(entities[0]->GetBoundingBox()))
 	{
 		printf("Hit!");
+	}
+
+	//Check for spear hitting the water
+	if (currentProjectile->GetPosition().y <= -7.0f && !projectileHitWater) {
+		projectileHitWater = true;
+		XMFLOAT3 pos = currentProjectile->GetPosition();
+		float x = pos.x;
+		float z = pos.z;
+		CreateRipple(x, 0.0f, z, 2.0f, 2.0f);
 	}
 
 	auto distance = XMVectorGetX(XMVector3Length(XMLoadFloat3(&currentProjectile->GetPosition()) - XMLoadFloat3(&camera->GetPosition())));
 
 	if (fabsf(distance) > 50)
 	{
+		projectileHitWater = false;
 		currentProjectile->SetHasBeenShot(false);
 		//currentProjectile->SetRotation(180 * XM_PI / 180, 0, 90 * XM_PI / 180);
 		currentProjectile->SetPosition(0.4f, 2.f, -14.9f);
@@ -288,6 +311,20 @@ void Game::Update(float deltaTime, float totalTime)
 
 	//Update entities
 	entities[1]->SetRotation(cos(totalTime) / 20, 180.f * XM_PI / 180, -sin(totalTime) / 20);
+
+	//Update ripples and Water shader (add support for multiple ripples later)
+	//Delete ripples afterward if they are at max duration
+	
+	for (auto it = ripples.begin(); it != ripples.end(); ) {
+		(*it).Update(deltaTime);
+		if ((*it).AtMaxDuration()) {
+			it = ripples.erase(it);
+			//delete (*it);
+		}
+		else {
+			it++;
+		}
+	}
 
 }
 
@@ -334,6 +371,24 @@ void Game::Draw(float deltaTime, float totalTime)
 	// When done rendering, reset any and all states for the next frame
 	context->RSSetState(0);
 	context->OMSetDepthStencilState(0, 0);
+
+	//Reset water if there are no ripples
+	//resources->pixelShaders["water"]->SetFloat3("ripplePosition", XMFLOAT3(0.0f, 0.0f, 0.0f));
+	//resources->pixelShaders["water"]->SetFloat("rippleRadius", 0.0f);
+	//resources->pixelShaders["water"]->SetFloat("ringSize", 0.0f);
+
+	//Convert Ripples to RippleData structs, then
+	//Pass ripples to the water shader
+	std::vector<RippleData> rippleData;
+	for (auto ripple : ripples) {
+		rippleData.push_back(ripple.GetRippleData());
+	}
+	if (rippleData.size() > 0) {
+		resources->pixelShaders["water"]->SetData("ripples", rippleData.data(), sizeof(RippleData) * MAX_RIPPLES);
+	}
+	resources->pixelShaders["water"]->SetInt("rippleCount", (int)ripples.size());
+	//if (rippleData.size() > 0)
+	//	std::cout << rippleData[0].rippleRadius << std::endl;
 
 	renderer->Present();
 }
