@@ -1,5 +1,7 @@
 #pragma once
 
+#define MAX_RIPPLES 3
+
 #include <memory>
 #include "DXCore.h"
 #include "SimpleShader.h"
@@ -46,6 +48,7 @@ private:
 	void InitializeRenderer();
 
 	void CreateRipple(float x, float y, float z, float duration, float ringSize);
+	bool projectileHitWater;
 	std::vector<Ripple> ripples;
 
 	SimpleVertexShader*			vertexShader;

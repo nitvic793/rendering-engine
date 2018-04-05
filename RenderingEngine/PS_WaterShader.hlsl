@@ -1,4 +1,5 @@
 
+#define MAX_RIPPLES 3
 #define MAX_LIGHTS 32
 struct VertexToPixel
 {
@@ -24,20 +25,23 @@ struct PointLight
 	float Range;
 };
 
+struct RippleData {
+	float3 ripplePosition;
+	float rippleRadius;
+	float ringSize;
+	float rippleIntensity;
+};
+
 cbuffer externalData : register(b0)
 {
 	DirectionalLight dirLights[MAX_LIGHTS];
 	PointLight pointLights[MAX_LIGHTS];
+	RippleData allRipples[MAX_RIPPLES];
 	int DirectionalLightCount;
 	int PointLightCount;
+	int rippleCount;
 	float3 cameraPosition;
 	float translate;
-}
-
-cbuffer rippleData : register(b1) {
-	float3 ripplePosition;
-	float rippleRadius;
-	float ringSize;
 }
 
 Texture2D diffuseTexture : register(t0);
@@ -104,6 +108,7 @@ float calculateDistance(float3 pos1, float3 pos2) {
 
 float4 main(VertexToPixel input) : SV_TARGET
 {
+
 	input.uv.x += translate;
 	float4 surfaceColor = diffuseTexture.Sample(basicSampler, input.uv);
 	float3 finalNormal = calculateNormalFromMap(input.uv, input.normal, input.tangent);
@@ -111,6 +116,42 @@ float4 main(VertexToPixel input) : SV_TARGET
 	finalNormal = normalize(finalNormal);
 	float4 totalColor = float4(0, 0, 0, 0);
 	float roughness = roughnessTexture.Sample(basicSampler, input.uv).r;
+
+	//for (int r = 0; r < rippleCount; ++r) {
+
+	//	float3 ripplePosition = ripples[r].ripplePosition;
+	//	float rippleRadius = ripples[r].rippleRadius;
+	//	float ringSize = ripples[r].ringSize;
+	//	float rippleIntensity = ripples[r].rippleIntensity;
+
+	//	//Handle ripples
+	//	//y position shouldn't matter for now
+	//	float3 pos1 = input.worldPos;
+	//	float3 pos2 = ripplePosition;
+	//	pos1.y = 0.0f;
+	//	pos2.y = 0.0f;
+	//	float distance = calculateDistance(pos1, pos2);
+
+	//	if (distance >= rippleRadius - 0.5f * ringSize && distance <= rippleRadius + 0.5f * ringSize) {
+	//		//Set t to be from 0 to 1
+	//		float t_01 = (distance - (rippleRadius - 0.5f * ringSize)) / ringSize;
+	//		//Set t to be from -1 to 1
+	//		float t = (t_01 - 0.5f) * 0.5f;
+	//		//ripple position to pixel position
+	//		float3 direction = normalize(pos1 - pos2);
+
+	//		float y = sin(t_01 * 3.14159);
+
+	//		float3 rippleNormal = normalize(float3(direction.x * t, 0.5f + 0.5f * y, direction.z * t));
+
+	//		// 0 - finalNormal, 1 - rippleNormal
+	//		finalNormal.x = lerp(finalNormal.x, rippleNormal.x, rippleIntensity);
+	//		finalNormal.y = lerp(finalNormal.y, rippleNormal.y, rippleIntensity);
+	//		finalNormal.z = lerp(finalNormal.z, rippleNormal.z, rippleIntensity);
+
+	//		finalNormal = normalize(finalNormal);
+	//	}
+	//}
 
 	int i = 0;
 	for (i = 0; i < DirectionalLightCount; ++i)
@@ -123,16 +164,8 @@ float4 main(VertexToPixel input) : SV_TARGET
 		totalColor += calculatePointLight(finalNormal, input.worldPos, pointLights[i], roughness)  * surfaceColor;
 	}
 
-	//Handle ripples
-	//y position shouldn't matter for now
-	float3 pos1 = input.worldPos;
-	float3 pos2 = ripplePosition;
-	pos1.y = 0.0f;
-	pos2.y = 0.0f;
-	float distance = calculateDistance(pos1, pos2);
-	if (distance >= rippleRadius - 0.5f * ringSize && distance <= rippleRadius + 0.5f * ringSize) {
-		totalColor += float4(0.5f, 0.5f, 0.5f, 1.0f);
-	}
+	if (rippleCount > 0)
+		totalColor = float4(allRipples[0].rippleRadius, allRipples[0].rippleRadius, allRipples[0].rippleRadius, 1.0f);
 
 	return totalColor;
 }

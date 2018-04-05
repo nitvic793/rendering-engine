@@ -86,6 +86,7 @@ void Game::Init()
 	// Helper methods for loading shaders, creating some basic
 	// geometry to draw and some simple camera matrices.
 	//  - You'll be expanding and/or replacing these later
+	projectileHitWater = false;
 	RECT rect;
 	GetWindowRect(this->hWnd, &rect);
 	prevMousePos.x = width / 2;
@@ -278,10 +279,20 @@ void Game::Update(float deltaTime, float totalTime)
 		printf("Hit!");
 	}
 
+	//Check for spear hitting the water
+	if (currentProjectile->GetPosition().y <= -7.0f && !projectileHitWater) {
+		projectileHitWater = true;
+		XMFLOAT3 pos = currentProjectile->GetPosition();
+		float x = pos.x;
+		float z = pos.z;
+		CreateRipple(x, 0.0f, z, 2.0f, 2.0f);
+	}
+
 	auto distance = XMVectorGetX(XMVector3Length(XMLoadFloat3(&currentProjectile->GetPosition()) - XMLoadFloat3(&camera->GetPosition())));
 
 	if (fabsf(distance) > 50)
 	{
+		projectileHitWater = false;
 		currentProjectile->SetHasBeenShot(false);
 		//currentProjectile->SetRotation(180 * XM_PI / 180, 0, 90 * XM_PI / 180);
 		currentProjectile->SetPosition(0.4f, 2.f, -14.9f);
@@ -360,16 +371,25 @@ void Game::Draw(float deltaTime, float totalTime)
 	context->OMSetDepthStencilState(0, 0);
 
 	//Reset water if there are no ripples
-	resources->pixelShaders["water"]->SetFloat3("ripplePosition", XMFLOAT3(0.0f, 0.0f, 0.0f));
-	resources->pixelShaders["water"]->SetFloat("rippleRadius", 0.0f);
-	resources->pixelShaders["water"]->SetFloat("ringSize", 0.0f);
+	//resources->pixelShaders["water"]->SetFloat3("ripplePosition", XMFLOAT3(0.0f, 0.0f, 0.0f));
+	//resources->pixelShaders["water"]->SetFloat("rippleRadius", 0.0f);
+	//resources->pixelShaders["water"]->SetFloat("ringSize", 0.0f);
 
 	//Pass ripples to the water shader
+	std::vector<RippleData> rippleData;
 	for (auto ripple : ripples) {
-		resources->pixelShaders["water"]->SetFloat3("ripplePosition", ripple.GetPosition());
-		resources->pixelShaders["water"]->SetFloat("rippleRadius", ripple.GetRadius());
-		resources->pixelShaders["water"]->SetFloat("ringSize", ripple.GetRingSize());
+		//resources->pixelShaders["water"]->SetFloat3("ripplePosition", ripple.GetPosition());
+		//resources->pixelShaders["water"]->SetFloat("rippleRadius", ripple.GetRadius());
+		//resources->pixelShaders["water"]->SetFloat("ringSize", ripple.GetRingSize());
+		//resources->pixelShaders["water"]->SetFloat("rippleIntensity", ripple.GetIntensity());
+		//rippleData.push_back(ripple.GetRippleData());
 	}
+	RippleData a = RippleData{ DirectX::XMFLOAT3(0.f, 0.f, 0.f), 0.5f, 0.5f, 0.5f };
+	rippleData.push_back(a);
+	std::cout << resources->pixelShaders["water"]->SetData("allRipples", rippleData.data(), sizeof(RippleData) * MAX_RIPPLES);
+	resources->pixelShaders["water"]->SetInt("rippleCount", (int)ripples.size());
+	//if (rippleData.size() > 0)
+	//	std::cout << rippleData[0].rippleRadius << std::endl;
 
 	renderer->Present();
 }
