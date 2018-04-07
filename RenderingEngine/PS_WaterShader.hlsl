@@ -114,13 +114,13 @@ float4 main(VertexToPixel input) : SV_TARGET
 	for (i = 0; i < DirectionalLightCount; ++i)
 	{
 	
-		totalColor += (calculateDirectionalLight(finalNormal, input.worldPos, dirLights[i], roughness)  * calculateSkyboxReflection(input.normal, input.worldPos, dirLights[i].Direction)) * surfaceColor;
+		totalColor += (calculateDirectionalLight(finalNormal, input.worldPos, dirLights[i], roughness)  * calculateSkyboxReflection(finalNormal, input.worldPos, dirLights[i].Direction)) * surfaceColor;
 	}
 
 	for (i = 0; i < PointLightCount; ++i)
 	{
 		float3 dirToLight = normalize(pointLights[i].Position - input.worldPos);
-		totalColor += (calculatePointLight(finalNormal, input.worldPos, pointLights[i], roughness) * calculateSkyboxReflection(input.normal, input.worldPos, dirToLight))  *surfaceColor;
+		totalColor += (calculatePointLight(finalNormal, input.worldPos, pointLights[i], roughness) * calculateSkyboxReflection(finalNormal, input.worldPos, dirToLight))  *surfaceColor;
 	}
 
 	return totalColor;
