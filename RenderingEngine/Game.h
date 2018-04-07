@@ -1,9 +1,12 @@
 #pragma once
 
+#define MAX_RIPPLES 32
+
 #include <memory>
 #include "DXCore.h"
 #include "SimpleShader.h"
 #include <DirectXMath.h>
+#include <iostream>
 #include "Mesh.h"
 #include "Entity.h"
 #include "Material.h"
@@ -12,6 +15,7 @@
 #include "DDSTextureLoader.h"
 #include "WICTextureLoader.h"
 #include "Renderer.h"
+#include "Ripple.h"
 #include "Terrain.h"
 #include "Resources.h"
 #include "ProjectileEntity.h"
@@ -42,6 +46,10 @@ private:
 	void CreateCamera();
 	void InitializeEntities();
 	void InitializeRenderer();
+
+	void CreateRipple(float x, float y, float z, float duration, float ringSize);
+	bool projectileHitWater;
+	std::vector<Ripple> ripples;
 
 	SimpleVertexShader*			vertexShader;
 	SimplePixelShader*			pixelShader;
