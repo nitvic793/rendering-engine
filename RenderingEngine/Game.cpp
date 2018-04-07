@@ -166,7 +166,7 @@ void Game::CreateWater()
 {
 	time = 0.0f;
 	translate = 0.0f;
-	water = new Water(1000, 1000);
+	water = new Water(4, 4);
 	water->GenerateWaterMesh();
 	water->CalculateUVCoordinates();
 	resources->vertexShaders["water"]->SetFloat("time", time);
@@ -174,7 +174,22 @@ void Game::CreateWater()
 	models.insert(std::pair<std::string, Mesh*>("quad", new Mesh(water->GetVertices(), water->GetVertexCount(), water->GetIndices(), water->GetIndexCount(), device)));
 	waterObject = new Entity(models["quad"], resources->materials["water"]);
 	waterObject->SetPosition(-125, -7, -150);
+	waterObject->SetScale(100, 100, 100);
 	entities.push_back(waterObject);
+	//-------------------------------
+	////Load Sampler
+	//D3D11_SAMPLER_DESC samplerDesc = {};
+	//samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+	//samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+	//samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+	//samplerDesc.Filter = D3D11_FILTER_ANISOTROPIC;
+	//samplerDesc.MaxAnisotropy = 16;
+	//samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
+
+	//device->CreateSamplerState(&samplerDesc, &sampler);
+
+	//resources->vertexShaders["water"]->SetShaderResourceView("displacementMap", resources->shaderResourceViews["waterDisplacement"]);
+	//resources->vertexShaders["water"]->SetSamplerState("basicSampler", sampler);
 }
 
 void Game::InitializeEntities()
@@ -194,8 +209,8 @@ void Game::InitializeEntities()
 	secondaryLight.DiffuseColor = XMFLOAT4(0.5f, 0.5f, 0.5f, 1);
 	secondaryLight.Direction = XMFLOAT3(0, -1, 0);
 
-	pointLight.Color = XMFLOAT4(0.6f, 0.6f, 0.6f, 1);
-	pointLight.Position = XMFLOAT3(0, 0, 0);
+	pointLight.Color = XMFLOAT4(0.0f, 0.f, 0.f, 1);
+	pointLight.Position = XMFLOAT3(0.4f, 2.f, -14.9f);
 	pointLight.Range = 20.f;
 
 	lightsMap.insert(std::pair<std::string, Light*>("light", new Light{ &light, Directional }));
@@ -251,8 +266,8 @@ void Game::OnResize()
 void Game::Update(float deltaTime, float totalTime)
 {
 	// Water .........................................
-	time += 0.001f;
-	translate += 0.001f;
+	time += 0.05f * deltaTime;
+	translate += 0.2f * deltaTime;
 	if (translate > 1.0f)
 	{
 		translate -= 1.0f;
@@ -269,7 +284,7 @@ void Game::Update(float deltaTime, float totalTime)
 	if ((GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0)
 	{
 		projectilePreviousPosition = currentProjectile->GetPosition();
-		currentProjectile->Shoot(0.6f, camera->GetDirection());
+		currentProjectile->Shoot(30.6f * deltaTime, camera->GetDirection());
 	}
 
 	if ((GetAsyncKeyState(VK_SPACE) & 0x8000) != 0) {

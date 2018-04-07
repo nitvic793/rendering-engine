@@ -30,7 +30,6 @@ struct RippleData {
 	float rippleRadius;
 	float ringSize;
 	float rippleIntensity;
-
 	float padding1;
 	float padding2;
 };
@@ -38,13 +37,13 @@ struct RippleData {
 cbuffer externalData : register(b0)
 {
 	DirectionalLight dirLights[MAX_LIGHTS];
-	PointLight pointLights[MAX_LIGHTS];
-	RippleData ripples[MAX_RIPPLES];
+	PointLight pointLights[MAX_LIGHTS];	
 	int DirectionalLightCount;
 	int PointLightCount;
-	int rippleCount;
 	float3 cameraPosition;
 	float translate;
+	RippleData ripples[MAX_RIPPLES];
+	int rippleCount;
 }
 
 Texture2D diffuseTexture : register(t0);
@@ -129,6 +128,7 @@ float4 main(VertexToPixel input) : SV_TARGET
 	finalNormal = normalize(finalNormal);
 	float4 totalColor = float4(0, 0, 0, 0);
 	float roughness = roughnessTexture.Sample(basicSampler, input.uv).r;
+	//return (calculateDirectionalLight(finalNormal, input.worldPos, dirLights[0], roughness) + calculateSkyboxReflection(input.normal, input.worldPos, dirLights[0].Direction)) *surfaceColor;
 	//return calculateSkyboxReflection(input.normal, input.worldPos, dirLights[0].Direction); 
 
 	for (int r = 0; r < rippleCount; ++r) {
@@ -171,15 +171,14 @@ float4 main(VertexToPixel input) : SV_TARGET
 	for (i = 0; i < DirectionalLightCount; ++i)
 	{
 	
-		totalColor += (calculateDirectionalLight(finalNormal, input.worldPos, dirLights[i], roughness) + calculateSkyboxReflection(input.normal, input.worldPos, dirLights[i].Direction)); //* surfaceColor;
+		totalColor += (calculateDirectionalLight(finalNormal, input.worldPos, dirLights[i], roughness)  * calculateSkyboxReflection(finalNormal, input.worldPos, dirLights[i].Direction)) * surfaceColor;
 	}
 
 	for (i = 0; i < PointLightCount; ++i)
 	{
 		float3 dirToLight = normalize(pointLights[i].Position - input.worldPos);
-		totalColor += (calculatePointLight(finalNormal, input.worldPos, pointLights[i], roughness) + calculateSkyboxReflection(input.normal, input.worldPos, dirToLight));//  *surfaceColor;
+		totalColor += (calculatePointLight(finalNormal, input.worldPos, pointLights[i], roughness) * calculateSkyboxReflection(finalNormal, input.worldPos, dirToLight))  *surfaceColor;
 	}
 
-	return (calculateDirectionalLight(finalNormal, input.worldPos, dirLights[0], roughness) + calculateSkyboxReflection(input.normal, input.worldPos, dirLights[0].Direction)) *surfaceColor;
-	//return totalColor;
+	return totalColor;
 }
