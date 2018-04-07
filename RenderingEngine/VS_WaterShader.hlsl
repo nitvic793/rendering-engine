@@ -40,6 +40,7 @@ SamplerState basicSampler : register(s1);
 VertexToPixel main(VertexShaderInput input)
 {
 	VertexToPixel output;
+	output.tessFactor = 0;
 	
 	float displacedHeight = displacementMap.SampleLevel(basicSampler, input.uv,0).x;
 	//----------------------------Water Motion-----------------------------------

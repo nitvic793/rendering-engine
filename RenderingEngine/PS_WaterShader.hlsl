@@ -128,7 +128,7 @@ float4 main(VertexToPixel input) : SV_TARGET
 	finalNormal = normalize(finalNormal);
 	float4 totalColor = float4(0, 0, 0, 0);
 	float roughness = roughnessTexture.Sample(basicSampler, input.uv).r;
-	return (calculateDirectionalLight(finalNormal, input.worldPos, dirLights[0], roughness) + calculateSkyboxReflection(input.normal, input.worldPos, dirLights[0].Direction)) *surfaceColor;
+	//return (calculateDirectionalLight(finalNormal, input.worldPos, dirLights[0], roughness) + calculateSkyboxReflection(input.normal, input.worldPos, dirLights[0].Direction)) *surfaceColor;
 	//return calculateSkyboxReflection(input.normal, input.worldPos, dirLights[0].Direction); 
 
 	for (int r = 0; r < rippleCount; ++r) {
@@ -180,6 +180,5 @@ float4 main(VertexToPixel input) : SV_TARGET
 		totalColor += (calculatePointLight(finalNormal, input.worldPos, pointLights[i], roughness) * calculateSkyboxReflection(finalNormal, input.worldPos, dirToLight))  *surfaceColor;
 	}
 
-	return (calculateDirectionalLight(finalNormal, input.worldPos, dirLights[0], roughness) + calculateSkyboxReflection(input.normal, input.worldPos, dirLights[0].Direction)) *surfaceColor;
-	//return totalColor;
+	return totalColor;
 }
