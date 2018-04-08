@@ -87,7 +87,7 @@ void Water::CalculateUVCoordinates()
 	// Calculate how much to increment the texture coordinates by.
 	// Increase water fidelity by increasing this value
 	// Change numbers in powers of 2
-	incrementValue = (float)32 / (float)breadth;
+	incrementValue = (float)16 / (float)breadth;
 	
 	// Calculate how many times to repeat the texture.
 	incrementCount = breadth;
@@ -132,4 +132,23 @@ void Water::CalculateUVCoordinates()
 		}
 	}
 
+}
+
+void Water::CreateWaves()
+{
+	for (int i = 0; i < NUM_OF_WAVES; i++)
+	{
+		float randomAngle = (float)(rand() * XM_PI );
+		waves[i].direction.x = sin(randomAngle);
+		waves[i].direction.y = sin(randomAngle);
+		/*waves[i].amplitude = 0.03f + pow(2.0f, (float)rand() * 2.0f) * 0.05f;
+		waves[i].wavelength = 1.0f + pow(2.f, 1.f + (float)rand()) * 10.f;*/
+		waves[i].amplitude = 1;
+		waves[i].wavelength = 4;
+	}
+}
+
+Wave* Water::GetWaves()
+{
+	return waves;
 }

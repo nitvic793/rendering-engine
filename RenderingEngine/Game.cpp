@@ -71,6 +71,9 @@ Game::~Game()
 
 	delete currentProjectile;
 	delete water;
+	displacementSampler -> Release();
+	delete hullShader;
+	delete domainShader;
 }
 
 // --------------------------------------------------------
@@ -94,14 +97,6 @@ void Game::Init()
 	CreateCamera();
 	InitializeEntities();
 	InitializeRenderer();
-
-
-	// Tell the input assembler stage of the pipeline what kind of
-	// geometric primitives (points, lines or triangles) we want to draw.  
-	// Essentially: "What kind of shape should the GPU draw with our data?"
-	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-
 
 	// Create a sampler state that holds options for sampling
 	// The descriptions should always just be local variables
@@ -147,6 +142,12 @@ void Game::LoadShaders()
 
 	pixelShader = new SimplePixelShader(device, context);
 	pixelShader->LoadShaderFile(L"PixelShader.cso");
+
+	hullShader = new SimpleHullShader(device, context);
+	hullShader->LoadShaderFile(L"TesselationHullShader.cso");
+
+	domainShader = new SimpleDomainShader(device, context);
+	domainShader->LoadShaderFile(L"TesselationDomainShader.cso");
 }
 
 // --------------------------------------------------------
@@ -162,30 +163,34 @@ void Game::CreateWater()
 {
 	time = 0.0f;
 	translate = 0.0f;
-	water = new Water(4, 4);
+	water = new Water(100,100);
 	water->GenerateWaterMesh();
 	water->CalculateUVCoordinates();
 	resources->vertexShaders["water"]->SetFloat("time", time);
 	resources->pixelShaders["water"]->SetShaderResourceView("SkyTexture", resources->shaderResourceViews["cubemap"]);
+	resources->pixelShaders["water"]->SetShaderResourceView("normalTextureTwo", resources->shaderResourceViews["waterNormal2"]);
 	models.insert(std::pair<std::string, Mesh*>("quad", new Mesh(water->GetVertices(), water->GetVertexCount(), water->GetIndices(), water->GetIndexCount(), device)));
 	waterObject = new Entity(models["quad"], resources->materials["water"]);
 	waterObject->SetPosition(-125, -7, -150);
-	waterObject->SetScale(100, 100, 100);
+	waterObject->SetScale(3, 3, 3);
 	entities.push_back(waterObject);
+
+	water->CreateWaves();
+	resources->vertexShaders["water"]->SetData("waves", water->GetWaves(), sizeof(Wave) * NUM_OF_WAVES);
 	//-------------------------------
-	////Load Sampler
-	//D3D11_SAMPLER_DESC samplerDesc = {};
-	//samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-	//samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-	//samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-	//samplerDesc.Filter = D3D11_FILTER_ANISOTROPIC;
-	//samplerDesc.MaxAnisotropy = 16;
-	//samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
+	//Load Sampler
+	D3D11_SAMPLER_DESC samplerDesc = {};
+	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+	samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+	samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+	samplerDesc.Filter = D3D11_FILTER_ANISOTROPIC;
+	samplerDesc.MaxAnisotropy = 16;
+	samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
 
-	//device->CreateSamplerState(&samplerDesc, &sampler);
+	device->CreateSamplerState(&samplerDesc, &displacementSampler);
 
-	//resources->vertexShaders["water"]->SetShaderResourceView("displacementMap", resources->shaderResourceViews["waterDisplacement"]);
-	//resources->vertexShaders["water"]->SetSamplerState("basicSampler", sampler);
+	resources->vertexShaders["water"]->SetShaderResourceView("displacementMap", resources->shaderResourceViews["waterDisplacement"]);
+	resources->vertexShaders["water"]->SetSamplerState("basicSampler", displacementSampler);
 }
 
 void Game::InitializeEntities()
@@ -258,7 +263,7 @@ void Game::Update(float deltaTime, float totalTime)
 {
 	// Water .........................................
 	time += 0.05f * deltaTime;
-	translate += 0.2f * deltaTime;
+	translate += 0.1f * deltaTime;
 	if (translate > 1.0f)
 	{
 		translate -= 1.0f;
@@ -320,6 +325,25 @@ void Game::Draw(float deltaTime, float totalTime)
 	}
 	renderer->DrawEntity(currentProjectile);
 
+	// --- tessellation test ---
+	/*vertexShader->SetFloat("gMaxTessDistance", 5);
+	vertexShader->SetFloat("gMinTessDistance", 2);
+	vertexShader->SetFloat("gMinTessFactor", 2);
+	vertexShader->SetFloat("gMaxTessFactor", 3);
+	domainShader->SetMatrix4x4("view", camera->GetViewMatrix());
+	domainShader->SetMatrix4x4("projection", camera->GetProjectionMatrix());
+	domainShader->SetShaderResourceView("heightSRV", resources->shaderResourceViews["waterDisplacement"]);
+	domainShader->SetSamplerState("heightSampler", displacementSampler);
+	hullShader->SetShader();
+	domainShader->SetShader();
+	hullShader->CopyAllBufferData();
+	domainShader->CopyAllBufferData();
+	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
+	renderer->DrawEntity(entities[2]);*/
+
+	// -- end tessellation --
+
+	// -- Skybox --
 
 	// Set buffers in the input assembler
 	UINT stride = sizeof(Vertex);

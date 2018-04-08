@@ -24,7 +24,7 @@ struct VertexShaderInput
 };
 
 
-struct VertexToPixel
+struct VertexToHull
 {
 	float4 position		: SV_POSITION;	// XYZW position (System Value Position)
 	float3 normal		: NORMAL;
@@ -33,24 +33,64 @@ struct VertexToPixel
 	float3 tangent		: TANGENT;
 	float tessFactor	: TESS;
 };
-
-Texture2D displacementMap : register(t4);
-SamplerState basicSampler : register(s1);
-
-VertexToPixel main(VertexShaderInput input)
+struct Wave
 {
-	VertexToPixel output;
-	
-	float displacedHeight = displacementMap.SampleLevel(basicSampler, input.uv,0).x;
+	float2 direction;
+	float amplitude;
+	float wavelength;
+};
+cbuffer WaveInfo	:	register(b2)
+{
+	Wave waves[100];
+};
+
+static int numWaves = 5;
+static float steepness = 0.8;
+static float speed = 15;
+float3 CalculateGerstnerWave(float3 inputVertex)
+{
+	float3 total = float3(0, 0, 0);
+
+	for (int i = 0; i < numWaves; i++)
+	{
+		Wave wave = waves[i];
+		// Wavelength (L): the crest-to-crest distance between waves in world space. Wavelength L relates to frequency w as w = 2/L.
+		float wi = 2 * 3.1416 / wave.wavelength;
+		// Amplitude (A): the height from the water plane to the wave crest.
+		float ai = wave.amplitude;
+		// Speed (S): the distance the crest moves forward per second.
+		// It is convenient to express speed as phase-constant, where phase-constant = S x 2/L
+		float phi = speed * wi;
+		// direction normalized
+		float2 direction = normalize(wave.direction);
+		// Angle calculated
+		// Water mesh is in the xz plane not xy plane as the gerstner equation suggests
+		float theta = wi * dot( inputVertex.xz, direction) + phi * time;
+		// Qi is a parameter that controls the steepness of the waves.
+		//	For a single wave i, Qi of 0 gives the usual rolling sine wave, and Qi = 1/(wi Ai ) gives a sharp crest.
+		//  range of 0 to 1, and using Qi = Q/(wi Ai x numWaves) to vary from totally smooth waves to the sharpest waves
+		float qi = steepness / wi * wave.amplitude * numWaves;
+		
+		// X and Z values as per gerstner equation
+		total.x += inputVertex.x + qi * ai * direction.x * cos(theta);
+		total.y += wave.amplitude * sin(theta);
+		total.z += inputVertex.z + qi * ai * direction.y * cos(theta);
+	}
+
+	return total;
+}
+
+void WaveEq()
+{
 	//----------------------------Water Motion-----------------------------------
-	/*int u = 64;
-	int v = 64;*/
+	//int u = 64;
+	//int v = 64;
 
 	//float s_X = 0;
 	//float s_Y = 0;
 	//float s_Z = 0;
 
-	////output.uv = float2(input.position[0] * 22.0 / 2816.0, input.position[2] * 16.5 / 2112.0);
+	//output.uv = float2(input.position[0] * 22.0 / 2816.0, input.position[2] * 16.5 / 2112.0);
 
 
 	//float2 X0 = float2(input.position[0], input.position[2]);
@@ -59,7 +99,7 @@ VertexToPixel main(VertexShaderInput input)
 	//{
 	//	float2 K = float2(1, i);				// K is wave vector
 	//	float w = 1.5 * (i + 1) / 3.0;			// w is frequency
-	//	float a = 0.01;							// a is amplitude
+	//	float a = 0.001;							// a is amplitude
 	//	float2 X = X0 - K * a*sin(dot(K, X0) - w * time * 10);
 	//	float  y = a * cos(dot(K, X0) - w * time * 10);
 	//	s_X += X[0] / 64 - 0.5f;
@@ -69,11 +109,29 @@ VertexToPixel main(VertexShaderInput input)
 	//}
 	//input.position[0] = s_X;
 	//input.position[2] = s_Y;
-	//input.position[1] = displacedHeight; //s_Z
+	//input.position[1] = s_Z; //s_Z
 	//
-	
-	//---------------------------------------------------------------
+	//
+	////---------------------------------------------------------------
 	//input.position *= 100.0f;
+}
+Texture2D displacementMap : register(t4);
+SamplerState basicSampler : register(s1);
+
+VertexToHull main(VertexShaderInput input)
+{
+	VertexToHull output;
+	float scaleFactor = 3.0f;
+	//input.uv.x += time;
+	float displacedHeight = displacementMap.SampleLevel(basicSampler, input.uv,0).x;
+	
+
+	// Sine wave
+	float height = 1;
+	//input.position.y = height * sin(input.position.x + time) * sin(input.position.y + time);
+
+	// Apply Gerstner wave equation
+	input.position = CalculateGerstnerWave(input.position);
 
 	// Transform to world position
 	matrix worldViewProj = mul(mul(world, view), projection);
@@ -84,8 +142,22 @@ VertexToPixel main(VertexShaderInput input)
 	output.uv = input.uv;
 	output.tangent = normalize(mul(input.tangent, (float3x3)world));
 
-	//
+	
+	
+	// simple displacement mapping
+	//output.position.y += scaleFactor * displacedHeight;
+
+	// output vertex for interpolatio across triangles
 	//output.uv = mul(float4(input.uv, 0.0f, 1.0f), gTexTransform).xy;
 
+	// Normalized tessellation factor. 
+	// The tessellation is 
+	//   0 if d >= gMinTessDistance and
+	//   1 if d <= gMaxTessDistance.  
+	float tess = saturate((gMinTessDistance) / (gMinTessDistance - gMaxTessDistance));
+
+	// Rescale [0,1] --> [gMinTessFactor, gMaxTessFactor].
+	output.tessFactor = gMinTessFactor + tess * (gMaxTessFactor - gMinTessFactor);
+	
 	return output;
 }

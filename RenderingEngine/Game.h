@@ -64,6 +64,7 @@ private:
 	std::vector<Entity*> entities;	
 
 	ID3D11SamplerState* sampler;
+	ID3D11SamplerState* displacementSampler;
 
 	ID3D11ShaderResourceView* skySRV;
 	ID3D11RasterizerState* skyRastState;
@@ -73,5 +74,7 @@ private:
 	Water * water;
 	Entity * waterObject;
 	void CreateWater();
+	SimpleHullShader* hullShader;
+	SimpleDomainShader* domainShader;
 };
 

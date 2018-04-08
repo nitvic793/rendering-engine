@@ -1,12 +1,13 @@
 
 #define MAX_LIGHTS 32
-struct VertexToPixel
+struct DomainToPixel
 {
-	float4 position		: SV_POSITION;
+	float4 position		: SV_POSITION;	// XYZW position (System Value Position)
 	float3 normal		: NORMAL;
 	float2 uv			: TEXCOORD;
 	float3 worldPos		: POSITION;
 	float3 tangent		: TANGENT;
+	float tessFactor : TESS;
 };
 
 struct DirectionalLight
@@ -36,6 +37,7 @@ cbuffer externalData : register(b0)
 
 Texture2D diffuseTexture : register(t0);
 Texture2D normalTexture : register(t1);
+Texture2D normalTextureTwo : register(t4);
 SamplerState basicSampler : register(s0);
 Texture2D roughnessTexture : register(t2);
 TextureCube SkyTexture		: register(t3);
@@ -81,13 +83,25 @@ float4 calculatePointLight(float3 normal, float3 worldPos, PointLight light, flo
 
 float3 calculateNormalFromMap(float2 uv, float3 normal, float3 tangent)
 {
+	float3 normalFinal;
+	//uv.x += translate;
 	float3 normalFromTexture = normalTexture.Sample(basicSampler, uv).xyz;
 	float3 unpackedNormal = normalFromTexture * 2.0f - 1.0f;
 	float3 N = normal;
 	float3 T = normalize(tangent - N * dot(tangent, N));
 	float3 B = cross(N, T);
 	float3x3 TBN = float3x3(T, B, N);
-	return normalize(mul(unpackedNormal, TBN));
+	normalFinal = normalize(mul(unpackedNormal, TBN));
+
+	//uv.y += translate;
+	float3 normalFromTexture2 = normalTextureTwo.Sample(basicSampler, uv).xyz;
+	unpackedNormal = normalFromTexture2 * 2.0f - 1.0f;
+	N = normal;
+	T = normalize(tangent - N * dot(tangent, N));
+	B = cross(N, T);
+	TBN = float3x3(T, B, N);
+	normalFinal = normalize(normalFinal + normalize(mul(unpackedNormal, TBN)));
+	return normalFinal;
 }
 float4 calculateSkyboxReflection(float3 normal, float3 worldPos, float3 dirToLight)
 {
@@ -99,10 +113,11 @@ float4 calculateSkyboxReflection(float3 normal, float3 worldPos, float3 dirToLig
 		reflect(-dirToCamera, normal));
 }
 
-float4 main(VertexToPixel input) : SV_TARGET
+float4 main(DomainToPixel input) : SV_TARGET
 {
-	input.uv.x += translate;
+	//input.uv.x += translate;
 	float4 surfaceColor = diffuseTexture.Sample(basicSampler, input.uv);
+	
 	float3 finalNormal = calculateNormalFromMap(input.uv, input.normal, input.tangent);
 	input.normal = normalize(input.normal);
 	finalNormal = normalize(finalNormal);
@@ -114,13 +129,13 @@ float4 main(VertexToPixel input) : SV_TARGET
 	for (i = 0; i < DirectionalLightCount; ++i)
 	{
 	
-		totalColor += (calculateDirectionalLight(finalNormal, input.worldPos, dirLights[i], roughness)  * calculateSkyboxReflection(input.normal, input.worldPos, dirLights[i].Direction)) * surfaceColor;
+		totalColor += (calculateDirectionalLight(finalNormal, input.worldPos, dirLights[i], roughness)  * calculateSkyboxReflection(finalNormal, input.worldPos, dirLights[i].Direction)) * surfaceColor;
 	}
 
 	for (i = 0; i < PointLightCount; ++i)
 	{
 		float3 dirToLight = normalize(pointLights[i].Position - input.worldPos);
-		totalColor += (calculatePointLight(finalNormal, input.worldPos, pointLights[i], roughness) * calculateSkyboxReflection(input.normal, input.worldPos, dirToLight))  *surfaceColor;
+		totalColor += (calculatePointLight(finalNormal, input.worldPos, pointLights[i], roughness) * calculateSkyboxReflection(finalNormal, input.worldPos, dirToLight))  *surfaceColor;
 	}
 
 	return totalColor;

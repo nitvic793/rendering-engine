@@ -5,6 +5,15 @@
 #include "Mesh.h"
 #include <memory>
 #include "Entity.h"
+#include <random>
+
+#define	NUM_OF_WAVES 100
+struct Wave
+{
+	XMFLOAT2 direction;
+	float amplitude;
+	float wavelength;
+};
 class Water
 {
 private:
@@ -14,6 +23,7 @@ private:
 	int breadth ;
 	UINT * indices;
 	Vertex * vertices;
+	Wave waves[NUM_OF_WAVES];
 public:
 	Water(int _length, int _breadth);
 	~Water();
@@ -23,5 +33,7 @@ public:
 	UINT GetVertexCount();
 	UINT GetIndexCount();
 	void CalculateUVCoordinates();
+	void CreateWaves();
+	Wave* GetWaves();
 };
 
