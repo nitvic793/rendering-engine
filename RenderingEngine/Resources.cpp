@@ -102,6 +102,23 @@ void Resources::LoadResources()
 	waterPS->LoadShaderFile(L"PS_WaterShader.cso");
 	pixelShaders.insert(PixelShaderMapType("water", waterPS));
 
+	// Refraction shaders
+	auto quadVS = new SimpleVertexShader(device, context);
+	quadVS->LoadShaderFile(L"FullscreenQuadVS.cso");
+	vertexShaders.insert(VertexShaderMapType("quad", quadVS));
+
+	auto quadPS = new SimplePixelShader(device, context);
+	quadPS->LoadShaderFile(L"FullscreenQuadPS.cso");
+	pixelShaders.insert(PixelShaderMapType("quad", quadPS));
+
+	auto refractVS = new SimpleVertexShader(device, context);
+	refractVS->LoadShaderFile(L"RefractVS.cso");
+	vertexShaders.insert(VertexShaderMapType("refraction", refractVS));
+
+	auto refractPS = new SimplePixelShader(device, context);
+	refractPS->LoadShaderFile(L"RefractPS.cso");
+	pixelShaders.insert(PixelShaderMapType("refraction", refractPS));
+
 	//Load Materials
 	materials.insert(MaterialMapType("metal", new Material(vertexShader, pixelShader, shaderResourceViews["metal"], shaderResourceViews["metalNormal"], shaderResourceViews["metalSpecular"], sampler)));
 	materials.insert(MaterialMapType("fabric", new Material(vertexShader, pixelShader, shaderResourceViews["fabric"], shaderResourceViews["fabricNormal"], sampler)));

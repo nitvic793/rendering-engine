@@ -132,6 +132,58 @@ void Game::Init()
 	ds.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
 	device->CreateDepthStencilState(&ds, &skyDepthState);
 
+	// Refraction setup ------------------------
+	ID3D11Texture2D* refractionRenderTexture;
+
+	// Set up render texture
+	D3D11_TEXTURE2D_DESC rtDesc = {};
+	rtDesc.Width = width;
+	rtDesc.Height = height;
+	rtDesc.MipLevels = 1;
+	rtDesc.ArraySize = 1;
+	rtDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	rtDesc.Usage = D3D11_USAGE_DEFAULT;
+	rtDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+	rtDesc.CPUAccessFlags = 0;
+	rtDesc.MiscFlags = 0;
+	rtDesc.SampleDesc.Count = 1;
+	rtDesc.SampleDesc.Quality = 0;
+	device->CreateTexture2D(&rtDesc, 0, &refractionRenderTexture);
+
+
+	// Set up render target view
+	D3D11_RENDER_TARGET_VIEW_DESC rtvDesc = {};
+	rtvDesc.Format = rtDesc.Format;
+	rtvDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+	rtvDesc.Texture2D.MipSlice = 0;
+	device->CreateRenderTargetView(refractionRenderTexture, &rtvDesc, &refractionRTV);
+
+	// Set up shader resource view for same texture
+	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+	srvDesc.Format = rtDesc.Format;
+	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+	srvDesc.Texture2D.MipLevels = 1;
+	srvDesc.Texture2D.MostDetailedMip = 0;
+	device->CreateShaderResourceView(refractionRenderTexture, &srvDesc, &refractionSRV);
+
+	// All done with this texture ref
+	refractionRenderTexture->Release();
+
+	// Set up a sampler that uses clamp addressing
+	// for use when doing refration - this is useful so 
+	// that we don't wrap the refraction from the other
+	// side of the screen
+	D3D11_SAMPLER_DESC rSamp = {};
+	rSamp.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
+	rSamp.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
+	rSamp.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
+	rSamp.Filter = D3D11_FILTER_ANISOTROPIC;
+	rSamp.MaxAnisotropy = 16;
+	rSamp.MaxLOD = D3D11_FLOAT32_MAX;
+
+	// Ask DirectX for the actual object
+	device->CreateSamplerState(&rSamp, &refractSampler);
+
 	// Tell the input assembler stage of the pipeline what kind of
 	// geometric primitives (points, lines or triangles) we want to draw.  
 	// Essentially: "What kind of shape should the GPU draw with our data?"
@@ -173,9 +225,10 @@ void Game::CreateWater()
 	resources->pixelShaders["water"]->SetShaderResourceView("SkyTexture", resources->shaderResourceViews["cubemap"]);
 	models.insert(std::pair<std::string, Mesh*>("quad", new Mesh(water->GetVertices(), water->GetVertexCount(), water->GetIndices(), water->GetIndexCount(), device)));
 	waterObject = new Entity(models["quad"], resources->materials["water"]);
+	//waterObject->SetPosition(1.f, 1.f, 1.9f);
 	waterObject->SetPosition(-125, -7, -150);
 	waterObject->SetScale(100, 100, 100);
-	entities.push_back(waterObject);
+	//entities.push_back(waterObject);
 	//-------------------------------
 	////Load Sampler
 	//D3D11_SAMPLER_DESC samplerDesc = {};
@@ -241,6 +294,62 @@ void Game::InitializeRenderer()
 	renderer = new Renderer(context, backBufferRTV, depthStencilView, swapChain);
 	renderer->SetCamera(camera);
 	renderer->SetLights(lightsMap);
+}
+
+void Game::DrawRefraction()
+{
+	UINT stride = sizeof(Vertex);
+	UINT offset = 0;
+	ID3D11Buffer* vb = waterObject->GetMesh()->GetVertexBuffer();
+	ID3D11Buffer* ib = waterObject->GetMesh()->GetIndexBuffer();
+	context->IASetVertexBuffers(0, 1, &vb, &stride, &offset);
+	context->IASetIndexBuffer(ib, DXGI_FORMAT_R32_UINT, 0);
+
+	auto refractVS = resources->vertexShaders["refraction"];
+	auto refractPS = resources->pixelShaders["refraction"];
+	// Setup vertex shader
+	refractVS->SetMatrix4x4("world", waterObject->GetWorldMatrix());
+	refractVS->SetMatrix4x4("view", camera->GetViewMatrix());
+	refractVS->SetMatrix4x4("projection", camera->GetProjectionMatrix());
+	refractVS->CopyAllBufferData();
+	refractVS->SetShader();
+
+	// Setup pixel shader
+	refractPS->SetShaderResourceView("ScenePixels", refractionSRV);	// Pixels of the screen
+	refractPS->SetShaderResourceView("NormalMap", waterObject->GetMaterial()->GetNormalSRV());	// Normal map for the object itself
+	refractPS->SetSamplerState("BasicSampler", sampler);			// Sampler for the normal map
+	refractPS->SetSamplerState("RefractSampler", refractSampler);	// Uses CLAMP on the edges
+	refractPS->SetFloat3("CameraPosition", camera->GetPosition());
+	refractPS->SetMatrix4x4("view", camera->GetViewMatrix());				// View matrix, so we can put normals into view space
+	refractPS->CopyAllBufferData();
+	refractPS->SetShader();
+
+
+
+
+	// Finally do the actual drawing
+	context->DrawIndexed(waterObject->GetMesh()->GetIndexCount(), 0, 0);
+
+}
+
+void Game::DrawFullscreenQuad(ID3D11ShaderResourceView * texture)
+{
+	// First, turn off our buffers, as we'll be generating the vertex
+	// data on the fly in a special vertex shader using the index of each vert
+	context->IASetVertexBuffers(0, 0, 0, 0, 0);
+	context->IASetIndexBuffer(0, DXGI_FORMAT_R32_UINT, 0);
+
+	auto quadVS = resources->vertexShaders["quad"];
+	auto quadPS = resources->pixelShaders["quad"];
+	// Set up the fullscreen quad shaders
+	quadVS->SetShader();
+
+	quadPS->SetShaderResourceView("Pixels", texture);
+	quadPS->SetSamplerState("Sampler", sampler);
+	quadPS->SetShader();
+
+	// Draw
+	context->Draw(3, 0);
 }
 
 void Game::CreateRipple(float x, float y, float z, float duration, float ringSize) {
@@ -350,7 +459,32 @@ void Game::Draw(float deltaTime, float totalTime)
 {
 	const float color[4] = { 0.11f, 0.11f, 0.11f, 0.0f };
 	renderer->ClearScreen(color);
+
+	// Clear any and all render targets we intend to use, and the depth buffer
+	context->ClearRenderTargetView(backBufferRTV, color);
+	context->ClearRenderTargetView(refractionRTV, color);
+	context->ClearDepthStencilView(depthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
+
+	// Use our refraction render target and our regular depth buffer
+	context->OMSetRenderTargets(1, &refractionRTV, depthStencilView);
+	
+	
+	//renderer->DrawEntity(entities[0]);
 	renderer->DrawEntity(terrain.get());
+	DrawSky();
+	//renderer->DrawEntity(entities[1]);
+	resources->vertexShaders["water"]->SetFloat("time", time);
+	resources->pixelShaders["water"]->SetShaderResourceView("SkyTexture", resources->shaderResourceViews["cubemap"]);
+	renderer->DrawEntity(waterObject);
+
+	context->OMSetRenderTargets(1, &backBufferRTV, 0);
+
+	DrawFullscreenQuad(refractionSRV);
+
+	context->OMSetRenderTargets(1, &backBufferRTV, depthStencilView);
+
+	DrawRefraction();
+
 	for (auto entity : entities)
 	{
 		renderer->DrawEntity(entity);
@@ -358,13 +492,49 @@ void Game::Draw(float deltaTime, float totalTime)
 	renderer->DrawEntity(currentProjectile);
 
 
-	// Set buffers in the input assembler
-	UINT stride = sizeof(Vertex);
-	UINT offset = 0;
+	ID3D11ShaderResourceView* nullSRV[16] = {};
+	context->PSSetShaderResources(0, 16, nullSRV);
 
+	
+
+	//Reset water if there are no ripples
+	resources->pixelShaders["water"]->SetFloat3("ripplePosition", XMFLOAT3(0.0f, 0.0f, 0.0f));
+	resources->pixelShaders["water"]->SetFloat("rippleRadius", 0.0f);
+	resources->pixelShaders["water"]->SetFloat("ringSize", 0.0f);
+
+	std::vector<RippleData> rippleData;
+	for (auto ripple : ripples) {
+		rippleData.push_back(ripple.GetRippleData());
+	}
+	if (rippleData.size() > 0) {
+		resources->pixelShaders["water"]->SetData("ripples", rippleData.data(), sizeof(RippleData) * MAX_RIPPLES);
+	}
+	resources->pixelShaders["water"]->SetInt("rippleCount", (int)ripples.size());
+
+	//Convert Ripples to RippleData structs, then
+	//Pass ripples to the water shader
+
+	if (rippleData.size() > 0)
+		std::cout << rippleData[0].rippleRadius << std::endl;
+
+	renderer->Present();
+
+	
+}
+
+
+
+void Game::DrawSky()
+{
 	// After I draw any and all opaque entities, I want to draw the sky
 	ID3D11Buffer* skyVB = resources->meshes["cube"]->GetVertexBuffer();
 	ID3D11Buffer* skyIB = resources->meshes["cube"]->GetIndexBuffer();
+
+	
+	// Set the buffers
+	UINT stride = sizeof(Vertex);
+	UINT offset = 0;
+
 	context->IASetVertexBuffers(0, 1, &skyVB, &stride, &offset);
 	context->IASetIndexBuffer(skyIB, DXGI_FORMAT_R32_UINT, 0);
 
@@ -383,31 +553,11 @@ void Game::Draw(float deltaTime, float totalTime)
 	context->OMSetDepthStencilState(skyDepthState, 0);
 	context->DrawIndexed(resources->meshes["cube"]->GetIndexCount(), 0, 0);
 
+
 	// When done rendering, reset any and all states for the next frame
 	context->RSSetState(0);
 	context->OMSetDepthStencilState(0, 0);
-
-	//Reset water if there are no ripples
-	//resources->pixelShaders["water"]->SetFloat3("ripplePosition", XMFLOAT3(0.0f, 0.0f, 0.0f));
-	//resources->pixelShaders["water"]->SetFloat("rippleRadius", 0.0f);
-	//resources->pixelShaders["water"]->SetFloat("ringSize", 0.0f);
-
-	//Convert Ripples to RippleData structs, then
-	//Pass ripples to the water shader
-	std::vector<RippleData> rippleData;
-	for (auto ripple : ripples) {
-		rippleData.push_back(ripple.GetRippleData());
-	}
-	if (rippleData.size() > 0) {
-		resources->pixelShaders["water"]->SetData("ripples", rippleData.data(), sizeof(RippleData) * MAX_RIPPLES);
-	}
-	resources->pixelShaders["water"]->SetInt("rippleCount", (int)ripples.size());
-	//if (rippleData.size() > 0)
-	//	std::cout << rippleData[0].rippleRadius << std::endl;
-
-	renderer->Present();
 }
-
 
 #pragma region Mouse Input
 

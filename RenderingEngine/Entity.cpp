@@ -120,7 +120,8 @@ void Entity::PrepareMaterial(XMFLOAT4X4 viewMatrix, XMFLOAT4X4 projectionMatrix)
 	pixelShader->SetShaderResourceView("diffuseTexture", material->GetSRV());
 	if (material->GetNormalSRV())
 		pixelShader->SetShaderResourceView("normalTexture", material->GetNormalSRV());
-	else pixelShader->SetShaderResourceView("normalTexture", nullptr);
+	else 
+		pixelShader->SetShaderResourceView("normalTexture", nullptr);
 
 	pixelShader->SetShaderResourceView("roughnessTexture", material->GetRoughnessSRV());
 	vertexShader->CopyAllBufferData();
@@ -194,6 +195,11 @@ void Entity::Update(float deltaTime, float totalTime)
 Mesh *Entity::GetMesh()
 {
 	return mesh;
+}
+
+Material * Entity::GetMaterial()
+{
+	return material;
 }
 
 XMFLOAT3 Entity::GetPosition()
