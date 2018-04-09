@@ -44,8 +44,8 @@ cbuffer WaveInfo	:	register(b2)
 	Wave waves[100];
 };
 
-static int numWaves = 5;
-static float steepness = 0.8;
+static int numWaves = 10;
+static float steepness = 0;
 static float speed = 15;
 float3 CalculateGerstnerWave(float3 inputVertex)
 {
@@ -78,6 +78,58 @@ float3 CalculateGerstnerWave(float3 inputVertex)
 	}
 
 	return total;
+}
+
+float3 CalculateGerstnerNormals(float3 inputVertex,float3 inputNormal)
+{
+	float3 normal = inputNormal;
+	for (int i = 0; i < numWaves; i++)
+	{
+		Wave wave = waves[i];
+		float2 direction = wave.direction;
+		float wi = 2 * 3.1416 / wave.wavelength;
+		float ai = wave.amplitude;
+		float phi = speed * wi;
+		float theta = wi * dot(inputVertex.xz, direction) + phi * time;
+		float qi = steepness / wi * wave.amplitude * numWaves;
+
+		float WA = wi * ai;
+		float S = sin(theta);
+		float C = cos(theta);
+
+		normal.x -= direction.x * WA * C;
+		normal.y = qi * WA * S;
+		normal.z -= direction.y * WA * C;
+	}
+	normal.y = 1 + normal.y;
+
+	return normalize(normal);
+}
+
+float3 ClaculateGerstnerTangents(float3 inputVertex, float3 inputTangents)
+{
+	float3 tangent = inputTangents;
+	for (int i = 0; i < numWaves; i++)
+	{
+		Wave wave = waves[i];
+		float2 direction = wave.direction;
+		float wi = 2 * 3.1416 / wave.wavelength;
+		float ai = wave.amplitude;
+		float phi = speed * wi;
+		float theta = wi * dot(inputVertex.xz, direction) + phi * time;
+		float qi = steepness / wi * wave.amplitude * numWaves;
+
+		float WA = wi * ai;
+		float S = sin(theta);
+		float C = cos(theta);
+
+		tangent.x -= qi * direction.x * direction.y * WA * S;
+		tangent.y += direction.y * WA * C;
+		tangent.z -= qi * direction.y * direction.y * WA * S;
+	}
+	tangent.y = 1 - tangent.y;
+
+	return normalize(tangent);
 }
 
 void WaveEq()
@@ -131,6 +183,8 @@ VertexToHull main(VertexShaderInput input)
 	//input.position.y = height * sin(input.position.x + time) * sin(input.position.y + time);
 
 	// Apply Gerstner wave equation
+	input.normal = CalculateGerstnerNormals(input.position, input.normal);
+	input.tangent = ClaculateGerstnerTangents(input.position, input.tangent);
 	input.position = CalculateGerstnerWave(input.position);
 
 	// Transform to world position

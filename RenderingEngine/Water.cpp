@@ -143,8 +143,8 @@ void Water::CreateWaves()
 		waves[i].direction.y = sin(randomAngle);
 		/*waves[i].amplitude = 0.03f + pow(2.0f, (float)rand() * 2.0f) * 0.05f;
 		waves[i].wavelength = 1.0f + pow(2.f, 1.f + (float)rand()) * 10.f;*/
-		waves[i].amplitude = 1;
-		waves[i].wavelength = 4;
+		waves[i].amplitude = (float)(rand() % 1 + 100) / 100;
+		waves[i].wavelength = rand() % 1 + 10;
 	}
 }
 

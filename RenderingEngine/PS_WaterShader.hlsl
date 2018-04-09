@@ -84,7 +84,7 @@ float4 calculatePointLight(float3 normal, float3 worldPos, PointLight light, flo
 float3 calculateNormalFromMap(float2 uv, float3 normal, float3 tangent)
 {
 	float3 normalFinal;
-	//uv.x += translate;
+	uv.x += translate;
 	float3 normalFromTexture = normalTexture.Sample(basicSampler, uv).xyz;
 	float3 unpackedNormal = normalFromTexture * 2.0f - 1.0f;
 	float3 N = normal;
@@ -93,7 +93,7 @@ float3 calculateNormalFromMap(float2 uv, float3 normal, float3 tangent)
 	float3x3 TBN = float3x3(T, B, N);
 	normalFinal = normalize(mul(unpackedNormal, TBN));
 
-	//uv.y += translate;
+	uv.y += translate;
 	float3 normalFromTexture2 = normalTextureTwo.Sample(basicSampler, uv).xyz;
 	unpackedNormal = normalFromTexture2 * 2.0f - 1.0f;
 	N = normal;

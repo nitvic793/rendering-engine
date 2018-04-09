@@ -171,8 +171,8 @@ void Game::CreateWater()
 	resources->pixelShaders["water"]->SetShaderResourceView("normalTextureTwo", resources->shaderResourceViews["waterNormal2"]);
 	models.insert(std::pair<std::string, Mesh*>("quad", new Mesh(water->GetVertices(), water->GetVertexCount(), water->GetIndices(), water->GetIndexCount(), device)));
 	waterObject = new Entity(models["quad"], resources->materials["water"]);
-	waterObject->SetPosition(-125, -7, -150);
-	waterObject->SetScale(3, 3, 3);
+	waterObject->SetPosition(-125, 0, -150);
+	//waterObject->SetScale(3, 3, 3);
 	entities.push_back(waterObject);
 
 	water->CreateWaves();
@@ -318,7 +318,7 @@ void Game::Draw(float deltaTime, float totalTime)
 {
 	const float color[4] = { 0.11f, 0.11f, 0.11f, 0.0f };
 	renderer->ClearScreen(color);
-	renderer->DrawEntity(terrain.get());
+	//renderer->DrawEntity(terrain.get());
 	for (auto entity : entities)
 	{
 		renderer->DrawEntity(entity);
