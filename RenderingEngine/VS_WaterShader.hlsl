@@ -176,8 +176,8 @@ VertexToHull main(VertexShaderInput input)
 	float scaleFactor = 3.0f;
 
 	// displacement mapping
-	input.uv.x += time;
-	float displacedHeight = displacementMap.SampleLevel(basicSampler, input.uv,0).x;
+	//input.uv.x += time;
+	//float displacedHeight = displacementMap.SampleLevel(basicSampler, input.uv,0).x;
 	
 
 	// Sine wave
