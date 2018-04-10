@@ -505,6 +505,27 @@ bool Terrain::Initialize(const char * filename, ID3D11Device * device, ID3D11Dev
 	return true;
 }
 
+void Terrain::PrepareMaterial(XMFLOAT4X4 viewMatrix, XMFLOAT4X4 projectionMatrix)
+{
+	auto vertexShader = material->GetVertexShader();
+	auto pixelShader = material->GetPixelShader();
+	vertexShader->SetMatrix4x4("world", GetWorldMatrix());
+	vertexShader->SetMatrix4x4("view", viewMatrix);
+	vertexShader->SetMatrix4x4("projection", projectionMatrix);
+	pixelShader->SetSamplerState("basicSampler", material->GetSampler());
+	pixelShader->SetShaderResourceView("diffuseTexture", material->GetSRV());
+	if (material->GetNormalSRV())
+		pixelShader->SetShaderResourceView("normalTexture", material->GetNormalSRV());
+	else pixelShader->SetShaderResourceView("normalTexture", nullptr);
+	pixelShader->SetShaderResourceView("roughnessTexture", material->GetRoughnessSRV());
+	pixelShader->SetShaderResourceView("secondTexture", material->GetSecondTextureSRV());
+
+	vertexShader->CopyAllBufferData();
+	pixelShader->CopyAllBufferData();
+	vertexShader->SetShader();
+	pixelShader->SetShader();
+}
+
 Terrain::Terrain():
 	Entity(nullptr,nullptr)
 {

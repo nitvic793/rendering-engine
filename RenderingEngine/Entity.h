@@ -30,7 +30,7 @@ public:
 	void SetPosition(float x, float y, float z);
 	void SetScale(float x, float y, float z);
 	void Move(XMFLOAT3 offset);
-	void PrepareMaterial(XMFLOAT4X4 viewMatrix, XMFLOAT4X4 projectionMatrix);
+	virtual void PrepareMaterial(XMFLOAT4X4 viewMatrix, XMFLOAT4X4 projectionMatrix);
 	void SetLights(std::unordered_map<std::string, DirectionalLight> lights);
 	void SetLights(std::unordered_map<std::string, Light*> lights);
 	void SetCameraPosition(XMFLOAT3 position);

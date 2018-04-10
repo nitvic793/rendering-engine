@@ -20,6 +20,7 @@ Material::Material(SimpleVertexShader *vertexShader, SimplePixelShader *pixelSha
 	sampler = samplerState;
 	normalSRV = nullptr;
 	roughnessSRV = nullptr;
+	secondTextureSRV = nullptr;
 }
 
 Material::Material(SimpleVertexShader *vertexShader, SimplePixelShader *pixelShader, ID3D11ShaderResourceView *srv, ID3D11ShaderResourceView *normal, ID3D11SamplerState *samplerState)
@@ -31,6 +32,7 @@ Material::Material(SimpleVertexShader *vertexShader, SimplePixelShader *pixelSha
 	normalSRV = normal;
 	auto rm = Resources::GetInstance();
 	roughnessSRV = rm->shaderResourceViews["defaultSpecular"];
+	secondTextureSRV = rm->shaderResourceViews["default"];
 }
 
 Material::Material(SimpleVertexShader *vertexShader, SimplePixelShader *pixelShader, ID3D11ShaderResourceView *srv, ID3D11ShaderResourceView *normal, ID3D11ShaderResourceView *roughness, ID3D11SamplerState *samplerState)
@@ -41,11 +43,18 @@ Material::Material(SimpleVertexShader *vertexShader, SimplePixelShader *pixelSha
 	sampler = samplerState;
 	normalSRV = normal;
 	roughnessSRV = roughness;
+	auto rm = Resources::GetInstance();
+	secondTextureSRV = rm->shaderResourceViews["default"];
 }
 
 
 Material::~Material()
 {
+}
+
+void Material::SetSecondTexture(ID3D11ShaderResourceView* srv)
+{
+	secondTextureSRV = srv;
 }
 
 SimpleVertexShader * Material::GetVertexShader()
@@ -71,6 +80,11 @@ ID3D11ShaderResourceView * Material::GetNormalSRV()
 ID3D11ShaderResourceView * Material::GetRoughnessSRV()
 {
 	return roughnessSRV;
+}
+
+ID3D11ShaderResourceView * Material::GetSecondTextureSRV()
+{
+	return secondTextureSRV;
 }
 
 ID3D11SamplerState * Material::GetSampler()

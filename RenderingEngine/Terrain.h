@@ -25,6 +25,7 @@ public:
 	void CalculateUVCoordinates(); 
 	void Initialize(ID3D11Device* device, ID3D11DeviceContext* context);
 	bool Initialize(const char* filename, ID3D11Device* device, ID3D11DeviceContext* context);
+	void PrepareMaterial(XMFLOAT4X4 viewMatrix, XMFLOAT4X4 projectionMatrix) override;
 	Terrain();
 	~Terrain();
 };

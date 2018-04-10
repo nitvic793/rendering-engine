@@ -102,14 +102,19 @@ void Resources::LoadResources()
 	waterPS->LoadShaderFile(L"PS_WaterShader.cso");
 	pixelShaders.insert(PixelShaderMapType("water", waterPS));
 
+	auto terrainPs = new SimplePixelShader(device, context);
+	terrainPs->LoadShaderFile(L"TerrainPS.cso");
+	pixelShaders.insert(PixelShaderMapType("terrain", terrainPs));
+
 	//Load Materials
 	materials.insert(MaterialMapType("metal", new Material(vertexShader, pixelShader, shaderResourceViews["metal"], shaderResourceViews["metalNormal"], shaderResourceViews["metalSpecular"], sampler)));
 	materials.insert(MaterialMapType("fabric", new Material(vertexShader, pixelShader, shaderResourceViews["fabric"], shaderResourceViews["fabricNormal"], sampler)));
 	materials.insert(MaterialMapType("wood", new Material(vertexShader, pixelShader, shaderResourceViews["wood"], shaderResourceViews["woodNormal"], sampler)));
-	materials.insert(MaterialMapType("grass", new Material(vertexShader, pixelShader, shaderResourceViews["grass"], shaderResourceViews["grassNormal"], shaderResourceViews["grassSpecular"], sampler)));
+	materials.insert(MaterialMapType("grass", new Material(vertexShader, terrainPs, shaderResourceViews["grass"], shaderResourceViews["grassNormal"], shaderResourceViews["grassSpecular"], sampler)));
 	materials.insert(MaterialMapType("spear", new Material(vertexShader, pixelShader, shaderResourceViews["spear"], shaderResourceViews["spearNormal"], sampler)));
 	materials.insert(MaterialMapType("boat", new Material(vertexShader, pixelShader, shaderResourceViews["boat"], shaderResourceViews["boatNormal"], sampler)));
 	materials.insert(MaterialMapType("water", new Material(waterVS, waterPS, shaderResourceViews["waterColor"], shaderResourceViews["waterNormal"], sampler)));
+	materials["grass"]->SetSecondTexture(shaderResourceViews["wood"]);
 
 	//Load Meshes
 	meshes.insert(std::pair<std::string, Mesh*>("sphere", new Mesh("../../Assets/Models/sphere.obj", device)));
