@@ -181,6 +181,27 @@ void Game::Init()
 	rSamp.MaxAnisotropy = 16;
 	rSamp.MaxLOD = D3D11_FLOAT32_MAX;
 
+	// Set up a blend state
+	D3D11_BLEND_DESC bd = {};
+	bd.AlphaToCoverageEnable = false;
+	bd.IndependentBlendEnable = false;
+
+	bd.RenderTarget[0].BlendEnable = true;
+
+	bd.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+	bd.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA;
+	bd.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
+
+	bd.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+	bd.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
+	bd.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ONE;
+
+	bd.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+
+	device->CreateBlendState(&bd, &blendState);
+
+	
+
 	// Ask DirectX for the actual object
 	device->CreateSamplerState(&rSamp, &refractSampler);
 
@@ -473,9 +494,11 @@ void Game::Draw(float deltaTime, float totalTime)
 	renderer->DrawEntity(terrain.get());
 	DrawSky();
 	//renderer->DrawEntity(entities[1]);
+	context->OMSetBlendState(blendState, 0, 0xFFFFFFFF);
 	resources->vertexShaders["water"]->SetFloat("time", time);
 	resources->pixelShaders["water"]->SetShaderResourceView("SkyTexture", resources->shaderResourceViews["cubemap"]);
 	renderer->DrawEntity(waterObject);
+	context->OMSetBlendState(0, 0, 0xFFFFFFFF);
 
 	context->OMSetRenderTargets(1, &backBufferRTV, 0);
 

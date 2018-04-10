@@ -126,7 +126,7 @@ void Resources::LoadResources()
 	materials.insert(MaterialMapType("grass", new Material(vertexShader, pixelShader, shaderResourceViews["grass"], shaderResourceViews["grassNormal"], shaderResourceViews["grassSpecular"], sampler)));
 	materials.insert(MaterialMapType("spear", new Material(vertexShader, pixelShader, shaderResourceViews["spear"], shaderResourceViews["spearNormal"], sampler)));
 	materials.insert(MaterialMapType("boat", new Material(vertexShader, pixelShader, shaderResourceViews["boat"], shaderResourceViews["boatNormal"], sampler)));
-	materials.insert(MaterialMapType("water", new Material(quadVS, quadPS, shaderResourceViews["waterColor"], shaderResourceViews["waterNormal"], sampler)));
+	materials.insert(MaterialMapType("water", new Material(waterVS, waterPS, shaderResourceViews["waterColor"], shaderResourceViews["waterNormal"], sampler)));
 
 	//Load Meshes
 	meshes.insert(std::pair<std::string, Mesh*>("sphere", new Mesh("../../Assets/Models/sphere.obj", device)));

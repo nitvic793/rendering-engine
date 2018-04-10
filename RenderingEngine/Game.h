@@ -79,6 +79,8 @@ private:
 
 	ID3D11SamplerState* sampler;
 
+	ID3D11BlendState* blendState;
+
 	ID3D11ShaderResourceView* skySRV;
 	ID3D11RasterizerState* skyRastState;
 	ID3D11DepthStencilState* skyDepthState;

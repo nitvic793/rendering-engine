@@ -180,5 +180,5 @@ float4 main(VertexToPixel input) : SV_TARGET
 		totalColor += (calculatePointLight(finalNormal, input.worldPos, pointLights[i], roughness) * calculateSkyboxReflection(finalNormal, input.worldPos, dirToLight))  *surfaceColor;
 	}
 
-	return totalColor;
+	return float4(totalColor.xyz, 0.5);
 }
