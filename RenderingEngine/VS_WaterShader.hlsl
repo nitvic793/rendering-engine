@@ -44,9 +44,9 @@ cbuffer WaveInfo	:	register(b2)
 	Wave waves[100];
 };
 
-static int numWaves = 10;
-static float steepness = 0;
-static float speed = 15;
+static int numWaves = 5;
+static float steepness = 0.7;
+static float speed = 30;
 float3 CalculateGerstnerWave(float3 inputVertex)
 {
 	float3 total = float3(0, 0, 0);
@@ -69,7 +69,7 @@ float3 CalculateGerstnerWave(float3 inputVertex)
 		// Qi is a parameter that controls the steepness of the waves.
 		//	For a single wave i, Qi of 0 gives the usual rolling sine wave, and Qi = 1/(wi Ai ) gives a sharp crest.
 		//  range of 0 to 1, and using Qi = Q/(wi Ai x numWaves) to vary from totally smooth waves to the sharpest waves
-		float qi = steepness / wi * wave.amplitude * numWaves;
+		float qi = steepness / wi * ai;
 		
 		// X and Z values as per gerstner equation
 		total.x += inputVertex.x + qi * ai * direction.x * cos(theta);
@@ -82,7 +82,7 @@ float3 CalculateGerstnerWave(float3 inputVertex)
 
 float3 CalculateGerstnerNormals(float3 inputVertex,float3 inputNormal)
 {
-	float3 normal = inputNormal;
+	float3 normal = float3(0,1,0);
 	for (int i = 0; i < numWaves; i++)
 	{
 		Wave wave = waves[i];
@@ -91,7 +91,7 @@ float3 CalculateGerstnerNormals(float3 inputVertex,float3 inputNormal)
 		float ai = wave.amplitude;
 		float phi = speed * wi;
 		float theta = wi * dot(inputVertex.xz, direction) + phi * time;
-		float qi = steepness / wi * wave.amplitude * numWaves;
+		float qi = steepness / wi * wave.amplitude;
 
 		float WA = wi * ai;
 		float S = sin(theta);
@@ -108,7 +108,7 @@ float3 CalculateGerstnerNormals(float3 inputVertex,float3 inputNormal)
 
 float3 ClaculateGerstnerTangents(float3 inputVertex, float3 inputTangents)
 {
-	float3 tangent = inputTangents;
+	float3 tangent = float3(0,0,1);
 	for (int i = 0; i < numWaves; i++)
 	{
 		Wave wave = waves[i];
@@ -117,7 +117,7 @@ float3 ClaculateGerstnerTangents(float3 inputVertex, float3 inputTangents)
 		float ai = wave.amplitude;
 		float phi = speed * wi;
 		float theta = wi * dot(inputVertex.xz, direction) + phi * time;
-		float qi = steepness / wi * wave.amplitude * numWaves;
+		float qi = steepness / wi * wave.amplitude ;
 
 		float WA = wi * ai;
 		float S = sin(theta);
@@ -174,7 +174,9 @@ VertexToHull main(VertexShaderInput input)
 {
 	VertexToHull output;
 	float scaleFactor = 3.0f;
-	//input.uv.x += time;
+
+	// displacement mapping
+	input.uv.x += time;
 	float displacedHeight = displacementMap.SampleLevel(basicSampler, input.uv,0).x;
 	
 
@@ -198,8 +200,9 @@ VertexToHull main(VertexShaderInput input)
 
 	
 	
-	// simple displacement mapping
-	//output.position.y += scaleFactor * displacedHeight;
+	// Simple displacement mapping
+	/*output.position.y += scaleFactor * displacedHeight;
+	output.worldPos += (scaleFactor*(displacedHeight - 1.0))*output.normal;*/
 
 	// output vertex for interpolatio across triangles
 	//output.uv = mul(float4(input.uv, 0.0f, 1.0f), gTexTransform).xy;

@@ -136,16 +136,22 @@ void Water::CalculateUVCoordinates()
 
 void Water::CreateWaves()
 {
-	for (int i = 0; i < NUM_OF_WAVES; i++)
-	{
-		float randomAngle = (float)(rand() * XM_PI );
-		waves[i].direction.x = sin(randomAngle);
-		waves[i].direction.y = sin(randomAngle);
-		/*waves[i].amplitude = 0.03f + pow(2.0f, (float)rand() * 2.0f) * 0.05f;
-		waves[i].wavelength = 1.0f + pow(2.f, 1.f + (float)rand()) * 10.f;*/
-		waves[i].amplitude = (float)(rand() % 1 + 100) / 100;
-		waves[i].wavelength = rand() % 1 + 10;
-	}
+	//for (int i = 0; i < NUM_OF_WAVES; i++)
+	//{
+	//	float randomAngle = (float)(rand() * XM_PI );
+	//	waves[i].direction.x = sin(randomAngle);
+	//	waves[i].direction.y = sin(randomAngle);
+	//	/*waves[i].amplitude = 0.03f + pow(2.0f, (float)rand() * 2.0f) * 0.05f;
+	//	waves[i].wavelength = 1.0f + pow(2.f, 1.f + (float)rand()) * 10.f;*/
+	//	waves[i].amplitude = (float)(rand() % 1 + 100) / 100;
+	//	waves[i].wavelength = 6;
+	//}
+
+	waves[0] = Wave{ XMFLOAT2(0,1),0.4f,6 };
+	waves[1] = Wave{ XMFLOAT2(1,1),0.2f,10 };
+	waves[2] = Wave{ XMFLOAT2(0,1),1.0f,20 };
+	waves[3] = Wave{ XMFLOAT2(1,1),0.1f,3 };
+	waves[4] = Wave{ XMFLOAT2(1,0),0.2f,6 };
 }
 
 Wave* Water::GetWaves()

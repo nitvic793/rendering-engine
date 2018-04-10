@@ -171,13 +171,13 @@ void Game::CreateWater()
 	resources->pixelShaders["water"]->SetShaderResourceView("normalTextureTwo", resources->shaderResourceViews["waterNormal2"]);
 	models.insert(std::pair<std::string, Mesh*>("quad", new Mesh(water->GetVertices(), water->GetVertexCount(), water->GetIndices(), water->GetIndexCount(), device)));
 	waterObject = new Entity(models["quad"], resources->materials["water"]);
-	waterObject->SetPosition(-125, 0, -150);
-	//waterObject->SetScale(3, 3, 3);
+	waterObject->SetPosition(-125, -6, -150);
+	//waterbject->SetScale(3, 3, 3);
 	entities.push_back(waterObject);
 
 	water->CreateWaves();
 	resources->vertexShaders["water"]->SetData("waves", water->GetWaves(), sizeof(Wave) * NUM_OF_WAVES);
-	//-------------------------------
+	//------------------------------- Displacement map test-----------------------------------
 	//Load Sampler
 	D3D11_SAMPLER_DESC samplerDesc = {};
 	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
@@ -191,6 +191,7 @@ void Game::CreateWater()
 
 	resources->vertexShaders["water"]->SetShaderResourceView("displacementMap", resources->shaderResourceViews["waterDisplacement"]);
 	resources->vertexShaders["water"]->SetSamplerState("basicSampler", displacementSampler);
+	//------------------------------- Displacement map test-----------------------------------
 }
 
 void Game::InitializeEntities()
@@ -318,7 +319,7 @@ void Game::Draw(float deltaTime, float totalTime)
 {
 	const float color[4] = { 0.11f, 0.11f, 0.11f, 0.0f };
 	renderer->ClearScreen(color);
-	//renderer->DrawEntity(terrain.get());
+	renderer->DrawEntity(terrain.get());
 	for (auto entity : entities)
 	{
 		renderer->DrawEntity(entity);

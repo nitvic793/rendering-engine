@@ -14,6 +14,7 @@ struct Wave
 	float amplitude;
 	float wavelength;
 };
+
 class Water
 {
 private:
