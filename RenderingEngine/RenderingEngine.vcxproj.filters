@@ -62,6 +62,9 @@
     <ClCompile Include="Ripple.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Foliage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DXCore.h">
@@ -107,6 +110,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Ripple.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Foliage.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
