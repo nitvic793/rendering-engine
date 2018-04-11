@@ -73,8 +73,15 @@ Game::~Game()
 	sampler->Release();
 	skyRastState->Release();
 
+	refractSampler->Release();
+	refractionRTV->Release();
+	refractionSRV->Release();
+
+	blendState->Release();
+
 	delete currentProjectile;
 	delete water;
+	delete waterObject;
 }
 
 // --------------------------------------------------------
