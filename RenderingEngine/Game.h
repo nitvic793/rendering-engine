@@ -95,6 +95,7 @@ private:
 	ID3D11ShaderResourceView* normalMapSRV;
 
 	float time, translate;
+	float transparency = 0.7;
 	Water * water;
 	Entity * waterObject;
 	void CreateWater();

@@ -497,6 +497,7 @@ void Game::Draw(float deltaTime, float totalTime)
 	context->OMSetBlendState(blendState, 0, 0xFFFFFFFF);
 	resources->vertexShaders["water"]->SetFloat("time", time);
 	resources->pixelShaders["water"]->SetShaderResourceView("SkyTexture", resources->shaderResourceViews["cubemap"]);
+	resources->pixelShaders["water"]->SetFloat("transparency", transparency);
 	renderer->DrawEntity(waterObject);
 	context->OMSetBlendState(0, 0, 0xFFFFFFFF);
 
