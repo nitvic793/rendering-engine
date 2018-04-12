@@ -81,5 +81,16 @@ private:
 	Water * water;
 	Entity * waterObject;
 	void CreateWater();
+
+	// Shadow data
+	void RenderShadowMap();
+	int shadowMapSize;
+	ID3D11DepthStencilView* shadowDSV;
+	ID3D11ShaderResourceView* shadowSRV;
+	ID3D11SamplerState* shadowSampler;
+	ID3D11RasterizerState* shadowRasterizer;
+	SimpleVertexShader* shadowVS;
+	DirectX::XMFLOAT4X4 shadowViewMatrix;
+	DirectX::XMFLOAT4X4 shadowProjectionMatrix;
 };
 

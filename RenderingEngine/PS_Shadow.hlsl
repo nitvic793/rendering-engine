@@ -8,7 +8,7 @@ struct VertexToPixel
 	float2 uv			: TEXCOORD;
 	float3 worldPos		: POSITION;
 	float3 tangent		: TANGENT;
-	//float4 shadowPos	: SHADOW;
+	float4 shadowPos	: SHADOW;
 };
 
 struct DirectionalLight
@@ -38,9 +38,9 @@ cbuffer externalData : register(b0)
 Texture2D diffuseTexture : register(t0);
 Texture2D normalTexture : register(t1);
 Texture2D roughnessTexture : register(t2);
-//Texture2D shadowMapTexture	: register(t3);
+Texture2D shadowMapTexture	: register(t3);
 SamplerState basicSampler : register(s0);
-//SamplerComparisonState shadowSampler : register(s1);
+SamplerComparisonState shadowSampler : register(s1);
 
 
 // Range-based attenuation function
@@ -66,13 +66,13 @@ float calculateSpecular(float3 normal, float3 worldPos, float3 dirToLight, float
 	//return spec;
 }
 
-float4 calculateDirectionalLight(float3 normal, float3 worldPos, DirectionalLight light, float roughness)
+float4 calculateDirectionalLight(float3 normal, float3 worldPos, DirectionalLight light, float roughness, float shadowAmount)
 {
 	float3 dirToLight = normalize(-light.Direction);
 	float NdotL = dot(normal, dirToLight);
 	NdotL = saturate(NdotL);
 	float spec = calculateSpecular(normal, worldPos, dirToLight, cameraPosition) * roughness;
-	return spec + light.DiffuseColor * NdotL + light.AmbientColor;
+	return spec + light.DiffuseColor * NdotL * shadowAmount + light.AmbientColor;
 }
 
 float4 calculatePointLight(float3 normal, float3 worldPos, PointLight light, float roughness)
@@ -106,17 +106,16 @@ float4 main(VertexToPixel input) : SV_TARGET
 	float roughness = roughnessTexture.Sample(basicSampler, input.uv).r;
 
 	// Shadow mapping 
-	///float2 shadowUV = input.shadowPos.xy / input.shadowPos.w * 0.5f + 0.5f;
-	//shadowUV.y = 1.0f - shadowUV.y;
-	//float depthFromLight = input.shadowPos.z / input.shadowPos.w;
-	//float shadowAmount = shadowMapTexture.SampleCmpLevelZero(shadowSampler, shadowUV, depthFromLight);
-	
+	float2 shadowUV = input.shadowPos.xy / input.shadowPos.w * 0.5f + 0.5f;
+	shadowUV.y = 1.0f - shadowUV.y;
+	float depthFromLight = input.shadowPos.z / input.shadowPos.w;
+	float shadowAmount = shadowMapTexture.SampleCmpLevelZero(shadowSampler, shadowUV, depthFromLight);
+	//shadowAmount = 1;
 
 	int i = 0;
 	for (i = 0; i < DirectionalLightCount; ++i)
 	{
-		//totalColor += calculateDirectionalLight(finalNormal, input.worldPos, dirLights[i], roughness,shadowAmount) * surfaceColor;
-		totalColor += calculateDirectionalLight(finalNormal, input.worldPos, dirLights[i], roughness) * surfaceColor;
+		totalColor += calculateDirectionalLight(finalNormal, input.worldPos, dirLights[i], roughness,shadowAmount) * surfaceColor;
 	}
 
 	for (i = 0; i < PointLightCount; ++i)

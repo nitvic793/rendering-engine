@@ -30,6 +30,7 @@ public:
 	void SetPosition(float x, float y, float z);
 	void SetScale(float x, float y, float z);
 	void Move(XMFLOAT3 offset);
+	void PrepareMaterialWithShadows(XMFLOAT4X4 viewMatrix, XMFLOAT4X4 projectionMatrix, XMFLOAT4X4 shadowViewMatrix, XMFLOAT4X4 shadowProjectionMatrix, ID3D11SamplerState* shadowSampler, ID3D11ShaderResourceView* shadowSRV);
 	void PrepareMaterial(XMFLOAT4X4 viewMatrix, XMFLOAT4X4 projectionMatrix);
 	void SetLights(std::unordered_map<std::string, DirectionalLight> lights);
 	void SetLights(std::unordered_map<std::string, Light*> lights);
@@ -38,5 +39,7 @@ public:
 	Mesh *GetMesh();
 	Entity(Mesh *m, Material* mat);
 	~Entity();
+
+	bool hasShadow = true;
 };
 
