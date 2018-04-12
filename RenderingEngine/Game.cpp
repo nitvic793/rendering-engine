@@ -68,11 +68,16 @@ Game::~Game()
 	delete camera;
 	delete renderer;
 	delete resources;
-	//delete shadowVS;
+	delete shadowVS;
 
 	skyDepthState->Release();
 	sampler->Release();
 	skyRastState->Release();
+
+	shadowDSV->Release();
+	shadowSRV->Release();
+	shadowSampler->Release();;
+	shadowRasterizer->Release();
 
 	delete currentProjectile;
 	delete water;
@@ -511,7 +516,7 @@ void Game::Draw(float deltaTime, float totalTime)
 	
 	for (auto entity : entities)
 	{
-		if(!entity->hasShadow)
+		if(entity->hasShadow)
 			renderer->DrawEntity(entity);
 	}
 
@@ -526,7 +531,7 @@ void Game::Draw(float deltaTime, float totalTime)
 
 	for (auto entity : entities)
 	{
-		if (entity->hasShadow)
+		if (!entity->hasShadow)
 			renderer->DrawEntity(entity);
 	}
 
