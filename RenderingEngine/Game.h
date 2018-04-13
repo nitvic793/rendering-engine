@@ -83,6 +83,7 @@ private:
 	void CreateWater();
 
 	// Shadow data
+	void RenderEntityShadow(Entity* entity);
 	void RenderShadowMap();
 	int shadowMapSize;
 	ID3D11DepthStencilView* shadowDSV;

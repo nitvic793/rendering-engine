@@ -264,6 +264,26 @@ void Game::CreateWater()
 	//resources->vertexShaders["water"]->SetSamplerState("basicSampler", sampler);
 }
 
+void Game::RenderEntityShadow(Entity * entity)
+{
+	// Set buffers in the input assembler
+	UINT stride = sizeof(Vertex);
+	UINT offset = 0;
+	ID3D11Buffer* vb = entity->GetMesh()->GetVertexBuffer();
+	ID3D11Buffer* ib = entity->GetMesh()->GetIndexBuffer();
+
+	// Set buffers in the input assembler
+	context->IASetVertexBuffers(0, 1, &vb, &stride, &offset);
+	context->IASetIndexBuffer(ib, DXGI_FORMAT_R32_UINT, 0);
+
+	// Finish setting shadow-creation VS stuff
+	shadowVS->SetMatrix4x4("world", entity->GetWorldMatrix());
+	shadowVS->CopyAllBufferData();
+
+	// Finally do the actual drawing
+	context->DrawIndexed(entity->GetMesh()->GetIndexCount(), 0, 0);
+}
+
 void Game::RenderShadowMap()
 {
 	XMMATRIX shView = XMMatrixLookAtLH(
@@ -306,30 +326,12 @@ void Game::RenderShadowMap()
 
 
 
-	// Set buffers in the input assembler
-	UINT stride = sizeof(Vertex);
-	UINT offset = 0;
+
 	for (unsigned int i = 0; i < entities.size(); i++)
 	{
-		//if(entities[i]->hasShadow)
-		{ 
-			// Grab the data from the first entity's mesh
-			Entity* entity = entities[i];
-			ID3D11Buffer* vb = entity->GetMesh()->GetVertexBuffer();
-			ID3D11Buffer* ib = entity->GetMesh()->GetIndexBuffer();
-
-			// Set buffers in the input assembler
-			context->IASetVertexBuffers(0, 1, &vb, &stride, &offset);
-			context->IASetIndexBuffer(ib, DXGI_FORMAT_R32_UINT, 0);
-
-			// Finish setting shadow-creation VS stuff
-			shadowVS->SetMatrix4x4("world", entity->GetWorldMatrix());
-			shadowVS->CopyAllBufferData();
-
-			// Finally do the actual drawing
-			context->DrawIndexed(entity->GetMesh()->GetIndexCount(), 0, 0);
-		}
+		RenderEntityShadow(entities[i]);
 	}
+	RenderEntityShadow(currentProjectile);
 
 	//shadowDSV = nullptr;
 	context->OMSetRenderTargets(1, &nullRTV, NULL);
@@ -519,6 +521,7 @@ void Game::Draw(float deltaTime, float totalTime)
 		if(entity->hasShadow)
 			renderer->DrawEntity(entity);
 	}
+	renderer->DrawEntity(currentProjectile);
 
 	//ID3D11RenderTargetView * nullRTV = NULL;
 	ID3D11ShaderResourceView *const nullSRV[4] = { NULL };
@@ -538,7 +541,7 @@ void Game::Draw(float deltaTime, float totalTime)
 	//context->OMSetRenderTargets(1, &nullRTV, NULL);
 	context->PSSetShaderResources(0, 4, nullSRV);
 
-	renderer->DrawEntity(currentProjectile);
+	//renderer->DrawEntity(currentProjectile);
 
 
 	// Set buffers in the input assembler
