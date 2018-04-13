@@ -3,6 +3,7 @@
 
 
 Foliage::Foliage()
+	:Entity(nullptr, nullptr)
 {
 }
 

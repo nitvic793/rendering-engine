@@ -88,9 +88,12 @@ float4 main(VertexToPixel input) : SV_TARGET
 	finalNormal = normalize(finalNormal);
 	float4 totalColor = float4(0, 0, 0, 0);
 	float roughness = roughnessTexture.Sample(basicSampler, input.uv).r;
-	int dirLightCount = 1;
-	dirLightCount = min(MAX_LIGHTS, DirectionalLightCount);
 	totalColor = totalColor + calculateDirectionalLight(finalNormal, input.worldPos, dirLights[1], roughness) * surfaceColor;
+	for (int i = 0; i < DirectionalLightCount; ++i)
+	{
+		totalColor = totalColor + calculateDirectionalLight(finalNormal, input.worldPos, dirLights[i], roughness) * surfaceColor;
+	}
+
 	totalColor += calculatePointLight(finalNormal, input.worldPos, pointLights[0], roughness)  * surfaceColor;
 
 	return totalColor;
