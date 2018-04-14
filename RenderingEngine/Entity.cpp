@@ -140,6 +140,8 @@ void Entity::PrepareMaterial(XMFLOAT4X4 viewMatrix, XMFLOAT4X4 projectionMatrix 
 {
 	auto vertexShader = material->GetVertexShader();
 	auto pixelShader = material->GetPixelShader();
+	vertexShader->SetShader();
+	pixelShader->SetShader();
 	vertexShader->SetMatrix4x4("world", GetWorldMatrix());
 	vertexShader->SetMatrix4x4("view", viewMatrix);
 	vertexShader->SetMatrix4x4("projection", projectionMatrix);
@@ -154,8 +156,7 @@ void Entity::PrepareMaterial(XMFLOAT4X4 viewMatrix, XMFLOAT4X4 projectionMatrix 
 	pixelShader->SetShaderResourceView("roughnessTexture", material->GetRoughnessSRV());
 	vertexShader->CopyAllBufferData();
 	pixelShader->CopyAllBufferData();
-	vertexShader->SetShader();
-	pixelShader->SetShader();
+
 }
 
 void Entity::SetLights(std::unordered_map<std::string, DirectionalLight> lights)

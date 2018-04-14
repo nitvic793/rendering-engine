@@ -37,9 +37,7 @@ cbuffer externalData : register(b0)
 Texture2D diffuseTexture : register(t0);
 Texture2D normalTexture : register(t1);
 Texture2D roughnessTexture : register(t2);
-//Texture2D shadowMapTexture	: register(t3);
 SamplerState basicSampler : register(s0);
-//SamplerComparisonState shadowSampler : register(s1);
 
 
 // Range-based attenuation function

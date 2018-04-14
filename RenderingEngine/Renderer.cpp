@@ -1,5 +1,10 @@
 #include "Renderer.h"
 
+void Renderer::EnqueueRenderCall(IRenderable * renderable)
+{
+	renderQueue.push(renderable);
+}
+
 void Renderer::SetShadowViewProj(DirectX::XMFLOAT4X4 view, DirectX::XMFLOAT4X4 projection, ID3D11SamplerState* sampler, ID3D11ShaderResourceView* srv)
 {
 	shadowViewMatrix = view;
@@ -53,6 +58,24 @@ void Renderer::DrawEntity(Entity* entity)
 	context->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
 	context->IASetIndexBuffer(mesh->GetIndexBuffer(), DXGI_FORMAT_R32_UINT, 0);
 	context->DrawIndexed((UINT)mesh->GetIndexCount(), 0, 0);
+}
+
+void Renderer::DrawEntity(IRenderable * renderable)
+{
+	if (renderable)
+	{
+		renderable->Render();
+	}
+}
+
+void Renderer::RenderQueue()
+{
+	while (!renderQueue.empty())
+	{
+		auto renderable = renderQueue.front();
+		renderQueue.pop();
+		renderable->Render();
+	}
 }
 
 void Renderer::DrawAsLineList(Entity * entity)

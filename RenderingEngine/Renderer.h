@@ -7,6 +7,10 @@
 #include "Entity.h"
 #include "Water.h"
 #include "Resources.h"
+#include "IRenderable.h"
+#include <queue>
+
+
 class Renderer
 {
 	ID3D11DepthStencilView *depthStencilView;
@@ -23,7 +27,11 @@ class Renderer
 	ID3D11SamplerState* shadowSampler;
 	ID3D11ShaderResourceView* shadowSRV;
 
+	//Render queue
+	std::queue<IRenderable*> renderQueue;
+
 public:
+	void EnqueueRenderCall(IRenderable* renderable);
 	void SetShadowViewProj(DirectX::XMFLOAT4X4, DirectX::XMFLOAT4X4, ID3D11SamplerState*, ID3D11ShaderResourceView*);
 	void SetDepthStencilView(ID3D11DepthStencilView *depthStencilView);
 	void SetResources(Resources* rsrc);
@@ -31,6 +39,8 @@ public:
 	void SetCamera(Camera* cam);
 	void SetLights(std::unordered_map<std::string, Light*> lightsMap);
 	void DrawEntity(Entity *entity);
+	void DrawEntity(IRenderable *renderable);
+	void RenderQueue();
 	void DrawAsLineList(Entity *entity);
 	void Present();
 	void RenderToTexture(ID3D11Device* device,ID3D11DeviceContext*	context);

@@ -118,8 +118,8 @@
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="DXCore.cpp" />
     <ClCompile Include="Entity.cpp" />
-    <ClCompile Include="Foliage.cpp" />
     <ClCompile Include="Game.cpp" />
+    <ClCompile Include="IRenderable.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Material.cpp" />
     <ClCompile Include="Mesh.cpp" />
@@ -135,8 +135,8 @@
     <ClInclude Include="Camera.h" />
     <ClInclude Include="DXCore.h" />
     <ClInclude Include="Entity.h" />
-    <ClInclude Include="Foliage.h" />
     <ClInclude Include="Game.h" />
+    <ClInclude Include="IRenderable.h" />
     <ClInclude Include="Lights.h" />
     <ClInclude Include="Material.h" />
     <ClInclude Include="Mesh.h" />

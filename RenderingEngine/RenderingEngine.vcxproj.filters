@@ -62,7 +62,7 @@
     <ClCompile Include="Ripple.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Foliage.cpp">
+    <ClCompile Include="IRenderable.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -112,7 +112,7 @@
     <ClInclude Include="Ripple.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Foliage.h">
+    <ClInclude Include="IRenderable.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
