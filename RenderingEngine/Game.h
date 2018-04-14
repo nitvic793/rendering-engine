@@ -46,6 +46,12 @@ private:
 	void CreateCamera();
 	void InitializeEntities();
 	void InitializeRenderer();
+	void DrawSky();
+
+	Entity* refractionEntity;
+
+	void DrawRefraction();
+	void DrawFullscreenQuad(ID3D11ShaderResourceView* texture);
 
 	void CreateRipple(float x, float y, float z, float duration, float ringSize);
 	bool projectileHitWater;
@@ -73,11 +79,23 @@ private:
 
 	ID3D11SamplerState* sampler;
 
+	ID3D11BlendState* blendState;
+
 	ID3D11ShaderResourceView* skySRV;
 	ID3D11RasterizerState* skyRastState;
 	ID3D11DepthStencilState* skyDepthState;
 
+	ID3D11SamplerState* refractSampler;
+	ID3D11RenderTargetView* refractionRTV;
+	ID3D11ShaderResourceView* refractionSRV;
+
+	// An SRV is good enough for loading textures with the DirectX Toolkit and then
+	// using them with shaders 
+	ID3D11ShaderResourceView* textureSRV;
+	ID3D11ShaderResourceView* normalMapSRV;
+
 	float time, translate;
+	float transparency = 0.7;
 	Water * water;
 	Entity * waterObject;
 	void CreateWater();

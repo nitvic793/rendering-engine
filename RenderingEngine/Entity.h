@@ -37,6 +37,7 @@ public:
 	void SetCameraPosition(XMFLOAT3 position);
 	virtual void Update(float deltaTime, float totalTime);
 	Mesh *GetMesh();
+	Material *GetMaterial();
 	Entity(Mesh *m, Material* mat);
 	~Entity();
 
