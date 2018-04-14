@@ -102,17 +102,29 @@ void Resources::LoadResources()
 	waterPS->LoadShaderFile(L"PS_WaterShader.cso");
 	pixelShaders.insert(PixelShaderMapType("water", waterPS));
 
+	auto shadowVS = new SimpleVertexShader(device, context);
+	shadowVS->LoadShaderFile(L"VS_Shadow.cso");
+	vertexShaders.insert(VertexShaderMapType("shadow", shadowVS));
+
+	auto shadowPS = new SimplePixelShader(device, context);
+	shadowPS->LoadShaderFile(L"PS_Shadow.cso");
+	pixelShaders.insert(PixelShaderMapType("shadow", shadowPS));
+
+	auto preShadowVS = new SimpleVertexShader(device, context);
+	preShadowVS->LoadShaderFile(L"PreShadowVS.cso");
+	vertexShaders.insert(VertexShaderMapType("preShadow", preShadowVS));
+
 	auto terrainPs = new SimplePixelShader(device, context);
 	terrainPs->LoadShaderFile(L"TerrainPS.cso");
 	pixelShaders.insert(PixelShaderMapType("terrain", terrainPs));
 
 	//Load Materials
-	materials.insert(MaterialMapType("metal", new Material(vertexShader, pixelShader, shaderResourceViews["metal"], shaderResourceViews["metalNormal"], shaderResourceViews["metalSpecular"], sampler)));
+	materials.insert(MaterialMapType("metal", new Material(shadowVS, shadowPS, shaderResourceViews["metal"], shaderResourceViews["metalNormal"], shaderResourceViews["metalSpecular"], sampler)));
 	materials.insert(MaterialMapType("fabric", new Material(vertexShader, pixelShader, shaderResourceViews["fabric"], shaderResourceViews["fabricNormal"], sampler)));
 	materials.insert(MaterialMapType("wood", new Material(vertexShader, pixelShader, shaderResourceViews["wood"], shaderResourceViews["woodNormal"], sampler)));
 	materials.insert(MaterialMapType("grass", new Material(vertexShader, terrainPs, shaderResourceViews["grass"], shaderResourceViews["grassNormal"], shaderResourceViews["grassSpecular"], sampler)));
 	materials.insert(MaterialMapType("spear", new Material(vertexShader, pixelShader, shaderResourceViews["spear"], shaderResourceViews["spearNormal"], sampler)));
-	materials.insert(MaterialMapType("boat", new Material(vertexShader, pixelShader, shaderResourceViews["boat"], shaderResourceViews["boatNormal"], sampler)));
+	materials.insert(MaterialMapType("boat", new Material(shadowVS, shadowPS, shaderResourceViews["boat"], shaderResourceViews["boatNormal"], sampler)));
 	materials.insert(MaterialMapType("water", new Material(waterVS, waterPS, shaderResourceViews["waterColor"], shaderResourceViews["waterNormal"], sampler)));
 	materials["grass"]->SetSecondTexture(shaderResourceViews["wood"]);
 
