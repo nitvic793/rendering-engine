@@ -323,10 +323,6 @@ void Game::RenderShadowMap()
 
 	// Turn OFF the pixel shader
 	context->PSSetShader(0, 0, 0);
-
-
-
-
 	for (unsigned int i = 0; i < entities.size(); i++)
 	{
 		RenderEntityShadow(entities[i]);
@@ -511,7 +507,6 @@ void Game::Draw(float deltaTime, float totalTime)
 {
 	RenderShadowMap();
 
-
 	const float color[4] = { 0.11f, 0.11f, 0.11f, 0.0f };
 	renderer->ClearScreen(color);
 	renderer->DrawEntity(terrain.get());
@@ -523,14 +518,8 @@ void Game::Draw(float deltaTime, float totalTime)
 	}
 	renderer->DrawEntity(currentProjectile);
 
-	//ID3D11RenderTargetView * nullRTV = NULL;
 	ID3D11ShaderResourceView *const nullSRV[4] = { NULL };
-	//context->OMSetRenderTargets(1, &nullRTV, NULL);
 	context->PSSetShaderResources(0, 4, nullSRV);
-
-	//context->OMSetRenderTargets(1, &backBufferRTV, depthStencilView);
-	//context->RSSetState(0);
-	//context->ClearDepthStencilView(depthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
 
 	for (auto entity : entities)
 	{
@@ -538,11 +527,7 @@ void Game::Draw(float deltaTime, float totalTime)
 			renderer->DrawEntity(entity);
 	}
 
-	//context->OMSetRenderTargets(1, &nullRTV, NULL);
 	context->PSSetShaderResources(0, 4, nullSRV);
-
-	//renderer->DrawEntity(currentProjectile);
-
 
 	// Set buffers in the input assembler
 	UINT stride = sizeof(Vertex);
@@ -573,11 +558,6 @@ void Game::Draw(float deltaTime, float totalTime)
 	context->RSSetState(0);
 	context->OMSetDepthStencilState(0, 0);
 
-	//Reset water if there are no ripples
-	//resources->pixelShaders["water"]->SetFloat3("ripplePosition", XMFLOAT3(0.0f, 0.0f, 0.0f));
-	//resources->pixelShaders["water"]->SetFloat("rippleRadius", 0.0f);
-	//resources->pixelShaders["water"]->SetFloat("ringSize", 0.0f);
-
 	//Convert Ripples to RippleData structs, then
 	//Pass ripples to the water shader
 	std::vector<RippleData> rippleData;
@@ -588,8 +568,6 @@ void Game::Draw(float deltaTime, float totalTime)
 		resources->pixelShaders["water"]->SetData("ripples", rippleData.data(), sizeof(RippleData) * MAX_RIPPLES);
 	}
 	resources->pixelShaders["water"]->SetInt("rippleCount", (int)ripples.size());
-	//if (rippleData.size() > 0)
-	//	std::cout << rippleData[0].rippleRadius << std::endl;
 
 	renderer->Present();
 }
