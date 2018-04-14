@@ -509,24 +509,24 @@ void Game::Update(float deltaTime, float totalTime)
 // --------------------------------------------------------
 void Game::Draw(float deltaTime, float totalTime)
 {
-	RenderShadowMap();
+	//RenderShadowMap();
 
 
 	const float color[4] = { 0.11f, 0.11f, 0.11f, 0.0f };
 	renderer->ClearScreen(color);
 	renderer->DrawEntity(terrain.get());
 	
-	for (auto entity : entities)
-	{
-		if(entity->hasShadow)
-			renderer->DrawEntity(entity);
-	}
-	renderer->DrawEntity(currentProjectile);
+	//for (auto entity : entities)
+	//{
+	//	if(entity->hasShadow)
+	//		renderer->DrawEntity(entity);
+	//}
+	//renderer->DrawEntity(currentProjectile);
 
 	//ID3D11RenderTargetView * nullRTV = NULL;
-	ID3D11ShaderResourceView *const nullSRV[4] = { NULL };
-	//context->OMSetRenderTargets(1, &nullRTV, NULL);
-	context->PSSetShaderResources(0, 4, nullSRV);
+	//ID3D11ShaderResourceView *const nullSRV[4] = { NULL };
+	////context->OMSetRenderTargets(1, &nullRTV, NULL);
+	//context->PSSetShaderResources(0, 4, nullSRV);
 
 	//context->OMSetRenderTargets(1, &backBufferRTV, depthStencilView);
 	//context->RSSetState(0);
@@ -534,14 +534,14 @@ void Game::Draw(float deltaTime, float totalTime)
 
 	for (auto entity : entities)
 	{
-		if (!entity->hasShadow)
+		//if (!entity->hasShadow)
 			renderer->DrawEntity(entity);
 	}
 
 	//context->OMSetRenderTargets(1, &nullRTV, NULL);
-	context->PSSetShaderResources(0, 4, nullSRV);
+	//context->PSSetShaderResources(0, 4, nullSRV);
 
-	//renderer->DrawEntity(currentProjectile);
+	renderer->DrawEntity(currentProjectile);
 
 
 	// Set buffers in the input assembler

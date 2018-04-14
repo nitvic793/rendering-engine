@@ -81,7 +81,7 @@ float4 main(VertexToPixel input) : SV_TARGET
 	float4 surfaceColor = diffuseTexture.Sample(basicSampler, input.uv);
 	float4 secondColor = secondTexture.Sample(basicSampler, input.uv);
 
-	surfaceColor = secondColor * 0.5 + surfaceColor * 0.5;
+	surfaceColor = secondColor * 0.3 + surfaceColor * 0.7;
 	surfaceColor = saturate(surfaceColor);
 
 	float3 finalNormal = calculateNormalFromMap(input.uv, input.normal, input.tangent);

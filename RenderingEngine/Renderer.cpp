@@ -44,9 +44,9 @@ void Renderer::DrawEntity(Entity* entity)
 	UINT offset = 0;
 	entity->SetCameraPosition(camera->GetPosition());
 	entity->SetLights(lights);
-	if(entity->hasShadow)
+	/*if(entity->hasShadow)
 		entity->PrepareMaterialWithShadows(camera->GetViewMatrix(), camera->GetProjectionMatrix(), shadowViewMatrix, shadowProjectionMatrix, shadowSampler, shadowSRV);
-	else
+	else*/
 		entity->PrepareMaterial(camera->GetViewMatrix(), camera->GetProjectionMatrix());
 	auto mesh = entity->GetMesh();
 	auto vertexBuffer = mesh->GetVertexBuffer();
