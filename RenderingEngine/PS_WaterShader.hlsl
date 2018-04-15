@@ -133,7 +133,7 @@ float calculateDistance(float3 pos1, float3 pos2) {
 	//return sqrt(dist.x ^ 2 + dist.y ^ 2);
 }
 
-float4 main(VertexToPixel input) : SV_TARGET
+float4 main(DomainToPixel input) : SV_TARGET
 {
 	//input.uv.x += translate;
 	float4 surfaceColor = diffuseTexture.Sample(basicSampler, input.uv);
