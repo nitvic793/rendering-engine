@@ -50,13 +50,16 @@ cbuffer externalData : register(b0)
 
 Texture2D diffuseTexture : register(t0);
 Texture2D normalTexture : register(t1);
-Texture2D roughnessTexture : register(t2);
-//Texture2D shadowMapTexture	: register(t3);
 Texture2D normalTextureTwo : register(t4);
 SamplerState basicSampler : register(s0);
-//SamplerComparisonState shadowSampler : register(s1);
+Texture2D roughnessTexture : register(t2);
 TextureCube SkyTexture		: register(t3);
+//Texture2D shadowMapTexture	: register(t3);
+//SamplerComparisonState shadowSampler : register(s1);
+
+// -----------------------------------------------------
 // Range-based attenuation function
+// -----------------------------------------------------
 float Attenuate(float3 lightPosition, float lightRange, float3 worldPos)
 {
 	float dist = distance(lightPosition, worldPos);
@@ -68,6 +71,9 @@ float Attenuate(float3 lightPosition, float lightRange, float3 worldPos)
 	return att * att;
 }
 
+// -----------------------------------------------------
+// Specular light calculation
+// -----------------------------------------------------
 float calculateSpecular(float3 normal, float3 worldPos, float3 dirToLight, float3 camPos)
 {
 	float3 dirToCamera = normalize(camPos - worldPos);
@@ -79,6 +85,9 @@ float calculateSpecular(float3 normal, float3 worldPos, float3 dirToLight, float
 	//return spec;
 }
 
+// -----------------------------------------------------
+// Directional light calculation
+// -----------------------------------------------------
 float4 calculateDirectionalLight(float3 normal, float3 worldPos, DirectionalLight light, float roughness)
 {
 	float3 dirToLight = normalize(-light.Direction);
@@ -88,6 +97,9 @@ float4 calculateDirectionalLight(float3 normal, float3 worldPos, DirectionalLigh
 	return spec + light.DiffuseColor * NdotL + light.AmbientColor;
 }
 
+// -----------------------------------------------------
+// Point light calculation
+// -----------------------------------------------------
 float4 calculatePointLight(float3 normal, float3 worldPos, PointLight light, float roughness)
 {
 	float3 dirToPointLight = normalize(light.Position - worldPos);
@@ -97,11 +109,15 @@ float4 calculatePointLight(float3 normal, float3 worldPos, PointLight light, flo
 	return spec + light.Color * pointNdotL;
 }
 
+// ----------------------------------------------------------
+// Calculate the two normals separately and add then together
+// I was too lazy to abstract it out
+// ----------------------------------------------------------
 float3 calculateNormalFromMap(float2 uv, float3 normal, float3 tangent)
 {
 	float3 normalFinal;
 	uv.x += translate;
-	float3 normalFromTexture = normalTexture.Sample(basicSampler, uv).xyz;
+	float3 normalFromTexture = normalTextureTwo.Sample(basicSampler, uv).xyz;
 	float3 unpackedNormal = normalFromTexture * 2.0f - 1.0f;
 	float3 N = normal;
 	float3 T = normalize(tangent - N * dot(tangent, N));
@@ -120,6 +136,9 @@ float3 calculateNormalFromMap(float2 uv, float3 normal, float3 tangent)
 	return normalFinal;
 }
 
+// -----------------------------------------------------
+// Reflect the skybox
+// -----------------------------------------------------
 float4 calculateSkyboxReflection(float3 normal, float3 worldPos, float3 dirToLight)
 {
 	float3 refl = reflect(-dirToLight, normal);
@@ -130,6 +149,9 @@ float4 calculateSkyboxReflection(float3 normal, float3 worldPos, float3 dirToLig
 		reflect(-dirToCamera, normal));
 }
 
+// -----------------------------------------------------
+// Return distance between two vector3s
+// -----------------------------------------------------
 float calculateDistance(float3 pos1, float3 pos2) {
 	float3 dist = pos2 - pos1;
 	return sqrt((pow(dist.x, 2) + pow(dist.z, 2)));
@@ -142,6 +164,7 @@ float4 main(DomainToPixel input) : SV_TARGET
 	float4 surfaceColor = diffuseTexture.Sample(basicSampler, input.uv);
 	
 	float3 finalNormal = calculateNormalFromMap(input.uv, input.normal, input.tangent);
+	//return float4(finalNormal,1);
 	input.normal = normalize(input.normal);
 	finalNormal = normalize(finalNormal);
 	float4 totalColor = float4(0, 0, 0, 0);

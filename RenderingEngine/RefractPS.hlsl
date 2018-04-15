@@ -46,7 +46,7 @@ float4 main(VertexToPixel input) : SV_TARGET
 	input.normal = normalize(mul(normalFromTexture, TBN));
 
 	// Vars for controlling refraction - Adjust as you see fit
-	float indexOfRefr = 0.9f; // Ideally keep this below 1 - not physically accurate, but prevents "total internal reflection"
+	float indexOfRefr = 0.2f; // Ideally keep this below 1 - not physically accurate, but prevents "total internal reflection"
 	float refrAdjust = 0.1f;  // Makes our refraction less extreme, since we're using UV coords not world units
 	
 	// Calculate the refraction amount in WORLD SPACE

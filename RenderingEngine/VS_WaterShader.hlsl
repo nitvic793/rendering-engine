@@ -41,7 +41,7 @@ struct Wave
 };
 cbuffer WaveInfo	:	register(b2)
 {
-	Wave waves[100];
+	Wave waves[10];
 };
 
 static int numWaves = 5;
@@ -175,14 +175,9 @@ VertexToHull main(VertexShaderInput input)
 	VertexToHull output;
 	float scaleFactor = 3.0f;
 
-	// displacement mapping
+	// Displacement mapping
 	//input.uv.x += time;
 	//float displacedHeight = displacementMap.SampleLevel(basicSampler, input.uv,0).x;
-	
-
-	// Sine wave
-	float height = 1;
-	//input.position.y = height * sin(input.position.x + time) * sin(input.position.y + time);
 
 	// Apply Gerstner wave equation
 	input.normal = CalculateGerstnerNormals(input.position, input.normal);
@@ -197,8 +192,6 @@ VertexToHull main(VertexShaderInput input)
 	output.normal = normalize(output.normal);
 	output.uv = input.uv;
 	output.tangent = normalize(mul(input.tangent, (float3x3)world));
-
-	
 	
 	// Simple displacement mapping
 	/*output.position.y += scaleFactor * displacedHeight;
