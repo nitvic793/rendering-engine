@@ -248,7 +248,7 @@ void Game::Init()
 	device->CreateDepthStencilView(shadowTexture, &shadowDSDesc, &shadowDSV);
 
 	// Create the SRV for the shadow map
-	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+	srvDesc = {};
 	srvDesc.Format = DXGI_FORMAT_R32_FLOAT;
 	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 	srvDesc.Texture2D.MipLevels = 1;
@@ -325,24 +325,9 @@ void Game::CreateWater()
 	resources->pixelShaders["water"]->SetShaderResourceView("SkyTexture", resources->shaderResourceViews["cubemap"]);
 	models.insert(std::pair<std::string, Mesh*>("quad", new Mesh(water->GetVertices(), water->GetVertexCount(), water->GetIndices(), water->GetIndexCount(), device)));
 	waterObject = new Entity(models["quad"], resources->materials["water"]);
-	//waterObject->SetPosition(1.f, 1.f, 1.9f);
 	waterObject->SetPosition(-125, -7, -150);
 	waterObject->SetScale(100, 100, 100);
 	//entities.push_back(waterObject);
-	//-------------------------------
-	////Load Sampler
-	//D3D11_SAMPLER_DESC samplerDesc = {};
-	//samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-	//samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-	//samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-	//samplerDesc.Filter = D3D11_FILTER_ANISOTROPIC;
-	//samplerDesc.MaxAnisotropy = 16;
-	//samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
-
-	//device->CreateSamplerState(&samplerDesc, &sampler);
-
-	//resources->vertexShaders["water"]->SetShaderResourceView("displacementMap", resources->shaderResourceViews["waterDisplacement"]);
-	//resources->vertexShaders["water"]->SetSamplerState("basicSampler", sampler);
 }
 
 void Game::RenderEntityShadow(Entity * entity)
@@ -381,7 +366,6 @@ void Game::RenderShadowMap()
 	ID3D11ShaderResourceView *const nullSRV[3] = { NULL };
 	context->PSSetShaderResources(0, 3, nullSRV);
 
-
 	// Setup the initial states for shadow map creation
 	context->OMSetRenderTargets(0, 0, shadowDSV);
 	context->ClearDepthStencilView(shadowDSV, D3D11_CLEAR_DEPTH, 1.0f, 0);
@@ -414,13 +398,10 @@ void Game::RenderShadowMap()
 	context->OMSetRenderTargets(1, &nullRTV, NULL);
 	context->PSSetShaderResources(0, 3, nullSRV);
 
-
 	// Revert any render state changes
 	context->OMSetRenderTargets(1, &backBufferRTV, depthStencilView);
 	context->RSSetState(0);
 	context->ClearDepthStencilView(depthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
-
-
 
 	shadowVP.Width = (float)this->width;
 	shadowVP.Height = (float)this->height;
@@ -470,7 +451,7 @@ void Game::InitializeEntities()
 	entities[1]->SetPosition(0.f, -7.f, 0.f);
 	entities[1]->SetRotation(0, 180.f * XM_PI / 180, 0);
 
-	entities[2]->hasShadow = false;
+	//entities[2]->hasShadow = false;
 }
 
 void Game::InitializeRenderer()
@@ -509,12 +490,8 @@ void Game::DrawRefraction()
 	refractPS->CopyAllBufferData();
 	refractPS->SetShader();
 
-
-
-
 	// Finally do the actual drawing
 	context->DrawIndexed(waterObject->GetMesh()->GetIndexCount(), 0, 0);
-
 }
 
 void Game::DrawFullscreenQuad(ID3D11ShaderResourceView * texture)
@@ -567,7 +544,7 @@ void Game::Update(float deltaTime, float totalTime)
 		translate -= 1.0f;
 	}
 
-	resources->vertexShaders["water"]->SetFloat("time", time);
+	resources->vertexShaders["water"]->SetFloat("time", time); 
 	resources->pixelShaders["water"]->SetFloat("translate", translate);
 	resources->pixelShaders["water"]->SetFloat("translate", translate);
 	//.................................................
@@ -605,8 +582,10 @@ void Game::Update(float deltaTime, float totalTime)
 	{
 		projectileHitWater = false;
 		currentProjectile->SetHasBeenShot(false);
-		//currentProjectile->SetRotation(180 * XM_PI / 180, 0, 90 * XM_PI / 180);
-		currentProjectile->SetPosition(0.4f, 2.f, -14.9f);
+		//currentProjectile->SetPosition(0.4f, 2.f, -14.9f);
+		auto pos = camera->GetPosition();
+		pos = XMFLOAT3(pos.x + 0.4f, pos.y, pos.z);
+		currentProjectile->SetPosition(pos);
 	}
 
 	//Update Camera
@@ -655,14 +634,15 @@ void Game::Draw(float deltaTime, float totalTime)
 	// Use our refraction render target and our regular depth buffer
 	context->OMSetRenderTargets(1, &refractionRTV, depthStencilView);
 	
-	
 	renderer->DrawEntity(terrain.get());
+	renderer->DrawEntity(currentProjectile);
 	DrawSky();
 	context->OMSetBlendState(blendState, 0, 0xFFFFFFFF);
 	resources->vertexShaders["water"]->SetFloat("time", time);
 	resources->pixelShaders["water"]->SetShaderResourceView("SkyTexture", resources->shaderResourceViews["cubemap"]);
 	resources->pixelShaders["water"]->SetFloat("transparency", transparency);
 	renderer->DrawEntity(waterObject);
+
 	context->OMSetBlendState(0, 0, 0xFFFFFFFF);
 
 	context->OMSetRenderTargets(1, &backBufferRTV, 0);
@@ -678,7 +658,7 @@ void Game::Draw(float deltaTime, float totalTime)
 		if(entity->hasShadow)
 			renderer->DrawEntity(entity);
 	}
-	renderer->DrawEntity(currentProjectile);
+
 
 	ID3D11ShaderResourceView *const nullSRV[4] = { NULL };
 	context->PSSetShaderResources(0, 4, nullSRV);
@@ -691,8 +671,8 @@ void Game::Draw(float deltaTime, float totalTime)
 
 	context->PSSetShaderResources(0, 4, nullSRV);
 
-	ID3D11ShaderResourceView* nullSRV[16] = {};
-	context->PSSetShaderResources(0, 16, nullSRV);
+	ID3D11ShaderResourceView* nullSRV2[16] = {};
+	context->PSSetShaderResources(0, 16, nullSRV2);
 
 	
 
@@ -717,11 +697,7 @@ void Game::Draw(float deltaTime, float totalTime)
 		std::cout << rippleData[0].rippleRadius << std::endl;
 
 	renderer->Present();
-
-	
 }
-
-
 
 void Game::DrawSky()
 {

@@ -7,6 +7,7 @@
 #include "Entity.h"
 #include "Water.h"
 #include "Resources.h"
+
 class Renderer
 {
 	ID3D11DepthStencilView *depthStencilView;
