@@ -1,8 +1,21 @@
 #include "Renderer.h"
 
+void Renderer::SetShadowViewProj(DirectX::XMFLOAT4X4 view, DirectX::XMFLOAT4X4 projection, ID3D11SamplerState* sampler, ID3D11ShaderResourceView* srv)
+{
+	shadowViewMatrix = view;
+	shadowProjectionMatrix = projection;
+	shadowSampler = sampler;
+	shadowSRV = srv;
+}
+
 void Renderer::SetDepthStencilView(ID3D11DepthStencilView * depthStencilView)
 {
 	this->depthStencilView = depthStencilView;
+}
+
+void Renderer::SetResources(Resources* rsrc)
+{
+	resources = rsrc;
 }
 
 void Renderer::ClearScreen(const float color[4])
@@ -31,7 +44,10 @@ void Renderer::DrawEntity(Entity* entity)
 	UINT offset = 0;
 	entity->SetCameraPosition(camera->GetPosition());
 	entity->SetLights(lights);
-	entity->PrepareMaterial(camera->GetViewMatrix(), camera->GetProjectionMatrix());
+	if(entity->hasShadow)
+		entity->PrepareMaterialWithShadows(camera->GetViewMatrix(), camera->GetProjectionMatrix(), shadowViewMatrix, shadowProjectionMatrix, shadowSampler, shadowSRV);
+	else
+		entity->PrepareMaterial(camera->GetViewMatrix(), camera->GetProjectionMatrix());
 	auto mesh = entity->GetMesh();
 	auto vertexBuffer = mesh->GetVertexBuffer();
 	context->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
@@ -153,7 +169,7 @@ void Renderer::RenderReflection(Entity* entity)
 	entity->SetCameraPosition(camera->GetPosition());
 	entity->SetLights(lights);
 	camera->RenderReflectionMatrix(10);
-	entity->PrepareMaterial(camera->GetReflectionMatrix(), camera->GetProjectionMatrix());
+	entity->PrepareMaterial(camera->GetViewMatrix(), camera->GetProjectionMatrix());
 	auto mesh = entity->GetMesh();
 	auto vertexBuffer = mesh->GetVertexBuffer();
 	context->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);

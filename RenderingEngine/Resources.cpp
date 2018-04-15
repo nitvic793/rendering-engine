@@ -105,13 +105,42 @@ void Resources::LoadResources()
 	waterPS->LoadShaderFile(L"PS_WaterShader.cso");
 	pixelShaders.insert(PixelShaderMapType("water", waterPS));
 
+	// Refraction shaders
+	auto quadVS = new SimpleVertexShader(device, context);
+	quadVS->LoadShaderFile(L"FullscreenQuadVS.cso");
+	vertexShaders.insert(VertexShaderMapType("quad", quadVS));
+
+	auto quadPS = new SimplePixelShader(device, context);
+	quadPS->LoadShaderFile(L"FullscreenQuadPS.cso");
+	pixelShaders.insert(PixelShaderMapType("quad", quadPS));
+
+	auto refractVS = new SimpleVertexShader(device, context);
+	refractVS->LoadShaderFile(L"RefractVS.cso");
+	vertexShaders.insert(VertexShaderMapType("refraction", refractVS));
+
+	auto refractPS = new SimplePixelShader(device, context);
+	refractPS->LoadShaderFile(L"RefractPS.cso");
+	pixelShaders.insert(PixelShaderMapType("refraction", refractPS));
+
+	auto shadowVS = new SimpleVertexShader(device, context);
+	shadowVS->LoadShaderFile(L"VS_Shadow.cso");
+	vertexShaders.insert(VertexShaderMapType("shadow", shadowVS));
+
+	auto shadowPS = new SimplePixelShader(device, context);
+	shadowPS->LoadShaderFile(L"PS_Shadow.cso");
+	pixelShaders.insert(PixelShaderMapType("shadow", shadowPS));
+
+	auto preShadowVS = new SimpleVertexShader(device, context);
+	preShadowVS->LoadShaderFile(L"PreShadowVS.cso");
+	vertexShaders.insert(VertexShaderMapType("preShadow", preShadowVS));
+
 	//Load Materials
-	materials.insert(MaterialMapType("metal", new Material(vertexShader, pixelShader, shaderResourceViews["metal"], shaderResourceViews["metalNormal"], shaderResourceViews["metalSpecular"], sampler)));
+	materials.insert(MaterialMapType("metal", new Material(shadowVS, shadowPS, shaderResourceViews["metal"], shaderResourceViews["metalNormal"], shaderResourceViews["metalSpecular"], sampler)));
 	materials.insert(MaterialMapType("fabric", new Material(vertexShader, pixelShader, shaderResourceViews["fabric"], shaderResourceViews["fabricNormal"], sampler)));
 	materials.insert(MaterialMapType("wood", new Material(vertexShader, pixelShader, shaderResourceViews["wood"], shaderResourceViews["woodNormal"], sampler)));
 	materials.insert(MaterialMapType("grass", new Material(vertexShader, pixelShader, shaderResourceViews["grass"], shaderResourceViews["grassNormal"], shaderResourceViews["grassSpecular"], sampler)));
 	materials.insert(MaterialMapType("spear", new Material(vertexShader, pixelShader, shaderResourceViews["spear"], shaderResourceViews["spearNormal"], sampler)));
-	materials.insert(MaterialMapType("boat", new Material(vertexShader, pixelShader, shaderResourceViews["boat"], shaderResourceViews["boatNormal"], sampler)));
+	materials.insert(MaterialMapType("boat", new Material(shadowVS, shadowPS, shaderResourceViews["boat"], shaderResourceViews["boatNormal"], sampler)));
 	materials.insert(MaterialMapType("water", new Material(waterVS, waterPS, shaderResourceViews["waterColor"], shaderResourceViews["waterNormal"], sampler)));
 
 	//Load Meshes

@@ -45,13 +45,16 @@ cbuffer externalData : register(b0)
 	float translate;
 	RippleData ripples[MAX_RIPPLES];
 	int rippleCount;
+	float transparency;
 }
 
 Texture2D diffuseTexture : register(t0);
 Texture2D normalTexture : register(t1);
+//Texture2D roughnessTexture : register(t2);
+//Texture2D shadowMapTexture	: register(t3);
 Texture2D normalTextureTwo : register(t4);
 SamplerState basicSampler : register(s0);
-Texture2D roughnessTexture : register(t2);
+//SamplerComparisonState shadowSampler : register(s1);
 TextureCube SkyTexture		: register(t3);
 // Range-based attenuation function
 float Attenuate(float3 lightPosition, float lightRange, float3 worldPos)
@@ -195,5 +198,5 @@ float4 main(DomainToPixel input) : SV_TARGET
 		totalColor += (calculatePointLight(finalNormal, input.worldPos, pointLights[i], roughness) * calculateSkyboxReflection(finalNormal, input.worldPos, dirToLight))  *surfaceColor;
 	}
 
-	return totalColor;
+	return float4(totalColor.xyz, transparency);
 }
