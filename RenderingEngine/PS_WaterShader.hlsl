@@ -52,6 +52,7 @@ float Attenuate(float3 lightPosition, float lightRange, float3 worldPos)
 	// Soft falloff
 	return att * att;
 }
+
 float calculateSpecular(float3 normal, float3 worldPos, float3 dirToLight, float3 camPos)
 {
 	float3 dirToCamera = normalize(camPos - worldPos);
@@ -103,6 +104,7 @@ float3 calculateNormalFromMap(float2 uv, float3 normal, float3 tangent)
 	normalFinal = normalize(normalFinal + normalize(mul(unpackedNormal, TBN)));
 	return normalFinal;
 }
+
 float4 calculateSkyboxReflection(float3 normal, float3 worldPos, float3 dirToLight)
 {
 	float3 refl = reflect(-dirToLight, normal);
