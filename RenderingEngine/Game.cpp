@@ -85,11 +85,12 @@ Game::~Game()
 	shadowSampler->Release();;
 	shadowRasterizer->Release();
 
+	displacementSampler-> Release();
 	delete currentProjectile;
 	delete water;
-	displacementSampler -> Release();
 	delete hullShader;
 	delete domainShader;
+	delete waterObject;
 }
 
 // --------------------------------------------------------
@@ -329,8 +330,6 @@ void Game::CreateWater()
 	waterObject = new Entity(models["quad"], resources->materials["water"]);
 	waterObject->SetPosition(-125, -6, -150);
 	//waterbject->SetScale(3, 3, 3);
-	//entities.push_back(waterObject);
-
 	water->CreateWaves();
 	resources->vertexShaders["water"]->SetData("waves", water->GetWaves(), sizeof(Wave) * NUM_OF_WAVES);
 	//------------------------------- Displacement map test-----------------------------------
@@ -348,9 +347,6 @@ void Game::CreateWater()
 	resources->vertexShaders["water"]->SetShaderResourceView("displacementMap", resources->shaderResourceViews["waterDisplacement"]);
 	resources->vertexShaders["water"]->SetSamplerState("basicSampler", displacementSampler);
 	//------------------------------- Displacement map test-----------------------------------
-	//waterObject->SetPosition(-125, -7, -150);
-	//waterObject->SetScale(100, 100, 100);
-	//entities.push_back(waterObject);
 }
 
 void Game::RenderEntityShadow(Entity * entity)

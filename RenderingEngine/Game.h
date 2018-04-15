@@ -99,6 +99,8 @@ private:
 	float transparency = 0.7f;
 	Water * water;
 	Entity * waterObject;
+	SimpleDomainShader *domainShader;
+	SimpleHullShader *hullShader;
 	void CreateWater();
 
 	// Shadow data
