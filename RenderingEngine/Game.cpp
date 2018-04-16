@@ -459,6 +459,7 @@ void Game::InitializeEntities()
 	entities.push_back(new Entity(resources->meshes["boat"], resources->materials["boat"]));
 	entities.push_back(new Entity(resources->meshes["palm"], resources->materials["palm"]));
 	entities.push_back(new Entity(resources->meshes["palm_2"], resources->materials["palm_2"]));
+	entities.push_back(new Entity(resources->meshes["tuna"], resources->materials["tuna"]));
 
 	CreateWater();
 	entities[0]->SetPosition(1.f, 1.f, 1.f);
