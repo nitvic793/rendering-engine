@@ -28,6 +28,7 @@ SamplerState RefractSampler	: register(s1);
 // Entry point for this pixel shader
 float4 main(VertexToPixel input) : SV_TARGET
 {
+	//return float4(1,0,0,1);
 	// Fix for poor normals: re-normalizing interpolated normals
 	input.normal = normalize(input.normal);
 	input.tangent = normalize(input.tangent);

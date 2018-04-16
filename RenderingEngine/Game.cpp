@@ -345,6 +345,8 @@ void Game::CreateWater()
 #pragma endregion
 }
 
+
+
 void Game::RenderEntityShadow(Entity * entity)
 {
 	// Set buffers in the input assembler
@@ -492,6 +494,8 @@ void Game::DrawRefraction()
 	refractVS->SetMatrix4x4("world", water->GetWorldMatrix());
 	refractVS->SetMatrix4x4("view", camera->GetViewMatrix());
 	refractVS->SetMatrix4x4("projection", camera->GetProjectionMatrix());
+	refractVS->SetFloat("time", time);
+	refractVS->SetData("waves", water->GetWaves(), sizeof(Wave) * NUM_OF_WAVES);
 	refractVS->CopyAllBufferData();
 	refractVS->SetShader();
 
@@ -534,6 +538,25 @@ void Game::CreateRipple(float x, float y, float z, float duration, float ringSiz
 	ripples.push_back(r);
 }
 
+//----------------------------------------------------
+// Set the shaders and draw water
+//----------------------------------------------------
+void Game::DrawWater()
+{
+	// Set water shaders
+	resources->vertexShaders["water"]->SetFloat("time", time);
+	resources->pixelShaders["water"]->SetFloat("translate", translate);
+	resources->pixelShaders["water"]->SetShaderResourceView("SkyTexture", resources->shaderResourceViews["cubemap"]);
+	resources->pixelShaders["water"]->SetShaderResourceView("normalTextureTwo", resources->shaderResourceViews["waterNormal2"]);
+	resources->pixelShaders["water"]->SetFloat("transparency", transparency);
+
+	// Setup pixel shader
+	resources->pixelShaders["water"]->SetShaderResourceView("ScenePixels", refractionSRV);	// Pixels of the screen
+	resources->pixelShaders["water"]->SetSamplerState("RefractSampler", refractSampler);	// Uses CLAMP on the edges
+	resources->pixelShaders["water"]->SetFloat3("CameraPosition", camera->GetPosition());
+	resources->pixelShaders["water"]->SetMatrix4x4("view", camera->GetViewMatrix());		// View matrix, so we can put normals into view space
+	renderer->DrawEntity(water);
+}
 // --------------------------------------------------------
 // Handle resizing DirectX "stuff" to match the new window size.
 // For instance, updating our projection matrix's aspect ratio.
@@ -651,32 +674,24 @@ void Game::Draw(float deltaTime, float totalTime)
 	renderer->DrawEntity(terrain.get());
 	renderer->DrawEntity(currentProjectile);
 	DrawSky();
-	context->OMSetBlendState(blendState, 0, 0xFFFFFFFF);
-	
-	// Set water shaders
-	resources->vertexShaders["water"]->SetFloat("time", time);
-	resources->pixelShaders["water"]->SetFloat("translate", translate);
-	resources->pixelShaders["water"]->SetShaderResourceView("SkyTexture", resources->shaderResourceViews["cubemap"]);
-	resources->pixelShaders["water"]->SetShaderResourceView("normalTextureTwo", resources->shaderResourceViews["waterNormal2"]);
-	resources->pixelShaders["water"]->SetFloat("transparency", transparency);
-	renderer->DrawEntity(water);
+	//context->OMSetBlendState(blendState, 0, 0xFFFFFFFF);
 
+	// Reset blend state if blending
 	context->OMSetBlendState(0, 0, 0xFFFFFFFF);
-
 	context->OMSetRenderTargets(1, &backBufferRTV, 0);
 
 	DrawFullscreenQuad(refractionSRV);
 
 	context->OMSetRenderTargets(1, &backBufferRTV, depthStencilView);
 
-	DrawRefraction();
+	DrawWater();
+	//DrawRefraction();
 
 	for (auto entity : entities)
 	{
 		if(entity->hasShadow)
 			renderer->DrawEntity(entity);
 	}
-
 
 	ID3D11ShaderResourceView *const nullSRV[4] = { NULL };
 	context->PSSetShaderResources(0, 4, nullSRV);
@@ -695,7 +710,9 @@ void Game::Draw(float deltaTime, float totalTime)
 	resources->pixelShaders["water"]->SetFloat3("ripplePosition", XMFLOAT3(0.0f, 0.0f, 0.0f));
 	resources->pixelShaders["water"]->SetFloat("rippleRadius", 0.0f);
 	resources->pixelShaders["water"]->SetFloat("ringSize", 0.0f);
-
+	
+	//Convert Ripples to RippleData structs, then
+	//Pass ripples to the water shader
 	std::vector<RippleData> rippleData;
 	for (auto ripple : ripples) {
 		rippleData.push_back(ripple.GetRippleData());
@@ -705,9 +722,11 @@ void Game::Draw(float deltaTime, float totalTime)
 	}
 	resources->pixelShaders["water"]->SetInt("rippleCount", (int)ripples.size());
 
-	//Convert Ripples to RippleData structs, then
-	//Pass ripples to the water shader
+	renderer->Present();
+}
 
+void Game::Tesellation()
+{
 #pragma region Tesselation
 	// --- tessellation test ---
 	/*vertexShader->SetFloat("gMaxTessDistance", 5);
@@ -727,7 +746,6 @@ void Game::Draw(float deltaTime, float totalTime)
 
 	// -- end tessellation --
 #pragma endregion
-	renderer->Present();
 }
 
 void Game::DrawSky()

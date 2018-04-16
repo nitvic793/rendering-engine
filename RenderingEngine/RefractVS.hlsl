@@ -5,6 +5,7 @@ cbuffer externalData : register(b0)
 	matrix world;
 	matrix view;
 	matrix projection;
+	float time;
 };
 
 // Struct representing a single vertex worth of data
@@ -27,6 +28,7 @@ struct VertexToPixel
 	noperspective float2 screenUV		: TEXCOORD1;
 };
 
+
 // --------------------------------------------------------
 // The entry point (main method) for our vertex shader
 // --------------------------------------------------------
@@ -35,6 +37,12 @@ VertexToPixel main(VertexShaderInput input)
 	// Set up output
 	VertexToPixel output;
 
+	// Apply Gerstner wave equation
+	//input.normal = CalculateGerstnerNormals(input.position, input.normal);
+	//input.tangent = ClaculateGerstnerTangents(input.position, input.tangent);
+	//input.position = CalculateGerstnerWave(input.position);
+
+	
 	// Calculate output position
 	matrix worldViewProj = mul(mul(world, view), projection);
 	output.position = mul(float4(input.position, 1.0f), worldViewProj);
