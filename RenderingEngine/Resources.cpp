@@ -47,7 +47,7 @@ ID3D11ShaderResourceView* LoadSRV(std::wstring filename, ID3D11Device* device)
 	return srv;
 }
 
-void AddToMeshMap(objl::Loader loader, MeshMap& map, ID3D11Device* device, std::string prefix, SRVMap& texMap)
+void AddToMeshMap(objl::Loader loader, MeshMap& map, ID3D11Device* device, std::string prefix, SRVMap& texMap, bool loadTex)
 {
 	std::wstring baseTexAddress = L"../../Assets/Textures/";
 	for (auto mesh : loader.LoadedMeshes)
@@ -56,8 +56,11 @@ void AddToMeshMap(objl::Loader loader, MeshMap& map, ID3D11Device* device, std::
 		auto indices = mesh.Indices;
 		Mesh* m = new Mesh(verts.data(), verts.size(), indices.data(), indices.size(), device);
 		map.insert(MeshMapType(prefix + mesh.MeshName, m));
-		auto texURI = baseTexAddress + to_wstring(mesh.MeshMaterial.map_Kd);
-		texMap.insert(SRVMapType(prefix + mesh.MeshName, LoadSRV(texURI, device)));
+		if (loadTex)
+		{
+			auto texURI = baseTexAddress + to_wstring(mesh.MeshMaterial.map_Kd);
+			texMap.insert(SRVMapType(prefix + mesh.MeshName, LoadSRV(texURI, device)));
+		}
 	}
 }
 
@@ -225,12 +228,12 @@ void Resources::LoadResources()
 
 	objl::Loader loader;
 	loader.LoadFile("../../Assets/Models/palm_tree.obj");
-	AddToMeshMap(loader, meshes, device, "palm", shaderResourceViews);
+	AddToMeshMap(loader, meshes, device, "palm", shaderResourceViews, true);
 	materials.insert(MaterialMapType("palm", new Material(vertexShader, pixelShader, shaderResourceViews["palm"], shaderResourceViews["defaultNormal"], sampler)));
 	materials.insert(MaterialMapType("palm_2", new Material(vertexShader, pixelShader, shaderResourceViews["palm_2"], shaderResourceViews["defaultNormal"], sampler)));
 
 	loader.LoadFile("../../Assets/Models/fish01.obj");
-	AddToMeshMap(loader, meshes, device);
+	AddToMeshMap(loader, meshes, device, "", shaderResourceViews, false);
 }
 
 Resources::Resources(ID3D11Device *device, ID3D11DeviceContext *context, IDXGISwapChain* swapChain)
