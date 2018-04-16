@@ -137,6 +137,7 @@
     <ClInclude Include="Lights.h" />
     <ClInclude Include="Material.h" />
     <ClInclude Include="Mesh.h" />
+    <ClInclude Include="ObjLoader.h" />
     <ClInclude Include="ProjectileEntity.h" />
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="Resources.h" />

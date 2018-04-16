@@ -8,6 +8,7 @@
 #include "WICTextureLoader.h"
 #include "SimpleShader.h"
 
+
 //Map pair types
 typedef std::pair<std::string, Mesh*> MeshMapType;
 typedef std::pair<std::string, Material*> MaterialMapType;
@@ -27,7 +28,7 @@ class Resources
 	static Resources* mInstance;
 	ID3D11Device *device;
 	ID3D11DeviceContext *context;
-	
+	IDXGISwapChain* swapChain;
 public:
 	ID3D11SamplerState *sampler;
 	MeshMap meshes;
@@ -37,7 +38,7 @@ public:
 	PixelShaderMap pixelShaders;
 	static Resources* GetInstance();
 	void LoadResources();
-	Resources(ID3D11Device *device, ID3D11DeviceContext *context);
+	Resources(ID3D11Device *device, ID3D11DeviceContext *context, IDXGISwapChain* swapChain);
 	~Resources();
 };
 

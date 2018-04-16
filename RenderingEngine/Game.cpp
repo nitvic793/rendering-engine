@@ -105,7 +105,7 @@ void Game::Init()
 	prevMousePos.x = width / 2;
 	prevMousePos.y = height / 2 - 30;
 	SetCursorPos(rect.left + width / 2, rect.top + height / 2);
-	resources = new Resources(device, context);
+	resources = new Resources(device, context, swapChain);
 	resources->LoadResources();
 
 	LoadShaders();
@@ -442,6 +442,7 @@ void Game::InitializeEntities()
 
 	entities.push_back(new Entity(resources->meshes["sphere"], resources->materials["metal"]));
 	entities.push_back(new Entity(resources->meshes["boat"], resources->materials["boat"]));
+	entities.push_back(new Entity(resources->meshes["Coconut_Tree"], resources->materials["boat"]));
 
 	CreateWater();
 
