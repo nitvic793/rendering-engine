@@ -96,7 +96,7 @@ private:
 	ID3D11ShaderResourceView* normalMapSRV;
 
 	float time, translate;
-	float transparency = 0.7f;
+	float transparency = 0.45f;
 	Water * water;
 	SimpleDomainShader *domainShader;
 	SimpleHullShader *hullShader;

@@ -107,7 +107,7 @@ void Game::Init()
 	prevMousePos.x = width / 2;
 	prevMousePos.y = height / 2 - 30;
 	SetCursorPos(rect.left + width / 2, rect.top + height / 2);
-	resources = new Resources(device, context);
+	resources = new Resources(device, context, swapChain);
 	resources->LoadResources();
 
 	LoadShaders();
@@ -435,8 +435,8 @@ void Game::InitializeEntities()
 	terrain->Initialize("../../Assets/Terrain/heightmap.bmp", device, context);
 	terrain->SetMaterial(resources->materials["grass"]);
 
-	terrain->SetPosition(-125, -8.5, -150);
-	light.AmbientColor = XMFLOAT4(0.1f, 0.1f, 0.1f, 0);
+	terrain->SetPosition(-125, -10.5, -150);
+	light.AmbientColor = XMFLOAT4(0.2f, 0.2f, 0.2f, 0);
 	light.DiffuseColor = XMFLOAT4(0.9f, 0.9f, 0.9f, 1.f);
 	light.Direction = XMFLOAT3(1.f, 0, 0.f);
 
@@ -459,15 +459,28 @@ void Game::InitializeEntities()
 
 	entities.push_back(new Entity(resources->meshes["sphere"], resources->materials["metal"]));
 	entities.push_back(new Entity(resources->meshes["boat"], resources->materials["boat"]));
+	entities.push_back(new Entity(resources->meshes["Rudd-Fish_Cube.001"], resources->materials["fish"]));
+	entities.push_back(new Entity(resources->meshes["palm"], resources->materials["palm"]));
+	entities.push_back(new Entity(resources->meshes["palm_2"], resources->materials["palm_2"]));
+	entities.push_back(new Entity(resources->meshes["tuna"], resources->materials["tuna"]));
+	//entities.push_back(new Entity(resources->meshes["Coconut_Tree"], resources->materials["boat"]));
+
 
 	CreateWater();
-
 	entities[0]->SetPosition(1.f, 1.f, 1.f);
 	
 	entities[1]->SetScale(0.6f, 0.6f, 0.6f);
 	entities[1]->SetPosition(0.f, -7.f, 0.f);
 	entities[1]->SetRotation(0, 180.f * XM_PI / 180, 0);
+	entities[2]->SetScale(0.03f, 0.03f, 0.03f);
+	entities[2]->SetPosition(9.f, -8.5f, -15.f);
+	entities[2]->SetRotation(0, 90.f * XM_PI / 180, 0);
 
+	entities[3]->SetPosition(-24.f, -6.f, -4.f);
+	entities[4]->SetPosition(-24.f, -6.f, -4.f);
+
+	entities[3]->SetScale(0.5f, 0.5f, 0.5f);
+	entities[4]->SetScale(0.5f, 0.5f, 0.5f);
 	//entities[2]->hasShadow = false;
 }
 
@@ -582,6 +595,14 @@ void Game::Update(float deltaTime, float totalTime)
 		translate -= 1.0f;
 	}
 
+	float fishSpeed = 2.f;
+	entities[2]->Move(XMFLOAT3((sin(totalTime*3)/700), 0, fishSpeed*deltaTime));
+	
+	if (entities[2]->GetPosition().z >= 40.f)
+	{
+		entities[2]->SetPosition(9.f, -8.5f, -15.f);
+	}
+
 	//resources->vertexShaders["water"]->SetFloat("time", time); 
 	//resources->pixelShaders["water"]->SetFloat("translate", translate);
 	//.................................................
@@ -673,10 +694,12 @@ void Game::Draw(float deltaTime, float totalTime)
 	
 	renderer->DrawEntity(terrain.get());
 	renderer->DrawEntity(currentProjectile);
+	renderer->DrawEntity(entities[2]);
 	DrawSky();
 	//context->OMSetBlendState(blendState, 0, 0xFFFFFFFF);
 
 	// Reset blend state if blending
+	
 	context->OMSetBlendState(0, 0, 0xFFFFFFFF);
 	context->OMSetRenderTargets(1, &backBufferRTV, 0);
 

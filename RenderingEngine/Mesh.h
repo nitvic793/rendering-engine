@@ -34,6 +34,5 @@ private:
 	ID3D11Buffer *vertexBuffer;
 	ID3D11Buffer *indexBuffer; 
 	UINT indexCount;
-	std::vector<Triangle> triangles;
 };
 

@@ -1,6 +1,7 @@
 #include "Mesh.h"
 
 
+
 Mesh::Mesh() {
 	indexBuffer = nullptr;
 	vertexBuffer = nullptr;
