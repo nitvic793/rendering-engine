@@ -126,6 +126,7 @@
     <ClCompile Include="Ripple.cpp" />
     <ClCompile Include="SimpleShader.cpp" />
     <ClCompile Include="Terrain.cpp" />
+    <ClCompile Include="TreeManager.cpp" />
     <ClCompile Include="Water.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -144,6 +145,7 @@
     <ClInclude Include="Ripple.h" />
     <ClInclude Include="SimpleShader.h" />
     <ClInclude Include="Terrain.h" />
+    <ClInclude Include="TreeManager.h" />
     <ClInclude Include="Vertex.h" />
     <ClInclude Include="Water.h" />
   </ItemGroup>

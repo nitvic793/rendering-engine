@@ -1,6 +1,16 @@
 #include "Resources.h"
 #include "DDSTextureLoader.h"
 #include "ObjLoader.h"
+#include <locale>
+#include <codecvt>
+#include <string>
+
+std::wstring to_wstring(std::string narrow)
+{
+	std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+	//std::string narrow = converter.to_bytes(wide_utf16_source_string);
+	return converter.from_bytes(narrow);
+}
 
 Resources* Resources::mInstance = nullptr;
 
@@ -22,14 +32,32 @@ std::vector<Vertex> MapObjlToVertex(std::vector<objl::Vertex> vertices)
 	return verts;
 }
 
-void AddToMeshMap(objl::Loader loader, MeshMap& map, ID3D11Device* device)
+ID3D11ShaderResourceView* LoadSRV(std::wstring filename, ID3D11Device* device)
 {
+	ID3D11ShaderResourceView* srv = nullptr;
+	if (filename.find(L".dds") != std::string::npos)
+	{
+		CreateDDSTextureFromFile(device, filename.c_str(), nullptr, &srv);
+	}
+	else
+	{
+		CreateWICTextureFromFile(device, filename.c_str(), nullptr, &srv);
+	}
+
+	return srv;
+}
+
+void AddToMeshMap(objl::Loader loader, MeshMap& map, ID3D11Device* device, std::string prefix, SRVMap& texMap)
+{
+	std::wstring baseTexAddress = L"../../Assets/Textures/";
 	for (auto mesh : loader.LoadedMeshes)
 	{
 		auto verts = MapObjlToVertex(mesh.Vertices);
 		auto indices = mesh.Indices;
 		Mesh* m = new Mesh(verts.data(), verts.size(), indices.data(), indices.size(), device);
-		map.insert(MeshMapType(mesh.MeshName, m));
+		map.insert(MeshMapType(prefix + mesh.MeshName, m));
+		auto texURI = baseTexAddress + to_wstring(mesh.MeshMaterial.map_Kd);
+		texMap.insert(SRVMapType(prefix + mesh.MeshName, LoadSRV(texURI, device)));
 	}
 }
 
@@ -183,8 +211,11 @@ void Resources::LoadResources()
 	meshes.insert(std::pair<std::string, Mesh*>("boat", new Mesh("../../Assets/Models/boat.obj", device)));
 
 	objl::Loader loader;
-	loader.LoadFile("../../Assets/Models/Coconut Tree.obj");
-	AddToMeshMap(loader, meshes, device);
+	loader.LoadFile("../../Assets/Models/palm_tree.obj");
+	AddToMeshMap(loader, meshes, device, "palm", shaderResourceViews);
+	materials.insert(MaterialMapType("palm", new Material(vertexShader, pixelShader, shaderResourceViews["palm"], shaderResourceViews["defaultNormal"], sampler)));
+	materials.insert(MaterialMapType("palm_2", new Material(vertexShader, pixelShader, shaderResourceViews["palm_2"], shaderResourceViews["defaultNormal"], sampler)));
+
 }
 
 Resources::Resources(ID3D11Device *device, ID3D11DeviceContext *context, IDXGISwapChain* swapChain)
