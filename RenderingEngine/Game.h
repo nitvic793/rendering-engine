@@ -20,6 +20,7 @@
 #include "Resources.h"
 #include "ProjectileEntity.h"
 #include "Water.h"
+#include "TreeManager.h"
 
 class Game 
 	: public DXCore
@@ -114,5 +115,7 @@ private:
 	SimpleVertexShader* shadowVS;
 	DirectX::XMFLOAT4X4 shadowViewMatrix;
 	DirectX::XMFLOAT4X4 shadowProjectionMatrix;
+
+	std::unique_ptr<TreeManager> trees;
 };
 

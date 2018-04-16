@@ -23,7 +23,8 @@ public:
 	~Mesh();
 	ID3D11Buffer *GetVertexBuffer();
 	ID3D11Buffer *GetIndexBuffer();
-	UINT GetIndexCount();
+	UINT GetIndexCount() const;
+	UINT GetVertexCount() const;
 	void Initialize(Vertex *vertices, UINT vertexCount, UINT *indices, UINT indexCount, ID3D11Device *device);
 	void CalculateTangents(Vertex *vertices, UINT vertexCount, UINT *indices, UINT indexCount);
 	XMFLOAT3 GetMaxDimensions() const;
@@ -34,5 +35,6 @@ private:
 	ID3D11Buffer *vertexBuffer;
 	ID3D11Buffer *indexBuffer; 
 	UINT indexCount;
+	UINT vertexCount;
 };
 

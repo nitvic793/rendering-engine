@@ -85,7 +85,7 @@ Game::~Game()
 	shadowSampler->Release();;
 	shadowRasterizer->Release();
 
-	displacementSampler-> Release();
+	displacementSampler->Release();
 	delete currentProjectile;
 	delete water;
 	delete hullShader;
@@ -208,7 +208,7 @@ void Game::Init()
 
 	device->CreateBlendState(&bd, &blendState);
 
-	
+
 
 	// Ask DirectX for the actual object
 	device->CreateSamplerState(&rSamp, &refractSampler);
@@ -319,13 +319,13 @@ void Game::CreateWater()
 {
 	time = 0.0f;
 	translate = 0.0f;
-	water = new Water(100,100);
-	water->Init(resources->materials["water"],device);
+	water = new Water(100, 100);
+	water->Init(resources->materials["water"], device);
 	water->SetPosition(-125, -6, -150);
 	//waterbject->SetScale(3, 3, 3);
 	water->CreateWaves();
 	resources->vertexShaders["water"]->SetData("waves", water->GetWaves(), sizeof(Wave) * NUM_OF_WAVES);
-	
+
 #pragma region Displacement Mapping Disabled
 	//------------------------------- Displacement map test-----------------------------------
 	//Load Sampler
@@ -428,7 +428,8 @@ void Game::RenderShadowMap()
 void Game::InitializeEntities()
 {
 	ShowCursor(false);
-
+	trees = std::unique_ptr<TreeManager>(new TreeManager(device, context));
+	trees->InitializeTrees({ "palm","palm_2" }, { "palm","palm_2" }, { XMFLOAT3(-1,0,0), XMFLOAT3(-4,0,0) });
 	terrain = std::unique_ptr<Terrain>(new Terrain());
 	terrain->Initialize("../../Assets/Terrain/heightmap.bmp", device, context);
 	terrain->SetMaterial(resources->materials["grass"]);
@@ -463,12 +464,11 @@ void Game::InitializeEntities()
 	entities.push_back(new Entity(resources->meshes["tuna"], resources->materials["tuna"]));
 	//entities.push_back(new Entity(resources->meshes["Coconut_Tree"], resources->materials["boat"]));
 
-
 	CreateWater();
 	entities[0]->SetPosition(1.f, 1.f, 1.f);
-	
+
 	entities[1]->SetScale(0.6f, 0.6f, 0.6f);
-	entities[1]->SetPosition(0.f, -7.f, 0.f);
+	entities[1]->SetPosition(0.f, -5.5f, 0.f);
 	entities[1]->SetRotation(0, 180.f * XM_PI / 180, 0);
 	entities[2]->SetScale(0.03f, 0.03f, 0.03f);
 	entities[2]->SetPosition(9.f, -8.5f, -15.f);
@@ -573,8 +573,8 @@ void Game::Update(float deltaTime, float totalTime)
 	}
 
 	float fishSpeed = 2.f;
-	entities[2]->Move(XMFLOAT3((sin(totalTime*3)/700), 0, fishSpeed*deltaTime));
-	
+	entities[2]->Move(XMFLOAT3((sin(totalTime * 3) / 700), 0, fishSpeed*deltaTime));
+
 	if (entities[2]->GetPosition().z >= 40.f)
 	{
 		entities[2]->SetPosition(9.f, -8.5f, -15.f);
@@ -637,7 +637,7 @@ void Game::Update(float deltaTime, float totalTime)
 
 	//Update ripples and Water shader (add support for multiple ripples later)
 	//Delete ripples afterward if they are at max duration
-	
+
 	for (auto it = ripples.begin(); it != ripples.end(); ) {
 		(*it).Update(deltaTime);
 		if ((*it).AtMaxDuration()) {
@@ -668,13 +668,13 @@ void Game::Draw(float deltaTime, float totalTime)
 
 	// Use our refraction render target and our regular depth buffer
 	context->OMSetRenderTargets(1, &refractionRTV, depthStencilView);
-	
+
 	renderer->DrawEntity(terrain.get());
 	renderer->DrawEntity(currentProjectile);
 	renderer->DrawEntity(entities[2]);
 	DrawSky();
 	context->OMSetBlendState(blendState, 0, 0xFFFFFFFF);
-	
+
 	// Set water shaders
 	resources->vertexShaders["water"]->SetFloat("time", time);
 	resources->pixelShaders["water"]->SetFloat("translate", translate);
@@ -682,7 +682,7 @@ void Game::Draw(float deltaTime, float totalTime)
 	resources->pixelShaders["water"]->SetShaderResourceView("normalTextureTwo", resources->shaderResourceViews["waterNormal2"]);
 	resources->pixelShaders["water"]->SetFloat("transparency", transparency);
 	renderer->DrawEntity(water);
-	
+
 
 	context->OMSetBlendState(0, 0, 0xFFFFFFFF);
 
@@ -696,10 +696,10 @@ void Game::Draw(float deltaTime, float totalTime)
 
 	for (auto entity : entities)
 	{
-		if(entity->hasShadow)
+		if (entity->hasShadow)
 			renderer->DrawEntity(entity);
 	}
-
+	trees->Render(camera);
 
 	ID3D11ShaderResourceView *const nullSRV[4] = { NULL };
 	context->PSSetShaderResources(0, 4, nullSRV);
@@ -759,7 +759,7 @@ void Game::DrawSky()
 	ID3D11Buffer* skyVB = resources->meshes["cube"]->GetVertexBuffer();
 	ID3D11Buffer* skyIB = resources->meshes["cube"]->GetIndexBuffer();
 
-	
+
 	// Set the buffers
 	UINT stride = sizeof(Vertex);
 	UINT offset = 0;

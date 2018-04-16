@@ -203,6 +203,10 @@ void Resources::LoadResources()
 	preShadowVS->LoadShaderFile(L"PreShadowVS.cso");
 	vertexShaders.insert(VertexShaderMapType("preShadow", preShadowVS));
 
+	auto treeVS = new SimpleVertexShader(device, context);
+	treeVS->LoadShaderFile(L"TreeVS.cso");
+	vertexShaders.insert(VertexShaderMapType("tree", treeVS));
+
 	//Load Materials
 	materials.insert(MaterialMapType("metal", new Material(shadowVS, shadowPS, shaderResourceViews["metal"], shaderResourceViews["metalNormal"], shaderResourceViews["metalSpecular"], sampler)));
 	materials.insert(MaterialMapType("fabric", new Material(vertexShader, pixelShader, shaderResourceViews["fabric"], shaderResourceViews["fabricNormal"], sampler)));
@@ -229,8 +233,8 @@ void Resources::LoadResources()
 	objl::Loader loader;
 	loader.LoadFile("../../Assets/Models/palm_tree.obj");
 	AddToMeshMap(loader, meshes, device, "palm", shaderResourceViews, true);
-	materials.insert(MaterialMapType("palm", new Material(vertexShader, pixelShader, shaderResourceViews["palm"], shaderResourceViews["defaultNormal"], sampler)));
-	materials.insert(MaterialMapType("palm_2", new Material(vertexShader, pixelShader, shaderResourceViews["palm_2"], shaderResourceViews["defaultNormal"], sampler)));
+	materials.insert(MaterialMapType("palm", new Material(treeVS, pixelShader, shaderResourceViews["palm"], shaderResourceViews["defaultNormal"], sampler)));
+	materials.insert(MaterialMapType("palm_2", new Material(treeVS, pixelShader, shaderResourceViews["palm_2"], shaderResourceViews["defaultNormal"], sampler)));
 
 	loader.LoadFile("../../Assets/Models/fish01.obj");
 	AddToMeshMap(loader, meshes, device, "", shaderResourceViews, false);

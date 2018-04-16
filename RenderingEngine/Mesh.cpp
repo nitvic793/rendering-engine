@@ -195,6 +195,7 @@ void Mesh::Initialize(Vertex *vertices, UINT vertexCount, UINT *indices, UINT in
 {
 	CalculateTangents(vertices, vertexCount, indices, indexCount);
 	this->indexCount = indexCount;
+	this->vertexCount = vertexCount;
 
 	D3D11_BUFFER_DESC vbd;
 	vbd.Usage = D3D11_USAGE_IMMUTABLE;
@@ -318,7 +319,12 @@ ID3D11Buffer *Mesh::GetIndexBuffer()
 	return indexBuffer;
 }
 
-UINT Mesh::GetIndexCount() 
+UINT Mesh::GetIndexCount() const
 {
 	return indexCount;
+}
+
+UINT Mesh::GetVertexCount() const
+{
+	return vertexCount;
 }
