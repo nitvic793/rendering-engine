@@ -62,6 +62,9 @@
     <ClCompile Include="Ripple.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="IRenderStage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DXCore.h">
@@ -109,6 +112,12 @@
     <ClInclude Include="Ripple.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="IRenderStage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjLoader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="PixelShader.hlsl">
@@ -150,6 +159,12 @@
       <Filter>Shaders</Filter>
     </FxCompile>
     <FxCompile Include="VS_Shadow.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="TesselationHullShader.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="TesselationDomainShader.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
   </ItemGroup>

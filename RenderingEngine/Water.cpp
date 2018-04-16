@@ -1,8 +1,10 @@
 #include "Water.h"
 using namespace DirectX;
 
-
-Water::Water(int _length,int _breadth)
+// -----------------------------------------------------
+// Initialize constructor
+// -----------------------------------------------------
+Water::Water(int _length,int _breadth) : Entity(nullptr,nullptr)
 {
 	XMStoreFloat4x4(&reflectionmatrix, XMMatrixTranspose(XMMatrixIdentity()));
 	reflectionBuffer = 0;
@@ -12,11 +14,25 @@ Water::Water(int _length,int _breadth)
 	indices = new UINT[length * breadth * 6];
 }
 
-
+// -----------------------------------------------------
+// Cleanup
+// -----------------------------------------------------
 Water::~Water()
 {
+	delete mesh;
 	delete indices;
 	delete vertices;
+}
+
+//--------------------------------------------------------
+// Initialize water entity
+//--------------------------------------------------------
+void Water::Init(Material* mat, ID3D11Device * device)
+{
+	GenerateWaterMesh();
+	CalculateUVCoordinates();
+	mesh = new Mesh(vertices, this->GetVertexCount(), indices, this->GetIndexCount(), device);
+	material = mat;
 }
 
 // -----------------------------------------------------
@@ -60,25 +76,41 @@ void Water::GenerateWaterMesh()
 		}
 }
 
-UINT* Water::GetIndices()
+// -----------------------------------------------------
+// Retrun indices
+// -----------------------------------------------------
+UINT* Water::GetIndices() const
 {
 	return indices;
 }
 
-Vertex* Water::GetVertices()
+// -----------------------------------------------------
+// Return vertices
+// -----------------------------------------------------
+Vertex* Water::GetVertices() const
 {
 	return vertices;
 }
 
-UINT Water::GetVertexCount()
+// -----------------------------------------------------
+// Return number of vertices
+// -----------------------------------------------------
+UINT Water::GetVertexCount() const
 {
 	return length * breadth;
 }
-UINT Water::GetIndexCount()
+
+// -----------------------------------------------------
+// Return number of indices
+// -----------------------------------------------------
+UINT Water::GetIndexCount() const
 {
 	return (length - 1) * (breadth - 1) * 6;
 }
 
+// -----------------------------------------------------
+// Calculate UVs fro water surface
+// -----------------------------------------------------
 void Water::CalculateUVCoordinates()
 {
 	int incrementCount, i, j, tuCount, tvCount;
@@ -87,7 +119,7 @@ void Water::CalculateUVCoordinates()
 	// Calculate how much to increment the texture coordinates by.
 	// Increase water fidelity by increasing this value
 	// Change numbers in powers of 2
-	incrementValue = (float)32 / (float)breadth;
+	incrementValue = (float)16 / (float)breadth;
 	
 	// Calculate how many times to repeat the texture.
 	incrementCount = breadth;
@@ -132,4 +164,24 @@ void Water::CalculateUVCoordinates()
 		}
 	}
 
+}
+
+// --------------------------------------------------------------
+// Create the waves which are combined to form the final waveform
+// --------------------------------------------------------------
+void Water::CreateWaves()
+{
+	waves[0] = Wave{ XMFLOAT2(0,1),0.4f,6 };
+	waves[1] = Wave{ XMFLOAT2(1,1),0.2f,10 };
+	waves[2] = Wave{ XMFLOAT2(0,1),1.0f,20 };
+	waves[3] = Wave{ XMFLOAT2(1,1),0.1f,3 };
+	waves[4] = Wave{ XMFLOAT2(1,0),0.2f,6 };
+}
+
+// -----------------------------------------------------
+// Return the generated waves
+// -----------------------------------------------------
+Wave* Water::GetWaves()
+{
+	return waves;
 }

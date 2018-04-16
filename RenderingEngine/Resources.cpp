@@ -1,8 +1,37 @@
 #include "Resources.h"
 #include "DDSTextureLoader.h"
-
+#include "ObjLoader.h"
 
 Resources* Resources::mInstance = nullptr;
+
+Vertex MapObjlToVertex(objl::Vertex vertex)
+{
+	auto pos = XMFLOAT3(vertex.Position.X, vertex.Position.Y, vertex.Position.Z);
+	auto normal = XMFLOAT3(vertex.Normal.X, vertex.Normal.Y, vertex.Normal.Z);
+	auto uv = XMFLOAT2(vertex.TextureCoordinate.X, vertex.TextureCoordinate.Y);
+	return { pos, normal, uv };
+}
+
+std::vector<Vertex> MapObjlToVertex(std::vector<objl::Vertex> vertices)
+{
+	std::vector<Vertex> verts;
+	for (auto v : vertices)
+	{
+		verts.push_back(MapObjlToVertex(v));
+	}
+	return verts;
+}
+
+void AddToMeshMap(objl::Loader loader, MeshMap& map, ID3D11Device* device)
+{
+	for (auto mesh : loader.LoadedMeshes)
+	{
+		auto verts = MapObjlToVertex(mesh.Vertices);
+		auto indices = mesh.Indices;
+		Mesh* m = new Mesh(verts.data(), verts.size(), indices.data(), indices.size(), device);
+		map.insert(MeshMapType(mesh.MeshName, m));
+	}
+}
 
 Resources * Resources::GetInstance()
 {
@@ -60,6 +89,9 @@ void Resources::LoadResources()
 	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/waterColor.png", nullptr, &srv);
 	shaderResourceViews.insert(SRVMapType("waterColor", srv));
 
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/waterNormal2.png", nullptr, &srv);
+	shaderResourceViews.insert(SRVMapType("waterNormal2", srv));
+
 	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/waterNormal.png", nullptr, &srv);
 	shaderResourceViews.insert(SRVMapType("waterNormal", srv));
 
@@ -80,11 +112,11 @@ void Resources::LoadResources()
 	//Load Shaders
 	auto vertexShader = new SimpleVertexShader(device, context);
 	vertexShader->LoadShaderFile(L"VertexShader.cso");
-	vertexShaders.insert(VertexShaderMapType("default",vertexShader));
+	vertexShaders.insert(VertexShaderMapType("default", vertexShader));
 
 	auto pixelShader = new SimplePixelShader(device, context);
 	pixelShader->LoadShaderFile(L"PixelShader.cso");
-	pixelShaders.insert(PixelShaderMapType("default",pixelShader));
+	pixelShaders.insert(PixelShaderMapType("default", pixelShader));
 
 	auto skyVS = new SimpleVertexShader(device, context);
 	skyVS->LoadShaderFile(L"SkyVS.cso");
@@ -149,12 +181,17 @@ void Resources::LoadResources()
 	meshes.insert(std::pair<std::string, Mesh*>("torus", new Mesh("../../Assets/Models/torus.obj", device)));
 	meshes.insert(std::pair<std::string, Mesh*>("spear", new Mesh("../../Assets/Models/spear.obj", device)));
 	meshes.insert(std::pair<std::string, Mesh*>("boat", new Mesh("../../Assets/Models/boat.obj", device)));
+
+	objl::Loader loader;
+	loader.LoadFile("../../Assets/Models/Coconut Tree.obj");
+	AddToMeshMap(loader, meshes, device);
 }
 
-Resources::Resources(ID3D11Device *device, ID3D11DeviceContext *context)
+Resources::Resources(ID3D11Device *device, ID3D11DeviceContext *context, IDXGISwapChain* swapChain)
 {
 	this->device = device;
 	this->context = context;
+	this->swapChain = swapChain;
 	mInstance = this;
 }
 

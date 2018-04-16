@@ -78,6 +78,7 @@ private:
 	std::vector<Entity*> entities;	
 
 	ID3D11SamplerState* sampler;
+	ID3D11SamplerState* displacementSampler;
 
 	ID3D11BlendState* blendState;
 
@@ -97,7 +98,9 @@ private:
 	float time, translate;
 	float transparency = 0.7f;
 	Water * water;
-	Entity * waterObject;
+	//Entity * waterObject;
+	SimpleDomainShader *domainShader;
+	SimpleHullShader *hullShader;
 	void CreateWater();
 
 	// Shadow data
