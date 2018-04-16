@@ -23,7 +23,6 @@ struct VertexShaderInput
 	float3 tangent		: TANGENT;
 };
 
-
 struct VertexToHull
 {
 	float4 position		: SV_POSITION;	// XYZW position (System Value Position)
@@ -31,7 +30,8 @@ struct VertexToHull
 	float2 uv			: TEXCOORD;
 	float3 worldPos		: POSITION;
 	float3 tangent		: TANGENT;
-	float tessFactor	: TESS;
+	noperspective float2 screenUV		: TEXCOORD1;
+	//float tessFactor	: TESS;
 };
 struct Wave
 {
@@ -41,7 +41,7 @@ struct Wave
 };
 cbuffer WaveInfo	:	register(b2)
 {
-	Wave waves[100];
+	Wave waves[10];
 };
 
 static int numWaves = 5;
@@ -167,6 +167,35 @@ void WaveEq()
 	////---------------------------------------------------------------
 	//input.position *= 100.0f;
 }
+
+void DisplacementMapping() 
+{
+	// Displacement mapping
+	//input.uv.x += time;
+	//float displacedHeight = displacementMap.SampleLevel(basicSampler, input.uv,0).x;
+
+	//Convert to world pos here
+
+	// Simple displacement mapping
+	/*output.position.y += scaleFactor * displacedHeight;
+	output.worldPos += (scaleFactor*(displacedHeight - 1.0))*output.normal;*/
+}
+
+void CalculateTesellationFactor()
+{
+	// output vertex for interpolatio across triangles
+	//output.uv = mul(float4(input.uv, 0.0f, 1.0f), gTexTransform).xy;
+
+	// Normalized tessellation factor. 
+	// The tessellation is 
+	//   0 if d >= gMinTessDistance and
+	//   1 if d <= gMaxTessDistance.  
+	//float tess = saturate((gMinTessDistance) / (gMinTessDistance - gMaxTessDistance));
+
+	// Rescale [0,1] --> [gMinTessFactor, gMaxTessFactor].
+	//output.tessFactor = gMinTessFactor + tess * (gMaxTessFactor - gMinTessFactor);
+}
+
 Texture2D displacementMap : register(t4);
 SamplerState basicSampler : register(s1);
 
@@ -174,15 +203,6 @@ VertexToHull main(VertexShaderInput input)
 {
 	VertexToHull output;
 	float scaleFactor = 3.0f;
-
-	// displacement mapping
-	//input.uv.x += time;
-	//float displacedHeight = displacementMap.SampleLevel(basicSampler, input.uv,0).x;
-	
-
-	// Sine wave
-	float height = 1;
-	//input.position.y = height * sin(input.position.x + time) * sin(input.position.y + time);
 
 	// Apply Gerstner wave equation
 	//input.normal = CalculateGerstnerNormals(input.position, input.normal);
@@ -198,23 +218,10 @@ VertexToHull main(VertexShaderInput input)
 	output.uv = input.uv;
 	output.tangent = normalize(mul(input.tangent, (float3x3)world));
 
-	
-	
-	// Simple displacement mapping
-	/*output.position.y += scaleFactor * displacedHeight;
-	output.worldPos += (scaleFactor*(displacedHeight - 1.0))*output.normal;*/
-
-	// output vertex for interpolatio across triangles
-	//output.uv = mul(float4(input.uv, 0.0f, 1.0f), gTexTransform).xy;
-
-	// Normalized tessellation factor. 
-	// The tessellation is 
-	//   0 if d >= gMinTessDistance and
-	//   1 if d <= gMaxTessDistance.  
-	float tess = saturate((gMinTessDistance) / (gMinTessDistance - gMaxTessDistance));
-
-	// Rescale [0,1] --> [gMinTessFactor, gMaxTessFactor].
-	output.tessFactor = gMinTessFactor + tess * (gMaxTessFactor - gMinTessFactor);
+	// Get the screen-space UV for refraction
+	output.screenUV = (output.position.xy / output.position.w);
+	output.screenUV.x = output.screenUV.x * 0.5f + 0.5f;
+	output.screenUV.y = -output.screenUV.y * 0.5f + 0.5f;
 	
 	return output;
 }

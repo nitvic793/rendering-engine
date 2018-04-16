@@ -7,15 +7,20 @@
 #include "Entity.h"
 #include <random>
 
-#define	NUM_OF_WAVES 100
-struct Wave
+#define	NUM_OF_WAVES 10
+
+//------------------------------------------------
+// Properties of a single wave
+// TODO: Try and add steepness and speed
+//------------------------------------------------
+struct Wave 
 {
 	XMFLOAT2 direction;
 	float amplitude;
 	float wavelength;
 };
 
-class Water
+class Water : public Entity
 {
 private:
 	XMFLOAT4X4 reflectionmatrix;
@@ -25,16 +30,21 @@ private:
 	UINT * indices;
 	Vertex * vertices;
 	Wave waves[NUM_OF_WAVES];
+	
+	void GenerateWaterMesh();
+	void CalculateUVCoordinates();
 public:
 	Water(int _length, int _breadth);
 	~Water();
-	void GenerateWaterMesh();
-	UINT* GetIndices();
-	Vertex* GetVertices();
-	UINT GetVertexCount();
-	UINT GetIndexCount();
-	void CalculateUVCoordinates();
+
+	void Init(Material* mat, ID3D11Device * device);
 	void CreateWaves();
-	Wave* GetWaves();
+
+	// Getters
+	UINT*	GetIndices() const;
+	Vertex* GetVertices() const;
+	UINT	GetVertexCount() const;
+	UINT	GetIndexCount() const;
+	Wave*	GetWaves() ;
 };
 
