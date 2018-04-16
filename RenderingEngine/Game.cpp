@@ -467,8 +467,8 @@ void Game::InitializeEntities()
 	entities[1]->SetPosition(0.f, -7.f, 0.f);
 	entities[1]->SetRotation(0, 180.f * XM_PI / 180, 0);
 
-	entities[2]->SetPosition(-8.f, 0.f, -5.f);
-	entities[3]->SetPosition(-8.f, 0.f, -5.f);
+	entities[2]->SetPosition(-24.f, -6.f, -4.f);
+	entities[3]->SetPosition(-24.f, -6.f, -4.f);
 
 	entities[2]->SetScale(0.5f, 0.5f, 0.5f);
 	entities[3]->SetScale(0.5f, 0.5f, 0.5f);
