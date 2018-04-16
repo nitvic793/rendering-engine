@@ -327,20 +327,20 @@ void Game::Draw(float deltaTime, float totalTime)
 	renderer->DrawEntity(currentProjectile);
 
 	// --- tessellation test ---
-	/*vertexShader->SetFloat("gMaxTessDistance", 5);
-	vertexShader->SetFloat("gMinTessDistance", 2);
-	vertexShader->SetFloat("gMinTessFactor", 2);
-	vertexShader->SetFloat("gMaxTessFactor", 3);
-	domainShader->SetMatrix4x4("view", camera->GetViewMatrix());
-	domainShader->SetMatrix4x4("projection", camera->GetProjectionMatrix());
-	domainShader->SetShaderResourceView("heightSRV", resources->shaderResourceViews["waterDisplacement"]);
-	domainShader->SetSamplerState("heightSampler", displacementSampler);
-	hullShader->SetShader();
-	domainShader->SetShader();
-	hullShader->CopyAllBufferData();
-	domainShader->CopyAllBufferData();
-	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
-	renderer->DrawEntity(entities[2]);*/
+	//vertexShader->SetFloat("gMaxTessDistance", 5);
+	//vertexShader->SetFloat("gMinTessDistance", 2);
+	//vertexShader->SetFloat("gMinTessFactor", 2);
+	//vertexShader->SetFloat("gMaxTessFactor", 3);
+	//domainShader->SetMatrix4x4("view", camera->GetViewMatrix());
+	//domainShader->SetMatrix4x4("projection", camera->GetProjectionMatrix());
+	//domainShader->SetShaderResourceView("heightSRV", resources->shaderResourceViews["waterDisplacement"]);
+	//domainShader->SetSamplerState("heightSampler", displacementSampler);
+	//hullShader->SetShader();
+	//domainShader->SetShader();
+	//hullShader->CopyAllBufferData();
+	//domainShader->CopyAllBufferData();
+	//context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
+	//renderer->DrawEntity(entities[2]);
 
 	// -- end tessellation --
 
