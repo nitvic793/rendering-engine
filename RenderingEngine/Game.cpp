@@ -457,11 +457,14 @@ void Game::InitializeEntities()
 
 	entities.push_back(new Entity(resources->meshes["sphere"], resources->materials["metal"]));
 	entities.push_back(new Entity(resources->meshes["boat"], resources->materials["boat"]));
-	//entities.push_back(new Entity(resources->meshes["Coconut_Tree"], resources->materials["boat"]));
 	entities.push_back(new Entity(resources->meshes["Rudd-Fish_Cube.001"], resources->materials["fish"]));
+	entities.push_back(new Entity(resources->meshes["palm"], resources->materials["palm"]));
+	entities.push_back(new Entity(resources->meshes["palm_2"], resources->materials["palm_2"]));
+	entities.push_back(new Entity(resources->meshes["tuna"], resources->materials["tuna"]));
+	//entities.push_back(new Entity(resources->meshes["Coconut_Tree"], resources->materials["boat"]));
+
 
 	CreateWater();
-
 	entities[0]->SetPosition(1.f, 1.f, 1.f);
 	
 	entities[1]->SetScale(0.6f, 0.6f, 0.6f);
@@ -471,6 +474,11 @@ void Game::InitializeEntities()
 	entities[2]->SetPosition(9.f, -8.5f, -15.f);
 	entities[2]->SetRotation(0, 90.f * XM_PI / 180, 0);
 
+	entities[3]->SetPosition(-24.f, -6.f, -4.f);
+	entities[4]->SetPosition(-24.f, -6.f, -4.f);
+
+	entities[3]->SetScale(0.5f, 0.5f, 0.5f);
+	entities[4]->SetScale(0.5f, 0.5f, 0.5f);
 	//entities[2]->hasShadow = false;
 }
 

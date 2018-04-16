@@ -104,18 +104,9 @@ float4 main(VertexToPixel input) : SV_TARGET
 	finalNormal = normalize(finalNormal);
 	float4 totalColor = float4(0, 0, 0, 0);
 	float roughness = roughnessTexture.Sample(basicSampler, input.uv).r;
-
-	// Shadow mapping 
-	///float2 shadowUV = input.shadowPos.xy / input.shadowPos.w * 0.5f + 0.5f;
-	//shadowUV.y = 1.0f - shadowUV.y;
-	//float depthFromLight = input.shadowPos.z / input.shadowPos.w;
-	//float shadowAmount = shadowMapTexture.SampleCmpLevelZero(shadowSampler, shadowUV, depthFromLight);
-	
-
 	int i = 0;
 	for (i = 0; i < DirectionalLightCount; ++i)
 	{
-		//totalColor += calculateDirectionalLight(finalNormal, input.worldPos, dirLights[i], roughness,shadowAmount) * surfaceColor;
 		totalColor += calculateDirectionalLight(finalNormal, input.worldPos, dirLights[i], roughness) * surfaceColor;
 	}
 
@@ -124,9 +115,6 @@ float4 main(VertexToPixel input) : SV_TARGET
 		totalColor += calculatePointLight(finalNormal, input.worldPos, pointLights[i], roughness)  * surfaceColor;
 	}
 
-	/*float4 dirLight = calculateDirectionalLight(finalNormal, dirLights[0]) * surfaceColor;
-	float4 secDirLight = calculateDirectionalLight(finalNormal, dirLights[1]) * surfaceColor;
-	float4 pLight = calculatePointLight(finalNormal, input.worldPos, pointLights[0])  * surfaceColor;*/
-	//return dirLight + secDirLight + pLight;
+	clip(totalColor.a);
 	return totalColor;
 }
