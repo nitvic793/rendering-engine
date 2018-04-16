@@ -98,6 +98,12 @@ void Resources::LoadResources()
 	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/Heightmaptest.png", nullptr, &srv);
 	shaderResourceViews.insert(SRVMapType("waterDisplacement", srv));
 
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/fishTexture.png", nullptr, &srv);
+	shaderResourceViews.insert(SRVMapType("fishTexture", srv));
+
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/fishNormal.png", nullptr, &srv);
+	shaderResourceViews.insert(SRVMapType("fishNormal", srv));
+
 	//Load Sampler
 	D3D11_SAMPLER_DESC samplerDesc = {};
 	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
@@ -171,6 +177,7 @@ void Resources::LoadResources()
 	materials.insert(MaterialMapType("spear", new Material(vertexShader, pixelShader, shaderResourceViews["spear"], shaderResourceViews["spearNormal"], sampler)));
 	materials.insert(MaterialMapType("boat", new Material(shadowVS, shadowPS, shaderResourceViews["boat"], shaderResourceViews["boatNormal"], sampler)));
 	materials.insert(MaterialMapType("water", new Material(waterVS, waterPS, shaderResourceViews["waterColor"], shaderResourceViews["waterNormal"], sampler)));
+	materials.insert(MaterialMapType("fish", new Material(vertexShader, pixelShader, shaderResourceViews["fishTexture"], shaderResourceViews["fishNormal"], sampler)));
 
 	//Load Meshes
 	meshes.insert(std::pair<std::string, Mesh*>("sphere", new Mesh("../../Assets/Models/sphere.obj", device)));
@@ -181,9 +188,10 @@ void Resources::LoadResources()
 	meshes.insert(std::pair<std::string, Mesh*>("torus", new Mesh("../../Assets/Models/torus.obj", device)));
 	meshes.insert(std::pair<std::string, Mesh*>("spear", new Mesh("../../Assets/Models/spear.obj", device)));
 	meshes.insert(std::pair<std::string, Mesh*>("boat", new Mesh("../../Assets/Models/boat.obj", device)));
+	//meshes.insert(std::pair<std::string, Mesh*>("fish", new Mesh("../../Assets/Models/fish01.obj", device)));
 
 	objl::Loader loader;
-	loader.LoadFile("../../Assets/Models/Coconut Tree.obj");
+	loader.LoadFile("../../Assets/Models/fish01.obj");
 	AddToMeshMap(loader, meshes, device);
 }
 

@@ -433,8 +433,8 @@ void Game::InitializeEntities()
 	terrain->Initialize("../../Assets/Terrain/heightmap.bmp", device, context);
 	terrain->SetMaterial(resources->materials["grass"]);
 
-	terrain->SetPosition(-125, -8.5, -150);
-	light.AmbientColor = XMFLOAT4(0.1f, 0.1f, 0.1f, 0);
+	terrain->SetPosition(-125, -10.5, -150);
+	light.AmbientColor = XMFLOAT4(0.2f, 0.2f, 0.2f, 0);
 	light.DiffuseColor = XMFLOAT4(0.9f, 0.9f, 0.9f, 1.f);
 	light.Direction = XMFLOAT3(1.f, 0, 0.f);
 
@@ -457,7 +457,8 @@ void Game::InitializeEntities()
 
 	entities.push_back(new Entity(resources->meshes["sphere"], resources->materials["metal"]));
 	entities.push_back(new Entity(resources->meshes["boat"], resources->materials["boat"]));
-	entities.push_back(new Entity(resources->meshes["Coconut_Tree"], resources->materials["boat"]));
+	//entities.push_back(new Entity(resources->meshes["Coconut_Tree"], resources->materials["boat"]));
+	entities.push_back(new Entity(resources->meshes["Rudd-Fish_Cube.001"], resources->materials["fish"]));
 
 	CreateWater();
 
@@ -466,6 +467,9 @@ void Game::InitializeEntities()
 	entities[1]->SetScale(0.6f, 0.6f, 0.6f);
 	entities[1]->SetPosition(0.f, -7.f, 0.f);
 	entities[1]->SetRotation(0, 180.f * XM_PI / 180, 0);
+	entities[2]->SetScale(0.03f, 0.03f, 0.03f);
+	entities[2]->SetPosition(9.f, -8.5f, -15.f);
+	entities[2]->SetRotation(0, 90.f * XM_PI / 180, 0);
 
 	//entities[2]->hasShadow = false;
 }
@@ -560,6 +564,14 @@ void Game::Update(float deltaTime, float totalTime)
 		translate -= 1.0f;
 	}
 
+	float fishSpeed = 2.f;
+	entities[2]->Move(XMFLOAT3((sin(totalTime*3)/700), 0, fishSpeed*deltaTime));
+	
+	if (entities[2]->GetPosition().z >= 40.f)
+	{
+		entities[2]->SetPosition(9.f, -8.5f, -15.f);
+	}
+
 	//resources->vertexShaders["water"]->SetFloat("time", time); 
 	//resources->pixelShaders["water"]->SetFloat("translate", translate);
 	//.................................................
@@ -651,6 +663,7 @@ void Game::Draw(float deltaTime, float totalTime)
 	
 	renderer->DrawEntity(terrain.get());
 	renderer->DrawEntity(currentProjectile);
+	renderer->DrawEntity(entities[2]);
 	DrawSky();
 	context->OMSetBlendState(blendState, 0, 0xFFFFFFFF);
 	
@@ -661,6 +674,7 @@ void Game::Draw(float deltaTime, float totalTime)
 	resources->pixelShaders["water"]->SetShaderResourceView("normalTextureTwo", resources->shaderResourceViews["waterNormal2"]);
 	resources->pixelShaders["water"]->SetFloat("transparency", transparency);
 	renderer->DrawEntity(water);
+	
 
 	context->OMSetBlendState(0, 0, 0xFFFFFFFF);
 
