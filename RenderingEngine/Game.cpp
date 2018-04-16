@@ -319,7 +319,7 @@ void Game::CreateWater()
 {
 	time = 0.0f;
 	translate = 0.0f;
-	water = new Water(100,100);
+	water = new Water(50,50);
 	water->Init(resources->materials["water"],device);
 	water->SetPosition(-125, -6, -150);
 	//waterbject->SetScale(3, 3, 3);

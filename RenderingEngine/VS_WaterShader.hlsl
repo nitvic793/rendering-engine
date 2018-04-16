@@ -205,9 +205,9 @@ VertexToHull main(VertexShaderInput input)
 	float scaleFactor = 3.0f;
 
 	// Apply Gerstner wave equation
-	//input.normal = CalculateGerstnerNormals(input.position, input.normal);
-	//input.tangent = ClaculateGerstnerTangents(input.position, input.tangent);
-	//input.position = CalculateGerstnerWave(input.position);
+	input.normal = CalculateGerstnerNormals(input.position, input.normal);
+	input.tangent = ClaculateGerstnerTangents(input.position, input.tangent);
+	input.position = CalculateGerstnerWave(input.position);
 
 	// Transform to world position
 	matrix worldViewProj = mul(mul(world, view), projection);
