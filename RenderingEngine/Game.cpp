@@ -601,17 +601,17 @@ void Game::Update(float deltaTime, float totalTime)
 	if ((GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0)
 	{
 		projectilePreviousPosition = currentProjectile->GetPosition();
-		currentProjectile->Shoot(30.6f * deltaTime, camera->GetDirection());
+		currentProjectile->Shoot(1.f, camera->GetDirection());
 	}
 
 	if ((GetAsyncKeyState(VK_SPACE) & 0x8000) != 0) {
 		CreateRipple(0.0f, 0.0f, 50.0f, 2.0f, 2.0f);
 	}
 
-	if (fishes->CheckForCollision(currentProjectile))
+	/*if (fishes->CheckForCollision(currentProjectile))
 	{
 		printf("Hit!");
-	}
+	}*/
 
 	//Check for spear hitting the water
 	if (currentProjectile->GetPosition().y <= -7.0f && !projectileHitWater) {
@@ -624,7 +624,7 @@ void Game::Update(float deltaTime, float totalTime)
 
 	auto distance = XMVectorGetX(XMVector3Length(XMLoadFloat3(&currentProjectile->GetPosition()) - XMLoadFloat3(&camera->GetPosition())));
 
-	if (fabsf(distance) > 50)
+	if (fabsf(distance) > 50 || fishes->CheckForCollision(currentProjectile))
 	{
 		projectileHitWater = false;
 		currentProjectile->SetHasBeenShot(false);
@@ -711,7 +711,7 @@ void Game::Draw(float deltaTime, float totalTime)
 		if (entity->hasShadow)
 			renderer->DrawEntity(entity);
 	}
-	trees->Render(camera);
+	//trees->Render(camera);
 
 	ID3D11ShaderResourceView *const nullSRV[4] = { NULL };
 	context->PSSetShaderResources(0, 4, nullSRV);

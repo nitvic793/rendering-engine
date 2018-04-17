@@ -20,20 +20,22 @@ Entity::Entity(Mesh *m, Material* mat)
 		auto actualCenter = XMVectorAdd(XMLoadFloat3(&center), XMLoadFloat3(&position));
 		XMStoreFloat3(&center, actualCenter);
 		boundingBox.Center = center;
-	}	
+	}
 }
 
 Entity::~Entity()
 {
 }
 
-BoundingBox Entity::GetBoundingBox()
+BoundingOrientedBox Entity::GetBoundingBox()
 {
 	auto bBox = boundingBox;
 	bBox.Center = position;
 	bBox.Extents.x *= scale.x;
 	bBox.Extents.y *= scale.y;
 	bBox.Extents.z *= scale.z;
+	auto rot = XMQuaternionRotationRollPitchYawFromVector(XMLoadFloat3(&rotation));
+	XMStoreFloat4(&bBox.Orientation, rot);
 	return bBox;
 }
 
@@ -136,7 +138,7 @@ void Entity::PrepareMaterialWithShadows(XMFLOAT4X4 viewMatrix, XMFLOAT4X4 projec
 	pixelShader->SetShader();
 }
 
-void Entity::PrepareMaterial(XMFLOAT4X4 viewMatrix, XMFLOAT4X4 projectionMatrix )
+void Entity::PrepareMaterial(XMFLOAT4X4 viewMatrix, XMFLOAT4X4 projectionMatrix)
 {
 	auto vertexShader = material->GetVertexShader();
 	auto pixelShader = material->GetPixelShader();
@@ -149,7 +151,7 @@ void Entity::PrepareMaterial(XMFLOAT4X4 viewMatrix, XMFLOAT4X4 projectionMatrix 
 
 	if (material->GetNormalSRV())
 		pixelShader->SetShaderResourceView("normalTexture", material->GetNormalSRV());
-	else 
+	else
 		pixelShader->SetShaderResourceView("normalTexture", nullptr);
 
 	pixelShader->SetShaderResourceView("roughnessTexture", material->GetRoughnessSRV());
