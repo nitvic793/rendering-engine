@@ -100,10 +100,11 @@ private:
 	float time, translate;
 	float transparency = 0.45f;
 	Water * water;
-	//Entity * waterObject;
 	SimpleDomainShader *domainShader;
 	SimpleHullShader *hullShader;
 	void CreateWater();
+	void DrawWater();
+	void Tesellation();
 
 	// Shadow data
 	void RenderEntityShadow(Entity* entity);

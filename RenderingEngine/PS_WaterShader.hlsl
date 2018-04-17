@@ -1,6 +1,13 @@
 
 #define MAX_RIPPLES 32
 #define MAX_LIGHTS 32
+
+cbuffer externalData : register(b1)
+{
+	matrix view;
+	float3 CameraPosition;
+};
+
 struct DomainToPixel
 {
 	float4 position		: SV_POSITION;	// XYZW position (System Value Position)
@@ -8,7 +15,8 @@ struct DomainToPixel
 	float2 uv			: TEXCOORD;
 	float3 worldPos		: POSITION;
 	float3 tangent		: TANGENT;
-	float tessFactor : TESS;
+	noperspective float2 screenUV		: TEXCOORD1;
+	//float tessFactor : TESS;
 };
 
 struct DirectionalLight
@@ -48,12 +56,14 @@ cbuffer externalData : register(b0)
 	float transparency;
 }
 
-Texture2D diffuseTexture : register(t0);
-Texture2D normalTexture : register(t1);
-Texture2D normalTextureTwo : register(t4);
-SamplerState basicSampler : register(s0);
-Texture2D roughnessTexture : register(t2);
+Texture2D diffuseTexture	: register(t0);
+Texture2D normalTexture		: register(t1);
+Texture2D roughnessTexture	: register(t2);
 TextureCube SkyTexture		: register(t3);
+Texture2D normalTextureTwo	: register(t4);
+Texture2D ScenePixels		: register(t5);
+SamplerState basicSampler	: register(s0);
+SamplerState RefractSampler	: register(s1);
 //Texture2D shadowMapTexture	: register(t3);
 //SamplerComparisonState shadowSampler : register(s1);
 
@@ -158,20 +168,44 @@ float calculateDistance(float3 pos1, float3 pos2) {
 	//return sqrt(dist.x ^ 2 + dist.y ^ 2);
 }
 
+// -----------------------------------------------------
+// Calculate the refract UV
+// -----------------------------------------------------
+float2 calculateRefraction(float3 normal, float3 worldPos)
+{
+	// Vars for controlling refraction - Adjust as you see fit
+	float indexOfRefr = 0.3f; // Ideally keep this below 1 - not physically accurate, but prevents "total internal reflection"
+	float refrAdjust = 0.1f;  // Makes our refraction less extreme, since we're using UV coords not world units
+
+							  // Calculate the refraction amount in WORLD SPACE
+	float3 dirToPixel = normalize(worldPos - CameraPosition);
+	float3 refrDir = refract(dirToPixel, normal, indexOfRefr);
+
+	// Get the refraction XY direction in VIEW SPACE (relative to the camera)
+	// We use this as a UV offset when sampling the texture
+	float2 refrUV = mul(float4(refrDir, 0.0f), view).xy * refrAdjust;
+	refrUV.x *= -1.0f; // Flip the X to point away from the edge (Y already does this due to view space <-> texture space diff)
+
+	return refrUV;
+}
 float4 main(DomainToPixel input) : SV_TARGET
 {
-	//input.uv.x += translate;
+	// Fix normals and tangents
+	input.normal = normalize(input.normal);
+	input.tangent = normalize(input.tangent);
+
 	float4 surfaceColor = diffuseTexture.Sample(basicSampler, input.uv);
 	
+	// Sample, blend and translate multiple normals
 	float3 finalNormal = calculateNormalFromMap(input.uv, input.normal, input.tangent);
-	//return float4(finalNormal,1);
-	input.normal = normalize(input.normal);
 	finalNormal = normalize(finalNormal);
+	
+	// Calculate refraction
+	float2 refractUV = calculateRefraction(finalNormal,input.worldPos);
+
 	float4 totalColor = float4(0, 0, 0, 0);
 	float roughness = roughnessTexture.Sample(basicSampler, input.uv).r;
-	//return (calculateDirectionalLight(finalNormal, input.worldPos, dirLights[0], roughness) + calculateSkyboxReflection(input.normal, input.worldPos, dirLights[0].Direction)) *surfaceColor;
-	//return calculateSkyboxReflection(input.normal, input.worldPos, dirLights[0].Direction); 
-
+	
 	for (int r = 0; r < rippleCount; ++r) {
 
 		float3 ripplePosition = ripples[r].ripplePosition;
@@ -208,6 +242,7 @@ float4 main(DomainToPixel input) : SV_TARGET
 		}
 	}
 
+	// Lighting calculations
 	int i = 0;
 	for (i = 0; i < DirectionalLightCount; ++i)
 	{
@@ -221,5 +256,5 @@ float4 main(DomainToPixel input) : SV_TARGET
 		totalColor += (calculatePointLight(finalNormal, input.worldPos, pointLights[i], roughness) * calculateSkyboxReflection(finalNormal, input.worldPos, dirToLight))  *surfaceColor;
 	}
 
-	return float4(totalColor.xyz, transparency);
+	return totalColor + ScenePixels.Sample(RefractSampler, input.screenUV + refractUV);
 }

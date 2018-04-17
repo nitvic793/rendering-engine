@@ -319,8 +319,8 @@ void Game::CreateWater()
 {
 	time = 0.0f;
 	translate = 0.0f;
-	water = new Water(100, 100);
-	water->Init(resources->materials["water"], device);
+	water = new Water(50,50);
+	water->Init(resources->materials["water"],device);
 	water->SetPosition(-125, -6, -150);
 	//waterbject->SetScale(3, 3, 3);
 	water->CreateWaves();
@@ -344,6 +344,8 @@ void Game::CreateWater()
 	//------------------------------- Displacement map test-----------------------------------
 #pragma endregion
 }
+
+
 
 void Game::RenderEntityShadow(Entity * entity)
 {
@@ -515,6 +517,8 @@ void Game::DrawRefraction()
 	refractVS->SetMatrix4x4("world", water->GetWorldMatrix());
 	refractVS->SetMatrix4x4("view", camera->GetViewMatrix());
 	refractVS->SetMatrix4x4("projection", camera->GetProjectionMatrix());
+	refractVS->SetFloat("time", time);
+	refractVS->SetData("waves", water->GetWaves(), sizeof(Wave) * NUM_OF_WAVES);
 	refractVS->CopyAllBufferData();
 	refractVS->SetShader();
 
@@ -557,6 +561,25 @@ void Game::CreateRipple(float x, float y, float z, float duration, float ringSiz
 	ripples.push_back(r);
 }
 
+//----------------------------------------------------
+// Set the shaders and draw water
+//----------------------------------------------------
+void Game::DrawWater()
+{
+	// Set water shaders
+	resources->vertexShaders["water"]->SetFloat("time", time);
+	resources->pixelShaders["water"]->SetFloat("translate", translate);
+	resources->pixelShaders["water"]->SetShaderResourceView("SkyTexture", resources->shaderResourceViews["cubemap"]);
+	resources->pixelShaders["water"]->SetShaderResourceView("normalTextureTwo", resources->shaderResourceViews["waterNormal2"]);
+	resources->pixelShaders["water"]->SetFloat("transparency", transparency);
+
+	// Setup pixel shader
+	resources->pixelShaders["water"]->SetShaderResourceView("ScenePixels", refractionSRV);	// Pixels of the screen
+	resources->pixelShaders["water"]->SetSamplerState("RefractSampler", refractSampler);	// Uses CLAMP on the edges
+	resources->pixelShaders["water"]->SetFloat3("CameraPosition", camera->GetPosition());
+	resources->pixelShaders["water"]->SetMatrix4x4("view", camera->GetViewMatrix());		// View matrix, so we can put normals into view space
+	renderer->DrawEntity(water);
+}
 // --------------------------------------------------------
 // Handle resizing DirectX "stuff" to match the new window size.
 // For instance, updating our projection matrix's aspect ratio.
@@ -685,26 +708,19 @@ void Game::Draw(float deltaTime, float totalTime)
 	renderer->DrawEntity(entities[2]);
 	fishes->Render(renderer);
 	DrawSky();
-	context->OMSetBlendState(blendState, 0, 0xFFFFFFFF);
+	//context->OMSetBlendState(blendState, 0, 0xFFFFFFFF);
 
-	// Set water shaders
-	resources->vertexShaders["water"]->SetFloat("time", time);
-	resources->pixelShaders["water"]->SetFloat("translate", translate);
-	resources->pixelShaders["water"]->SetShaderResourceView("SkyTexture", resources->shaderResourceViews["cubemap"]);
-	resources->pixelShaders["water"]->SetShaderResourceView("normalTextureTwo", resources->shaderResourceViews["waterNormal2"]);
-	resources->pixelShaders["water"]->SetFloat("transparency", transparency);
-	renderer->DrawEntity(water);
-
-
+	// Reset blend state if blending
+	
 	context->OMSetBlendState(0, 0, 0xFFFFFFFF);
-
 	context->OMSetRenderTargets(1, &backBufferRTV, 0);
 
 	DrawFullscreenQuad(refractionSRV);
 
 	context->OMSetRenderTargets(1, &backBufferRTV, depthStencilView);
 
-	DrawRefraction();
+	DrawWater();
+	//DrawRefraction();
 
 	for (auto entity : entities)
 	{
@@ -730,7 +746,9 @@ void Game::Draw(float deltaTime, float totalTime)
 	resources->pixelShaders["water"]->SetFloat3("ripplePosition", XMFLOAT3(0.0f, 0.0f, 0.0f));
 	resources->pixelShaders["water"]->SetFloat("rippleRadius", 0.0f);
 	resources->pixelShaders["water"]->SetFloat("ringSize", 0.0f);
-
+	
+	//Convert Ripples to RippleData structs, then
+	//Pass ripples to the water shader
 	std::vector<RippleData> rippleData;
 	for (auto ripple : ripples) {
 		rippleData.push_back(ripple.GetRippleData());
@@ -740,29 +758,30 @@ void Game::Draw(float deltaTime, float totalTime)
 	}
 	resources->pixelShaders["water"]->SetInt("rippleCount", (int)ripples.size());
 
-	//Convert Ripples to RippleData structs, then
-	//Pass ripples to the water shader
+	renderer->Present();
+}
 
+void Game::Tesellation()
+{
 #pragma region Tesselation
 	// --- tessellation test ---
-	/*vertexShader->SetFloat("gMaxTessDistance", 5);
-	vertexShader->SetFloat("gMinTessDistance", 2);
-	vertexShader->SetFloat("gMinTessFactor", 2);
-	vertexShader->SetFloat("gMaxTessFactor", 3);
-	domainShader->SetMatrix4x4("view", camera->GetViewMatrix());
-	domainShader->SetMatrix4x4("projection", camera->GetProjectionMatrix());
-	domainShader->SetShaderResourceView("heightSRV", resources->shaderResourceViews["waterDisplacement"]);
-	domainShader->SetSamplerState("heightSampler", displacementSampler);
-	hullShader->SetShader();
-	domainShader->SetShader();
-	hullShader->CopyAllBufferData();
-	domainShader->CopyAllBufferData();
-	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
-	renderer->DrawEntity(entities[2]);*/
+	//vertexShader->SetFloat("gMaxTessDistance", 5);
+	//vertexShader->SetFloat("gMinTessDistance", 2);
+	//vertexShader->SetFloat("gMinTessFactor", 2);
+	//vertexShader->SetFloat("gMaxTessFactor", 3);
+	//domainShader->SetMatrix4x4("view", camera->GetViewMatrix());
+	//domainShader->SetMatrix4x4("projection", camera->GetProjectionMatrix());
+	//domainShader->SetShaderResourceView("heightSRV", resources->shaderResourceViews["waterDisplacement"]);
+	//domainShader->SetSamplerState("heightSampler", displacementSampler);
+	//hullShader->SetShader();
+	//domainShader->SetShader();
+	//hullShader->CopyAllBufferData();
+	//domainShader->CopyAllBufferData();
+	//context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
+	//renderer->DrawEntity(entities[2]);
 
 	// -- end tessellation --
 #pragma endregion
-	renderer->Present();
 }
 
 void Game::DrawSky()
