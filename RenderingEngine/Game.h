@@ -21,6 +21,7 @@
 #include "ProjectileEntity.h"
 #include "Water.h"
 #include "TreeManager.h"
+#include "FishController.h"
 
 class Game 
 	: public DXCore
@@ -117,5 +118,6 @@ private:
 	DirectX::XMFLOAT4X4 shadowProjectionMatrix;
 
 	std::unique_ptr<TreeManager> trees;
+	std::unique_ptr<FishController> fishes;
 };
 

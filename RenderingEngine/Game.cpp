@@ -429,6 +429,16 @@ void Game::InitializeEntities()
 {
 	ShowCursor(false);
 	trees = std::unique_ptr<TreeManager>(new TreeManager(device, context));
+	fishes = std::unique_ptr<FishController>(new FishController(
+		resources->meshes["Rudd-Fish_Cube.001"],
+		resources->materials["fish"],
+		25,
+		XMFLOAT3(9.f, -8.5f, -15.f),
+		XMFLOAT3(9.f, -8.5f, 20.f),
+		5,
+		XMFLOAT3(0, 90.f * XM_PI / 180, 0),
+		XMFLOAT3(0.03f, 0.03f, 0.03f)
+	));
 	trees->InitializeTrees({ "palm","palm_2" }, { "palm","palm_2" }, { XMFLOAT3(-1,0,0), XMFLOAT3(-4,0,0) });
 	terrain = std::unique_ptr<Terrain>(new Terrain());
 	terrain->Initialize("../../Assets/Terrain/heightmap.bmp", device, context);
@@ -572,10 +582,11 @@ void Game::Update(float deltaTime, float totalTime)
 		translate -= 1.0f;
 	}
 
+	fishes->Update(deltaTime, totalTime);
 	float fishSpeed = 2.f;
-	entities[2]->Move(XMFLOAT3((sin(totalTime * 3) / 700), 0, fishSpeed*deltaTime));
+	entities[2]->Move(XMFLOAT3((sin(totalTime * 3) / 600), 0, fishSpeed*deltaTime));
 
-	if (entities[2]->GetPosition().z >= 40.f)
+	if (entities[2]->GetPosition().z >= 30.f)
 	{
 		entities[2]->SetPosition(9.f, -8.5f, -15.f);
 	}
@@ -597,7 +608,7 @@ void Game::Update(float deltaTime, float totalTime)
 		CreateRipple(0.0f, 0.0f, 50.0f, 2.0f, 2.0f);
 	}
 
-	if (currentProjectile->GetBoundingBox().Intersects(entities[0]->GetBoundingBox()))
+	if (fishes->CheckForCollision(currentProjectile))
 	{
 		printf("Hit!");
 	}
@@ -672,6 +683,7 @@ void Game::Draw(float deltaTime, float totalTime)
 	renderer->DrawEntity(terrain.get());
 	renderer->DrawEntity(currentProjectile);
 	renderer->DrawEntity(entities[2]);
+	fishes->Render(renderer);
 	DrawSky();
 	context->OMSetBlendState(blendState, 0, 0xFFFFFFFF);
 

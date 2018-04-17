@@ -6,6 +6,8 @@
 #include "Material.h"
 #include "Camera.h"
 
+#define MAX_INSTANCE 64
+
 using namespace DirectX;
 
 struct TreeInstanceType

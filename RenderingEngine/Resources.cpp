@@ -228,7 +228,6 @@ void Resources::LoadResources()
 	meshes.insert(std::pair<std::string, Mesh*>("spear", new Mesh("../../Assets/Models/spear.obj", device)));
 	meshes.insert(std::pair<std::string, Mesh*>("boat", new Mesh("../../Assets/Models/boat.obj", device)));
 	meshes.insert(std::pair<std::string, Mesh*>("tuna", new Mesh("../../Assets/Models/tuna.obj", device)));
-	//meshes.insert(std::pair<std::string, Mesh*>("fish", new Mesh("../../Assets/Models/fish01.obj", device)));
 
 	objl::Loader loader;
 	loader.LoadFile("../../Assets/Models/palm_tree.obj");

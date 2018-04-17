@@ -1,10 +1,10 @@
+#define MAX_INSTANCE 64
 
 cbuffer externalData : register(b0)
 {
 	matrix world;
 	matrix view;
 	matrix projection;
-	matrix shadowView;
 };
 
 
@@ -14,7 +14,7 @@ struct VertexShaderInput
 	float3 normal		: NORMAL;
 	float2 uv			: TEXCOORD;
 	float3 tangent		: TANGENT;
-	float3 instancePosition : TEXCOORD1;
+	float3 instancePosition: INSTANCEPOS;
 };
 
 

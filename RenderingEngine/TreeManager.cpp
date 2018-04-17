@@ -15,19 +15,20 @@ void TreeManager::Render(int index, Camera * camera)
 	bufferPointers[0] = meshes[index]->GetVertexBuffer();
 	bufferPointers[1] = instanceBuffer;
 	context->IASetVertexBuffers(0, 2, bufferPointers, strides, offsets);
+	context->IASetIndexBuffer(meshes[index]->GetIndexBuffer(), DXGI_FORMAT_R32_UINT, 0);
 	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	auto mat = materials[index];
 	auto ps = mat->GetPixelShader();
 	auto vs = mat->GetVertexShader();
 	auto sampler = mat->GetSampler();
-	
+
 	XMFLOAT4X4 world;
 	XMStoreFloat4x4(&world, XMMatrixTranspose(XMMatrixIdentity()));
 
 	vs->SetMatrix4x4("world", world);
 	vs->SetMatrix4x4("view", camera->GetViewMatrix());
-	vs->SetMatrix4x4("projection", camera->GetProjectionMatrix());
+	vs->SetMatrix4x4("projection", camera->GetProjectionMatrix());;
 
 	ps->SetSamplerState("basicSampler", mat->GetSampler());
 	ps->SetShaderResourceView("diffuseTexture", mat->GetSRV());
@@ -40,7 +41,7 @@ void TreeManager::Render(int index, Camera * camera)
 	vs->SetShader();
 	ps->SetShader();
 
-	context->DrawInstanced(meshes[index]->GetIndexCount(), instanceCount, 0, 0);
+	context->DrawInstanced(meshes[index]->GetVertexCount(), instanceCount, 0, 0);
 }
 
 void TreeManager::InitializeTrees(std::vector<std::string> meshNames, std::vector<std::string> materialNames, std::vector<XMFLOAT3> positionsVector)

@@ -17,12 +17,12 @@ Mesh::Mesh(const char *objFile, ID3D11Device *device)
 {
 	// File input object
 	std::ifstream obj(objFile);
-	
+
 	// Check for successful open
 	if (!obj.is_open())
 	{
 		return;
-	}		
+	}
 
 	// Variables used while reading the file
 	std::vector<XMFLOAT3> positions;     // Positions from the file
@@ -134,7 +134,7 @@ Mesh::Mesh(const char *objFile, ID3D11Device *device)
 			v3.Normal.z *= -1.0f;
 
 			// Add the verts to the vector (flipping the winding order)
-			verts.push_back(v1);	
+			verts.push_back(v1);
 			verts.push_back(v3);
 			verts.push_back(v2);
 
@@ -172,18 +172,6 @@ Mesh::Mesh(const char *objFile, ID3D11Device *device)
 
 	// Close the file and create the actual buffers
 	obj.close();
-	minDimensions = XMFLOAT3(FLT_MAX, FLT_MAX, FLT_MAX);
-	maxDimensions = XMFLOAT3(-FLT_MAX, -FLT_MAX, -FLT_MAX);
-	for (auto vertex : verts)
-	{
-		auto pos = vertex.Position;
-		if (pos.x < minDimensions.x)minDimensions.x = pos.x;
-		if (pos.y < minDimensions.y)minDimensions.y = pos.y;
-		if (pos.z < minDimensions.z)minDimensions.z = pos.z;
-		if (pos.x > maxDimensions.x)maxDimensions.x = pos.x;
-		if (pos.y > maxDimensions.y)maxDimensions.y = pos.y;
-		if (pos.z > maxDimensions.z)maxDimensions.z = pos.z;
-	}
 
 	Initialize(verts.data(), (UINT)verts.size(), indices.data(), (UINT)indices.size(), device);
 }
@@ -193,6 +181,20 @@ Mesh::Mesh(const char *objFile, ID3D11Device *device)
 //------------------------------------------
 void Mesh::Initialize(Vertex *vertices, UINT vertexCount, UINT *indices, UINT indexCount, ID3D11Device *device)
 {
+	//Calculate max and min dimensions
+	minDimensions = XMFLOAT3(FLT_MAX, FLT_MAX, FLT_MAX);
+	maxDimensions = XMFLOAT3(-FLT_MAX, -FLT_MAX, -FLT_MAX);
+	for (UINT i = 0; i < vertexCount; ++i)
+	{
+		auto pos = vertices[i].Position;
+		if (pos.x < minDimensions.x)minDimensions.x = pos.x;
+		if (pos.y < minDimensions.y)minDimensions.y = pos.y;
+		if (pos.z < minDimensions.z)minDimensions.z = pos.z;
+		if (pos.x > maxDimensions.x)maxDimensions.x = pos.x;
+		if (pos.y > maxDimensions.y)maxDimensions.y = pos.y;
+		if (pos.z > maxDimensions.z)maxDimensions.z = pos.z;
+	}
+
 	CalculateTangents(vertices, vertexCount, indices, indexCount);
 	this->indexCount = indexCount;
 	this->vertexCount = vertexCount;
@@ -228,15 +230,15 @@ void Mesh::CalculateTangents(Vertex * vertices, UINT vertexCount, UINT * indices
 	XMFLOAT3 *tan2 = tan1 + vertexCount;
 	ZeroMemory(tan1, vertexCount * sizeof(XMFLOAT3) * 2);
 	int triangleCount = indexCount / 3;
-	for (UINT i = 0; i < indexCount; i+=3)
+	for (UINT i = 0; i < indexCount; i += 3)
 	{
 		int i1 = indices[i];
-		int i2 = indices[i+2];
-		int i3 = indices[i+1];
+		int i2 = indices[i + 2];
+		int i3 = indices[i + 1];
 		auto v1 = vertices[i1].Position;
 		auto v2 = vertices[i2].Position;
 		auto v3 = vertices[i3].Position;
-		
+
 		auto w1 = vertices[i1].UV;
 		auto w2 = vertices[i2].UV;
 		auto w3 = vertices[i3].UV;
@@ -298,18 +300,18 @@ XMFLOAT3 Mesh::GetMinDimensions() const
 
 Mesh::~Mesh()
 {
-	if (vertexBuffer) 
+	if (vertexBuffer)
 	{
 		vertexBuffer->Release();
 	}
 
-	if (indexBuffer) 
+	if (indexBuffer)
 	{
 		indexBuffer->Release();
 	}
 }
 
-ID3D11Buffer *Mesh::GetVertexBuffer() 
+ID3D11Buffer *Mesh::GetVertexBuffer()
 {
 	return vertexBuffer;
 }
