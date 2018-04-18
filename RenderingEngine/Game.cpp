@@ -1,5 +1,6 @@
 #include "Game.h"
 #include "Vertex.h"
+#include "WaveVertexMath.h"
 
 // For the DirectX Math library
 using namespace DirectX;
@@ -598,6 +599,9 @@ void Game::OnResize()
 // --------------------------------------------------------
 void Game::Update(float deltaTime, float totalTime)
 {
+	//Water Position: -125, -6, -150
+	//std::cout << water->GetVertices()[40].Position.x << std::endl;
+	//std::cout << currentProjectile->GetPosition().x + 125 << std::endl;
 	// Water .........................................
 	time += 0.05f * deltaTime;
 	translate += 0.1f * deltaTime;

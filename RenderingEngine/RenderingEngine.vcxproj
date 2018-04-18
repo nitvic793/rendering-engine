@@ -150,6 +150,7 @@
     <ClInclude Include="TreeManager.h" />
     <ClInclude Include="Vertex.h" />
     <ClInclude Include="Water.h" />
+    <ClInclude Include="WaveVertexMath.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="FullscreenQuadPS.hlsl">
