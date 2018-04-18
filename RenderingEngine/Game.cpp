@@ -578,6 +578,7 @@ void Game::DrawWater()
 	resources->pixelShaders["water"]->SetSamplerState("RefractSampler", refractSampler);	// Uses CLAMP on the edges
 	resources->pixelShaders["water"]->SetFloat3("CameraPosition", camera->GetPosition());
 	resources->pixelShaders["water"]->SetMatrix4x4("view", camera->GetViewMatrix());		// View matrix, so we can put normals into view space
+	resources->pixelShaders["water"]->CopyAllBufferData();
 	renderer->DrawEntity(water);
 }
 // --------------------------------------------------------
@@ -642,7 +643,7 @@ void Game::Update(float deltaTime, float totalTime)
 		XMFLOAT3 pos = currentProjectile->GetPosition();
 		float x = pos.x;
 		float z = pos.z;
-		CreateRipple(x, 0.0f, z, 2.0f, 2.0f);
+		CreateRipple(x, 0.0f, z, 2.0f, 0.5f);
 	}
 
 	auto distance = XMVectorGetX(XMVector3Length(XMLoadFloat3(&currentProjectile->GetPosition()) - XMLoadFloat3(&camera->GetPosition())));
@@ -704,7 +705,6 @@ void Game::Draw(float deltaTime, float totalTime)
 	context->OMSetRenderTargets(1, &refractionRTV, depthStencilView);
 
 	renderer->DrawEntity(terrain.get());
-	renderer->DrawEntity(currentProjectile);
 	renderer->DrawEntity(entities[2]);
 	fishes->Render(renderer);
 	DrawSky();
@@ -720,7 +720,7 @@ void Game::Draw(float deltaTime, float totalTime)
 	context->OMSetRenderTargets(1, &backBufferRTV, depthStencilView);
 
 	DrawWater();
-	//DrawRefraction();
+	renderer->DrawEntity(currentProjectile);
 
 	for (auto entity : entities)
 	{

@@ -2,7 +2,7 @@
 #define MAX_RIPPLES 32
 #define MAX_LIGHTS 32
 
-cbuffer externalData : register(b1)
+cbuffer waterPixelBuffer : register(b1)
 {
 	matrix view;
 	float3 CameraPosition;
@@ -174,18 +174,17 @@ float calculateDistance(float3 pos1, float3 pos2) {
 float2 calculateRefraction(float3 normal, float3 worldPos)
 {
 	// Vars for controlling refraction - Adjust as you see fit
-	float indexOfRefr = 0.3f; // Ideally keep this below 1 - not physically accurate, but prevents "total internal reflection"
-	float refrAdjust = 0.1f;  // Makes our refraction less extreme, since we're using UV coords not world units
+	float indexOfRefr = 0.9f; // Ideally keep this below 1 - not physically accurate, but prevents "total internal reflection"
+	float refrAdjust = 1.0f;  // Makes our refraction less extreme, since we're using UV coords not world units
 
 							  // Calculate the refraction amount in WORLD SPACE
 	float3 dirToPixel = normalize(worldPos - CameraPosition);
 	float3 refrDir = refract(dirToPixel, normal, indexOfRefr);
-
+	
 	// Get the refraction XY direction in VIEW SPACE (relative to the camera)
 	// We use this as a UV offset when sampling the texture
 	float2 refrUV = mul(float4(refrDir, 0.0f), view).xy * refrAdjust;
 	refrUV.x *= -1.0f; // Flip the X to point away from the edge (Y already does this due to view space <-> texture space diff)
-
 	return refrUV;
 }
 float4 main(DomainToPixel input) : SV_TARGET
@@ -255,6 +254,5 @@ float4 main(DomainToPixel input) : SV_TARGET
 		float3 dirToLight = normalize(pointLights[i].Position - input.worldPos);
 		totalColor += (calculatePointLight(finalNormal, input.worldPos, pointLights[i], roughness) * calculateSkyboxReflection(finalNormal, input.worldPos, dirToLight))  *surfaceColor;
 	}
-
-	return totalColor + ScenePixels.Sample(RefractSampler, input.screenUV + refractUV);
+	return totalColor + ScenePixels.Sample(RefractSampler, input.screenUV + refractUV * 0.1f);
 }
