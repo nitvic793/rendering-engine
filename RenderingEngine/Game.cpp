@@ -371,12 +371,12 @@ void Game::RenderEntityShadow(Entity * entity)
 void Game::RenderShadowMap()
 {
 	XMMATRIX shView = XMMatrixLookAtLH(
-		XMVectorSet(0, 10, 1, 0),	// Start back and in the air
+		XMVectorSet(-10, 10, 10, 0),	// Start back and in the air
 		XMVectorSet(0, 0, 0, 0),	// Look at the origin
 		XMVectorSet(0, 1, 0, 0));	// Up is up
 	XMStoreFloat4x4(&shadowViewMatrix, XMMatrixTranspose(shView));
 
-	XMMATRIX shProj = XMMatrixOrthographicLH(20.0f, 20.0f, 0.1f, 100.0f);
+	XMMATRIX shProj = XMMatrixOrthographicLH(50.0f, 50.0f, 0.1f, 100.0f);
 	XMStoreFloat4x4(&shadowProjectionMatrix, XMMatrixTranspose(shProj));
 
 	ID3D11RenderTargetView * nullRTV = NULL;
@@ -406,11 +406,13 @@ void Game::RenderShadowMap()
 
 	// Turn OFF the pixel shader
 	context->PSSetShader(0, 0, 0);
+
 	for (unsigned int i = 0; i < entities.size(); i++)
 	{
 		RenderEntityShadow(entities[i]);
 	}
 	RenderEntityShadow(currentProjectile);
+	
 
 	//shadowDSV = nullptr;
 	context->OMSetRenderTargets(1, &nullRTV, NULL);

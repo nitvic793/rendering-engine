@@ -134,6 +134,7 @@
     <ClInclude Include="Camera.h" />
     <ClInclude Include="DXCore.h" />
     <ClInclude Include="Entity.h" />
+    <ClInclude Include="FBXLoader.h" />
     <ClInclude Include="FishController.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="IRenderStage.h" />
