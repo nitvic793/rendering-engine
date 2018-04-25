@@ -20,20 +20,22 @@ Entity::Entity(Mesh *m, Material* mat)
 		auto actualCenter = XMVectorAdd(XMLoadFloat3(&center), XMLoadFloat3(&position));
 		XMStoreFloat3(&center, actualCenter);
 		boundingBox.Center = center;
-	}	
+	}
 }
 
 Entity::~Entity()
 {
 }
 
-BoundingBox Entity::GetBoundingBox()
+BoundingOrientedBox Entity::GetBoundingBox()
 {
 	auto bBox = boundingBox;
 	bBox.Center = position;
 	bBox.Extents.x *= scale.x;
 	bBox.Extents.y *= scale.y;
 	bBox.Extents.z *= scale.z;
+	auto rot = XMQuaternionRotationRollPitchYawFromVector(XMLoadFloat3(&rotation));
+	XMStoreFloat4(&bBox.Orientation, rot);
 	return bBox;
 }
 
@@ -109,6 +111,33 @@ void Entity::Move(XMFLOAT3 offset)
 	XMStoreFloat3(&position, newPos);
 }
 
+void Entity::PrepareMaterialWithShadows(XMFLOAT4X4 viewMatrix, XMFLOAT4X4 projectionMatrix, XMFLOAT4X4 shadowViewMatrix, XMFLOAT4X4 shadowProjectionMatrix, ID3D11SamplerState* shadowSampler, ID3D11ShaderResourceView* shadowSRV)
+{
+	auto vertexShader = material->GetVertexShader();
+	auto pixelShader = material->GetPixelShader();
+	//auto vertexShader = vs;
+	//auto pixelShader = ps;
+	vertexShader->SetMatrix4x4("world", GetWorldMatrix());
+	vertexShader->SetMatrix4x4("view", viewMatrix);
+	vertexShader->SetMatrix4x4("projection", projectionMatrix);
+
+	vertexShader->SetMatrix4x4("shadowView", shadowViewMatrix);
+	vertexShader->SetMatrix4x4("shadowProjection", shadowProjectionMatrix);
+	pixelShader->SetSamplerState("basicSampler", material->GetSampler());
+	pixelShader->SetSamplerState("shadowSampler", shadowSampler);
+	pixelShader->SetShaderResourceView("diffuseTexture", material->GetSRV());
+	pixelShader->SetShaderResourceView("shadowMapTexture", shadowSRV);
+	if (material->GetNormalSRV())
+		pixelShader->SetShaderResourceView("normalTexture", material->GetNormalSRV());
+	else pixelShader->SetShaderResourceView("normalTexture", nullptr);
+
+	pixelShader->SetShaderResourceView("roughnessTexture", material->GetRoughnessSRV());
+	vertexShader->CopyAllBufferData();
+	pixelShader->CopyAllBufferData();
+	vertexShader->SetShader();
+	pixelShader->SetShader();
+}
+
 void Entity::PrepareMaterial(XMFLOAT4X4 viewMatrix, XMFLOAT4X4 projectionMatrix)
 {
 	auto vertexShader = material->GetVertexShader();
@@ -116,11 +145,14 @@ void Entity::PrepareMaterial(XMFLOAT4X4 viewMatrix, XMFLOAT4X4 projectionMatrix)
 	vertexShader->SetMatrix4x4("world", GetWorldMatrix());
 	vertexShader->SetMatrix4x4("view", viewMatrix);
 	vertexShader->SetMatrix4x4("projection", projectionMatrix);
+
 	pixelShader->SetSamplerState("basicSampler", material->GetSampler());
 	pixelShader->SetShaderResourceView("diffuseTexture", material->GetSRV());
+
 	if (material->GetNormalSRV())
 		pixelShader->SetShaderResourceView("normalTexture", material->GetNormalSRV());
-	else pixelShader->SetShaderResourceView("normalTexture", nullptr);
+	else
+		pixelShader->SetShaderResourceView("normalTexture", nullptr);
 
 	pixelShader->SetShaderResourceView("roughnessTexture", material->GetRoughnessSRV());
 	vertexShader->CopyAllBufferData();
@@ -194,6 +226,11 @@ void Entity::Update(float deltaTime, float totalTime)
 Mesh *Entity::GetMesh()
 {
 	return mesh;
+}
+
+Material * Entity::GetMaterial()
+{
+	return material;
 }
 
 XMFLOAT3 Entity::GetPosition()

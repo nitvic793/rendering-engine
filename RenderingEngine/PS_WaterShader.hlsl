@@ -1,13 +1,22 @@
 
 #define MAX_RIPPLES 32
 #define MAX_LIGHTS 32
-struct VertexToPixel
+
+cbuffer waterPixelBuffer : register(b1)
 {
-	float4 position		: SV_POSITION;
+	matrix view;
+	float3 CameraPosition;
+};
+
+struct DomainToPixel
+{
+	float4 position		: SV_POSITION;	// XYZW position (System Value Position)
 	float3 normal		: NORMAL;
 	float2 uv			: TEXCOORD;
 	float3 worldPos		: POSITION;
 	float3 tangent		: TANGENT;
+	noperspective float2 screenUV		: TEXCOORD1;
+	//float tessFactor : TESS;
 };
 
 struct DirectionalLight
@@ -30,7 +39,6 @@ struct RippleData {
 	float rippleRadius;
 	float ringSize;
 	float rippleIntensity;
-
 	float padding1;
 	float padding2;
 };
@@ -38,21 +46,30 @@ struct RippleData {
 cbuffer externalData : register(b0)
 {
 	DirectionalLight dirLights[MAX_LIGHTS];
-	PointLight pointLights[MAX_LIGHTS];
-	RippleData ripples[MAX_RIPPLES];
+	PointLight pointLights[MAX_LIGHTS];	
 	int DirectionalLightCount;
 	int PointLightCount;
-	int rippleCount;
 	float3 cameraPosition;
 	float translate;
+	RippleData ripples[MAX_RIPPLES];
+	int rippleCount;
+	float transparency;
 }
 
-Texture2D diffuseTexture : register(t0);
-Texture2D normalTexture : register(t1);
-SamplerState basicSampler : register(s0);
-Texture2D roughnessTexture : register(t2);
+Texture2D diffuseTexture	: register(t0);
+Texture2D normalTexture		: register(t1);
+Texture2D roughnessTexture	: register(t2);
 TextureCube SkyTexture		: register(t3);
+Texture2D normalTextureTwo	: register(t4);
+Texture2D ScenePixels		: register(t5);
+SamplerState basicSampler	: register(s0);
+SamplerState RefractSampler	: register(s1);
+//Texture2D shadowMapTexture	: register(t3);
+//SamplerComparisonState shadowSampler : register(s1);
+
+// -----------------------------------------------------
 // Range-based attenuation function
+// -----------------------------------------------------
 float Attenuate(float3 lightPosition, float lightRange, float3 worldPos)
 {
 	float dist = distance(lightPosition, worldPos);
@@ -63,6 +80,10 @@ float Attenuate(float3 lightPosition, float lightRange, float3 worldPos)
 	// Soft falloff
 	return att * att;
 }
+
+// -----------------------------------------------------
+// Specular light calculation
+// -----------------------------------------------------
 float calculateSpecular(float3 normal, float3 worldPos, float3 dirToLight, float3 camPos)
 {
 	float3 dirToCamera = normalize(camPos - worldPos);
@@ -74,6 +95,9 @@ float calculateSpecular(float3 normal, float3 worldPos, float3 dirToLight, float
 	//return spec;
 }
 
+// -----------------------------------------------------
+// Directional light calculation
+// -----------------------------------------------------
 float4 calculateDirectionalLight(float3 normal, float3 worldPos, DirectionalLight light, float roughness)
 {
 	float3 dirToLight = normalize(-light.Direction);
@@ -83,6 +107,9 @@ float4 calculateDirectionalLight(float3 normal, float3 worldPos, DirectionalLigh
 	return spec + light.DiffuseColor * NdotL + light.AmbientColor;
 }
 
+// -----------------------------------------------------
+// Point light calculation
+// -----------------------------------------------------
 float4 calculatePointLight(float3 normal, float3 worldPos, PointLight light, float roughness)
 {
 	float3 dirToPointLight = normalize(light.Position - worldPos);
@@ -92,17 +119,36 @@ float4 calculatePointLight(float3 normal, float3 worldPos, PointLight light, flo
 	return spec + light.Color * pointNdotL;
 }
 
+// ----------------------------------------------------------
+// Calculate the two normals separately and add then together
+// I was too lazy to abstract it out
+// ----------------------------------------------------------
 float3 calculateNormalFromMap(float2 uv, float3 normal, float3 tangent)
 {
-	float3 normalFromTexture = normalTexture.Sample(basicSampler, uv).xyz;
+	float3 normalFinal;
+	uv.x += translate;
+	float3 normalFromTexture = normalTextureTwo.Sample(basicSampler, uv).xyz;
 	float3 unpackedNormal = normalFromTexture * 2.0f - 1.0f;
 	float3 N = normal;
 	float3 T = normalize(tangent - N * dot(tangent, N));
 	float3 B = cross(N, T);
 	float3x3 TBN = float3x3(T, B, N);
-	return normalize(mul(unpackedNormal, TBN));
+	normalFinal = normalize(mul(unpackedNormal, TBN));
+
+	uv.y += translate;
+	float3 normalFromTexture2 = normalTextureTwo.Sample(basicSampler, uv).xyz;
+	unpackedNormal = normalFromTexture2 * 2.0f - 1.0f;
+	N = normal;
+	T = normalize(tangent - N * dot(tangent, N));
+	B = cross(N, T);
+	TBN = float3x3(T, B, N);
+	normalFinal = normalize(normalFinal + normalize(mul(unpackedNormal, TBN)));
+	return normalFinal;
 }
 
+// -----------------------------------------------------
+// Reflect the skybox
+// -----------------------------------------------------
 float4 calculateSkyboxReflection(float3 normal, float3 worldPos, float3 dirToLight)
 {
 	float3 refl = reflect(-dirToLight, normal);
@@ -113,24 +159,52 @@ float4 calculateSkyboxReflection(float3 normal, float3 worldPos, float3 dirToLig
 		reflect(-dirToCamera, normal));
 }
 
+// -----------------------------------------------------
+// Return distance between two vector3s
+// -----------------------------------------------------
 float calculateDistance(float3 pos1, float3 pos2) {
 	float3 dist = pos2 - pos1;
 	return sqrt((pow(dist.x, 2) + pow(dist.z, 2)));
 	//return sqrt(dist.x ^ 2 + dist.y ^ 2);
 }
 
-float4 main(VertexToPixel input) : SV_TARGET
+// -----------------------------------------------------
+// Calculate the refract UV
+// -----------------------------------------------------
+float2 calculateRefraction(float3 normal, float3 worldPos)
 {
+	// Vars for controlling refraction - Adjust as you see fit
+	float indexOfRefr = 0.9f; // Ideally keep this below 1 - not physically accurate, but prevents "total internal reflection"
+	float refrAdjust = 1.0f;  // Makes our refraction less extreme, since we're using UV coords not world units
 
-	input.uv.x += translate;
-	float4 surfaceColor = diffuseTexture.Sample(basicSampler, input.uv);
-	float3 finalNormal = calculateNormalFromMap(input.uv, input.normal, input.tangent);
+							  // Calculate the refraction amount in WORLD SPACE
+	float3 dirToPixel = normalize(worldPos - CameraPosition);
+	float3 refrDir = refract(dirToPixel, normal, indexOfRefr);
+	
+	// Get the refraction XY direction in VIEW SPACE (relative to the camera)
+	// We use this as a UV offset when sampling the texture
+	float2 refrUV = mul(float4(refrDir, 0.0f), view).xy * refrAdjust;
+	refrUV.x *= -1.0f; // Flip the X to point away from the edge (Y already does this due to view space <-> texture space diff)
+	return refrUV;
+}
+float4 main(DomainToPixel input) : SV_TARGET
+{
+	// Fix normals and tangents
 	input.normal = normalize(input.normal);
+	input.tangent = normalize(input.tangent);
+
+	float4 surfaceColor = diffuseTexture.Sample(basicSampler, input.uv);
+	
+	// Sample, blend and translate multiple normals
+	float3 finalNormal = calculateNormalFromMap(input.uv, input.normal, input.tangent);
 	finalNormal = normalize(finalNormal);
+	
+	// Calculate refraction
+	float2 refractUV = calculateRefraction(finalNormal,input.worldPos);
+
 	float4 totalColor = float4(0, 0, 0, 0);
 	float roughness = roughnessTexture.Sample(basicSampler, input.uv).r;
-	//return calculateSkyboxReflection(input.normal, input.worldPos, dirLights[0].Direction); 
-
+	
 	for (int r = 0; r < rippleCount; ++r) {
 
 		float3 ripplePosition = ripples[r].ripplePosition;
@@ -167,19 +241,18 @@ float4 main(VertexToPixel input) : SV_TARGET
 		}
 	}
 
+	// Lighting calculations
 	int i = 0;
 	for (i = 0; i < DirectionalLightCount; ++i)
 	{
 	
-		totalColor += (calculateDirectionalLight(finalNormal, input.worldPos, dirLights[i], roughness) + calculateSkyboxReflection(input.normal, input.worldPos, dirLights[i].Direction)); //* surfaceColor;
+		totalColor += (calculateDirectionalLight(finalNormal, input.worldPos, dirLights[i], roughness)  * calculateSkyboxReflection(finalNormal, input.worldPos, dirLights[i].Direction)) * surfaceColor;
 	}
 
 	for (i = 0; i < PointLightCount; ++i)
 	{
 		float3 dirToLight = normalize(pointLights[i].Position - input.worldPos);
-		totalColor += (calculatePointLight(finalNormal, input.worldPos, pointLights[i], roughness) + calculateSkyboxReflection(input.normal, input.worldPos, dirToLight));//  *surfaceColor;
+		totalColor += (calculatePointLight(finalNormal, input.worldPos, pointLights[i], roughness) * calculateSkyboxReflection(finalNormal, input.worldPos, dirToLight))  *surfaceColor;
 	}
-
-	return (calculateDirectionalLight(finalNormal, input.worldPos, dirLights[0], roughness) + calculateSkyboxReflection(input.normal, input.worldPos, dirLights[0].Direction)) *surfaceColor;
-	//return totalColor;
+	return totalColor + ScenePixels.Sample(RefractSampler, input.screenUV + refractUV * 0.1f);
 }

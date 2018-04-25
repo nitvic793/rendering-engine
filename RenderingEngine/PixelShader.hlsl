@@ -8,6 +8,7 @@ struct VertexToPixel
 	float2 uv			: TEXCOORD;
 	float3 worldPos		: POSITION;
 	float3 tangent		: TANGENT;
+	//float4 shadowPos	: SHADOW;
 };
 
 struct DirectionalLight
@@ -37,7 +38,10 @@ cbuffer externalData : register(b0)
 Texture2D diffuseTexture : register(t0);
 Texture2D normalTexture : register(t1);
 Texture2D roughnessTexture : register(t2);
+//Texture2D shadowMapTexture	: register(t3);
 SamplerState basicSampler : register(s0);
+//SamplerComparisonState shadowSampler : register(s1);
+
 
 // Range-based attenuation function
 float Attenuate(float3 lightPosition, float lightRange, float3 worldPos)
@@ -100,7 +104,6 @@ float4 main(VertexToPixel input) : SV_TARGET
 	finalNormal = normalize(finalNormal);
 	float4 totalColor = float4(0, 0, 0, 0);
 	float roughness = roughnessTexture.Sample(basicSampler, input.uv).r;
-
 	int i = 0;
 	for (i = 0; i < DirectionalLightCount; ++i)
 	{
@@ -112,9 +115,6 @@ float4 main(VertexToPixel input) : SV_TARGET
 		totalColor += calculatePointLight(finalNormal, input.worldPos, pointLights[i], roughness)  * surfaceColor;
 	}
 
-	/*float4 dirLight = calculateDirectionalLight(finalNormal, dirLights[0]) * surfaceColor;
-	float4 secDirLight = calculateDirectionalLight(finalNormal, dirLights[1]) * surfaceColor;
-	float4 pLight = calculatePointLight(finalNormal, input.worldPos, pointLights[0])  * surfaceColor;*/
-	//return dirLight + secDirLight + pLight;
+	clip(totalColor.a);
 	return totalColor;
 }

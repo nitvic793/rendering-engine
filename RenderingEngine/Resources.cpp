@@ -1,8 +1,68 @@
 #include "Resources.h"
 #include "DDSTextureLoader.h"
+#include "ObjLoader.h"
+#include <locale>
+#include <codecvt>
+#include <string>
 
+std::wstring to_wstring(std::string narrow)
+{
+	std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+	//std::string narrow = converter.to_bytes(wide_utf16_source_string);
+	return converter.from_bytes(narrow);
+}
 
 Resources* Resources::mInstance = nullptr;
+
+Vertex MapObjlToVertex(objl::Vertex vertex)
+{
+	auto pos = XMFLOAT3(vertex.Position.X, vertex.Position.Y, vertex.Position.Z);
+	auto normal = XMFLOAT3(vertex.Normal.X, vertex.Normal.Y, vertex.Normal.Z);
+	auto uv = XMFLOAT2(vertex.TextureCoordinate.X, vertex.TextureCoordinate.Y);
+	return { pos, normal, uv };
+}
+
+std::vector<Vertex> MapObjlToVertex(std::vector<objl::Vertex> vertices)
+{
+	std::vector<Vertex> verts;
+	for (auto v : vertices)
+	{
+		verts.push_back(MapObjlToVertex(v));
+	}
+	return verts;
+}
+
+ID3D11ShaderResourceView* LoadSRV(std::wstring filename, ID3D11Device* device)
+{
+	ID3D11ShaderResourceView* srv = nullptr;
+	if (filename.find(L".dds") != std::string::npos)
+	{
+		CreateDDSTextureFromFile(device, filename.c_str(), nullptr, &srv);
+	}
+	else
+	{
+		CreateWICTextureFromFile(device, filename.c_str(), nullptr, &srv);
+	}
+
+	return srv;
+}
+
+void AddToMeshMap(objl::Loader loader, MeshMap& map, ID3D11Device* device, std::string prefix, SRVMap& texMap, bool loadTex)
+{
+	std::wstring baseTexAddress = L"../../Assets/Textures/";
+	for (auto mesh : loader.LoadedMeshes)
+	{
+		auto verts = MapObjlToVertex(mesh.Vertices);
+		auto indices = mesh.Indices;
+		Mesh* m = new Mesh(verts.data(), verts.size(), indices.data(), indices.size(), device);
+		map.insert(MeshMapType(prefix + mesh.MeshName, m));
+		if (loadTex)
+		{
+			auto texURI = baseTexAddress + to_wstring(mesh.MeshMaterial.map_Kd);
+			texMap.insert(SRVMapType(prefix + mesh.MeshName, LoadSRV(texURI, device)));
+		}
+	}
+}
 
 Resources * Resources::GetInstance()
 {
@@ -60,8 +120,23 @@ void Resources::LoadResources()
 	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/waterColor.png", nullptr, &srv);
 	shaderResourceViews.insert(SRVMapType("waterColor", srv));
 
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/waterNormal2.png", nullptr, &srv);
+	shaderResourceViews.insert(SRVMapType("waterNormal2", srv));
+
 	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/waterNormal.png", nullptr, &srv);
 	shaderResourceViews.insert(SRVMapType("waterNormal", srv));
+
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/Heightmaptest.png", nullptr, &srv);
+	shaderResourceViews.insert(SRVMapType("waterDisplacement", srv));
+
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/fishTexture.png", nullptr, &srv);
+	shaderResourceViews.insert(SRVMapType("fishTexture", srv));
+
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/fishNormal.png", nullptr, &srv);
+	shaderResourceViews.insert(SRVMapType("fishNormal", srv));
+
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/tuna.png", nullptr, &srv);
+	shaderResourceViews.insert(SRVMapType("tuna", srv));
 
 	//Load Sampler
 	D3D11_SAMPLER_DESC samplerDesc = {};
@@ -77,11 +152,11 @@ void Resources::LoadResources()
 	//Load Shaders
 	auto vertexShader = new SimpleVertexShader(device, context);
 	vertexShader->LoadShaderFile(L"VertexShader.cso");
-	vertexShaders.insert(VertexShaderMapType("default",vertexShader));
+	vertexShaders.insert(VertexShaderMapType("default", vertexShader));
 
 	auto pixelShader = new SimplePixelShader(device, context);
 	pixelShader->LoadShaderFile(L"PixelShader.cso");
-	pixelShaders.insert(PixelShaderMapType("default",pixelShader));
+	pixelShaders.insert(PixelShaderMapType("default", pixelShader));
 
 	auto skyVS = new SimpleVertexShader(device, context);
 	skyVS->LoadShaderFile(L"SkyVS.cso");
@@ -99,14 +174,49 @@ void Resources::LoadResources()
 	waterPS->LoadShaderFile(L"PS_WaterShader.cso");
 	pixelShaders.insert(PixelShaderMapType("water", waterPS));
 
+	// Refraction shaders
+	auto quadVS = new SimpleVertexShader(device, context);
+	quadVS->LoadShaderFile(L"FullscreenQuadVS.cso");
+	vertexShaders.insert(VertexShaderMapType("quad", quadVS));
+
+	auto quadPS = new SimplePixelShader(device, context);
+	quadPS->LoadShaderFile(L"FullscreenQuadPS.cso");
+	pixelShaders.insert(PixelShaderMapType("quad", quadPS));
+
+	auto refractVS = new SimpleVertexShader(device, context);
+	refractVS->LoadShaderFile(L"RefractVS.cso");
+	vertexShaders.insert(VertexShaderMapType("refraction", refractVS));
+
+	auto refractPS = new SimplePixelShader(device, context);
+	refractPS->LoadShaderFile(L"RefractPS.cso");
+	pixelShaders.insert(PixelShaderMapType("refraction", refractPS));
+
+	auto shadowVS = new SimpleVertexShader(device, context);
+	shadowVS->LoadShaderFile(L"VS_Shadow.cso");
+	vertexShaders.insert(VertexShaderMapType("shadow", shadowVS));
+
+	auto shadowPS = new SimplePixelShader(device, context);
+	shadowPS->LoadShaderFile(L"PS_Shadow.cso");
+	pixelShaders.insert(PixelShaderMapType("shadow", shadowPS));
+
+	auto preShadowVS = new SimpleVertexShader(device, context);
+	preShadowVS->LoadShaderFile(L"PreShadowVS.cso");
+	vertexShaders.insert(VertexShaderMapType("preShadow", preShadowVS));
+
+	auto treeVS = new SimpleVertexShader(device, context);
+	treeVS->LoadShaderFile(L"TreeVS.cso");
+	vertexShaders.insert(VertexShaderMapType("tree", treeVS));
+
 	//Load Materials
-	materials.insert(MaterialMapType("metal", new Material(vertexShader, pixelShader, shaderResourceViews["metal"], shaderResourceViews["metalNormal"], shaderResourceViews["metalSpecular"], sampler)));
+	materials.insert(MaterialMapType("metal", new Material(shadowVS, shadowPS, shaderResourceViews["metal"], shaderResourceViews["metalNormal"], shaderResourceViews["metalSpecular"], sampler)));
 	materials.insert(MaterialMapType("fabric", new Material(vertexShader, pixelShader, shaderResourceViews["fabric"], shaderResourceViews["fabricNormal"], sampler)));
 	materials.insert(MaterialMapType("wood", new Material(vertexShader, pixelShader, shaderResourceViews["wood"], shaderResourceViews["woodNormal"], sampler)));
 	materials.insert(MaterialMapType("grass", new Material(vertexShader, pixelShader, shaderResourceViews["grass"], shaderResourceViews["grassNormal"], shaderResourceViews["grassSpecular"], sampler)));
 	materials.insert(MaterialMapType("spear", new Material(vertexShader, pixelShader, shaderResourceViews["spear"], shaderResourceViews["spearNormal"], sampler)));
-	materials.insert(MaterialMapType("boat", new Material(vertexShader, pixelShader, shaderResourceViews["boat"], shaderResourceViews["boatNormal"], sampler)));
+	materials.insert(MaterialMapType("boat", new Material(shadowVS, shadowPS, shaderResourceViews["boat"], shaderResourceViews["boatNormal"], sampler)));
 	materials.insert(MaterialMapType("water", new Material(waterVS, waterPS, shaderResourceViews["waterColor"], shaderResourceViews["waterNormal"], sampler)));
+	materials.insert(MaterialMapType("tuna", new Material(vertexShader, pixelShader, shaderResourceViews["tuna"], shaderResourceViews["defaultNormal"], sampler)));
+	materials.insert(MaterialMapType("fish", new Material(vertexShader, pixelShader, shaderResourceViews["fishTexture"], shaderResourceViews["fishNormal"], sampler)));
 
 	//Load Meshes
 	meshes.insert(std::pair<std::string, Mesh*>("sphere", new Mesh("../../Assets/Models/sphere.obj", device)));
@@ -117,12 +227,23 @@ void Resources::LoadResources()
 	meshes.insert(std::pair<std::string, Mesh*>("torus", new Mesh("../../Assets/Models/torus.obj", device)));
 	meshes.insert(std::pair<std::string, Mesh*>("spear", new Mesh("../../Assets/Models/spear.obj", device)));
 	meshes.insert(std::pair<std::string, Mesh*>("boat", new Mesh("../../Assets/Models/boat.obj", device)));
+	meshes.insert(std::pair<std::string, Mesh*>("tuna", new Mesh("../../Assets/Models/tuna.obj", device)));
+
+	objl::Loader loader;
+	loader.LoadFile("../../Assets/Models/palm_tree.obj");
+	AddToMeshMap(loader, meshes, device, "palm", shaderResourceViews, true);
+	materials.insert(MaterialMapType("palm", new Material(treeVS, pixelShader, shaderResourceViews["palm"], shaderResourceViews["defaultNormal"], sampler)));
+	materials.insert(MaterialMapType("palm_2", new Material(treeVS, pixelShader, shaderResourceViews["palm_2"], shaderResourceViews["defaultNormal"], sampler)));
+
+	loader.LoadFile("../../Assets/Models/fish01.obj");
+	AddToMeshMap(loader, meshes, device, "", shaderResourceViews, false);
 }
 
-Resources::Resources(ID3D11Device *device, ID3D11DeviceContext *context)
+Resources::Resources(ID3D11Device *device, ID3D11DeviceContext *context, IDXGISwapChain* swapChain)
 {
 	this->device = device;
 	this->context = context;
+	this->swapChain = swapChain;
 	mInstance = this;
 }
 
