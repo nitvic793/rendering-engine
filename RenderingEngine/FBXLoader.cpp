@@ -10,7 +10,7 @@ FBXLoader::FBXLoader()
 {
 	InitializeSdkObjects();
 
-	FbxString lFilePath("../../axe-walk.fbx");
+	FbxString lFilePath("../../RuddFishAnimated.fbx");
 
 	if (lFilePath.IsEmpty())
 	{
@@ -221,14 +221,14 @@ std::shared_ptr<Mesh> FBXLoader::GetMesh(FbxNode * node , ID3D11Device* device)
 
 	if(node->GetNodeAttribute()->GetAttributeType() == FbxNodeAttribute::eMesh)
 	{ 
-		std::vector<Vertex> vertices;        
+		std::vector<VertexAnimated> vertices;
 		std::vector<unsigned int> indices;
 
 		FbxMesh* fbxMesh = (FbxMesh*)node->GetNodeAttribute();
 		FbxVector4* controlPoints = fbxMesh->GetControlPoints();
 		//int vertCounter = 0;
 		int vertexCount = fbxMesh->GetControlPointsCount();
-		Vertex v;
+		VertexAnimated v;
 
 		for (int i = 0; i < vertexCount; i++)
 		{
@@ -236,7 +236,7 @@ std::shared_ptr<Mesh> FBXLoader::GetMesh(FbxNode * node , ID3D11Device* device)
 			v.Position.x = (float)controlPoints[i].mData[0];
 			v.Position.y = (float)controlPoints[i].mData[1];
 			v.Position.z = (float)controlPoints[i].mData[2];
-			v.Position.w = 1;
+			//v.Position.w = 1;
 			v.Normal = XMFLOAT3(0, 0, 0);
 
 
@@ -317,27 +317,7 @@ std::shared_ptr<Mesh> FBXLoader::GetMesh(FbxNode * node , ID3D11Device* device)
 				skeleton.mJoints[currJointIndex].mNode = currCluster->GetLink();
 				skeleton.mJoints[currJointIndex].mFbxTransform = transformLinkMatrix;
 				skeleton.mJoints[currJointIndex].mBoneIndex = currJointIndex;
-				/*
-				XMFLOAT4X4 sample = XMFLOAT4X4(1, 1, 0, 0, -1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
-				DirectX::XMMATRIX inv = XMLoadFloat4x4(&sample);
-				XMFLOAT4X4 sampleInv = {};
-				XMVECTOR determinant;
-				XMStoreFloat4x4(&sampleInv, XMMatrixInverse(&determinant,inv));
-				skeleton.mJoints[currJointIndex].mGlobalBindposeInverse = sampleInv;
-				skeleton.mJoints[currJointIndex].mTransform = sample;
-				*/
-				/*
-				FbxAnimCurve* lAnimCurve = NULL;
-				int nbAnimLayers = animStack->GetMemberCount<FbxAnimLayer>();
-				FbxAnimLayer* lAnimLayer = animStack->GetMember<FbxAnimLayer>(0);
-				lAnimCurve = skeleton.mJoints[currJointIndex].mNode->LclTranslation.GetCurve(lAnimLayer, FBXSDK_CURVENODE_COMPONENT_X);
-				int numKeys = lAnimCurve->KeyGetCount();
-				FbxTime   lKeyTime;
-				lKeyTime = lAnimCurve->KeyGetTime(1);
-				char    lTimeString[256];
-				FbxString lOutputString = lKeyTime.GetTimeString(lTimeString, FbxUShort(256));
-				float lKeyValue = static_cast<float>(lAnimCurve->KeyGetValue(1));
-				*/
+			
 				int Count = currCluster->GetControlPointIndicesCount();
 
 				for (int i = 0; i < currCluster->GetControlPointIndicesCount(); ++i)
@@ -345,16 +325,6 @@ std::shared_ptr<Mesh> FBXLoader::GetMesh(FbxNode * node , ID3D11Device* device)
 					int index = currCluster->GetControlPointIndices()[i];
 					int vertexid = indices[currCluster->GetControlPointIndices()[i]];
 
-					/*
-					if (vertices[vertexid].Boneids.x == 0) vertices[vertexid].Boneids.x = currJointIndex;
-					if (vertices[vertexid].Boneids.y == 0) vertices[vertexid].Boneids.y = currJointIndex;
-					if (vertices[vertexid].Boneids.z == 0) vertices[vertexid].Boneids.z = currJointIndex;
-					if (vertices[vertexid].Boneids.w == 0) vertices[vertexid].Boneids.w = currJointIndex;
-					if (vertices[vertexid].Weights.x == 0) vertices[vertexid].Weights.x = currCluster->GetControlPointWeights()[i];
-					if (vertices[vertexid].Weights.y == 0) vertices[vertexid].Weights.y = currCluster->GetControlPointWeights()[i];
-					if (vertices[vertexid].Weights.z == 0) vertices[vertexid].Weights.z = currCluster->GetControlPointWeights()[i];
-					if (vertices[vertexid].Weights.w == 0) vertices[vertexid].Weights.w = currCluster->GetControlPointWeights()[i];
-					*/
 
 					
 					if (vertices[index].Boneids.x == -1 && vertices[index].Weights.x == -1)
@@ -432,38 +402,10 @@ std::shared_ptr<Mesh> FBXLoader::GetMesh(FbxNode * node , ID3D11Device* device)
 							vertices[index].Weights.y = currentWeight;
 						}
 
-						/*
-						if (currentWeight > vertices[index].Weights.x)
-						{
-							vertices[index].Boneids.x = currJointIndex;
-							vertices[index].Weights.x = currentWeight;
-						}
-						else if (currentWeight > vertices[index].Weights.y)
-						{
-							vertices[index].Boneids.y = currJointIndex;
-							vertices[index].Weights.y = currentWeight;
-						}
-						else if (currentWeight > vertices[index].Weights.z)
-						{
-							vertices[index].Boneids.z = currJointIndex;
-							vertices[index].Weights.z = currentWeight;
-						}
-						else if (currentWeight > vertices[index].Weights.w)
-						{
-							vertices[index].Boneids.w = currJointIndex;
-							vertices[index].Weights.w = currentWeight;							
-						}
-						*/
+				
 					}
 					
 
-					/*
-					if (currCluster->GetControlPointWeights()[i] > vertices[index].Weights.x)
-					{
-						vertices[index].Boneids.x = currJointIndex;
-						vertices[index].Weights.x = currCluster->GetControlPointWeights()[i];
-					}
-					*/
 					
 				}
 				

@@ -71,6 +71,9 @@
     <ClCompile Include="FishController.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="FBXLoader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DXCore.h">
@@ -186,6 +189,12 @@
       <Filter>Shaders</Filter>
     </FxCompile>
     <FxCompile Include="TreeVS.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="AnimationVS.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="AnimationPS.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
   </ItemGroup>

@@ -14,3 +14,13 @@ struct Vertex
 	DirectX::XMFLOAT2 UV;
 	DirectX::XMFLOAT3 Tangent;
 };
+
+struct VertexAnimated
+{
+	DirectX::XMFLOAT3 Position;	   
+	DirectX::XMFLOAT3 Normal;
+	DirectX::XMFLOAT2 UV;
+	DirectX::XMFLOAT3 Tangent;
+	DirectX::XMFLOAT4 Boneids;
+	DirectX::XMFLOAT4 Weights;
+};

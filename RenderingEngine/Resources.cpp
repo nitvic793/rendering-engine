@@ -138,6 +138,12 @@ void Resources::LoadResources()
 	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/tuna.png", nullptr, &srv);
 	shaderResourceViews.insert(SRVMapType("tuna", srv));
 
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/Rudd-Fish_Colourmap.png", nullptr, &srv);
+	shaderResourceViews.insert(SRVMapType("ruddTexture", srv));
+
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/Rudd-Fish_Normalmap.png", nullptr, &srv);
+	shaderResourceViews.insert(SRVMapType("ruddNormal", srv));
+
 	//Load Sampler
 	D3D11_SAMPLER_DESC samplerDesc = {};
 	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
@@ -206,6 +212,14 @@ void Resources::LoadResources()
 	auto treeVS = new SimpleVertexShader(device, context);
 	treeVS->LoadShaderFile(L"TreeVS.cso");
 	vertexShaders.insert(VertexShaderMapType("tree", treeVS));
+	
+	auto animationVS = new SimpleVertexShader(device, context);
+	animationVS->LoadShaderFile(L"AnimationVS.cso");
+	vertexShaders.insert(VertexShaderMapType("animation", animationVS));
+
+	auto animationPS = new SimplePixelShader(device, context);
+	animationPS->LoadShaderFile(L"AnimationPS.cso");
+	pixelShaders.insert(PixelShaderMapType("animation", animationPS));
 
 	//Load Materials
 	materials.insert(MaterialMapType("metal", new Material(shadowVS, shadowPS, shaderResourceViews["metal"], shaderResourceViews["metalNormal"], shaderResourceViews["metalSpecular"], sampler)));
@@ -217,6 +231,7 @@ void Resources::LoadResources()
 	materials.insert(MaterialMapType("water", new Material(waterVS, waterPS, shaderResourceViews["waterColor"], shaderResourceViews["waterNormal"], sampler)));
 	materials.insert(MaterialMapType("tuna", new Material(vertexShader, pixelShader, shaderResourceViews["tuna"], shaderResourceViews["defaultNormal"], sampler)));
 	materials.insert(MaterialMapType("fish", new Material(vertexShader, pixelShader, shaderResourceViews["fishTexture"], shaderResourceViews["fishNormal"], sampler)));
+	
 
 	//Load Meshes
 	meshes.insert(std::pair<std::string, Mesh*>("sphere", new Mesh("../../Assets/Models/sphere.obj", device)));
@@ -237,6 +252,16 @@ void Resources::LoadResources()
 
 	loader.LoadFile("../../Assets/Models/fish01.obj");
 	AddToMeshMap(loader, meshes, device, "", shaderResourceViews, false);
+
+
+	fishFBX.LoadNodes(fishFBX.scene->GetRootNode(), device);
+	int numChildren = fishFBX.scene->GetRootNode()->GetChildCount();
+
+	FbxNode* childNode = fbxLoader.scene->GetRootNode()->GetChild(1);
+	FbxString name1 = childNode->GetName();
+	meshes.insert(std::pair<std::string, Mesh*>("man", fbxLoader.GetMesh(childNode, device)));
+
+	materials.insert(MaterialMapType("rudd", new Material(animationVS, animationPS, shaderResourceViews["ruddTexture"], shaderResourceViews["ruddNormal"], sampler)));
 }
 
 Resources::Resources(ID3D11Device *device, ID3D11DeviceContext *context, IDXGISwapChain* swapChain)

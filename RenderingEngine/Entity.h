@@ -42,5 +42,6 @@ public:
 	~Entity();
 
 	bool hasShadow = true;
+	bool isAnimated = false;
 };
 

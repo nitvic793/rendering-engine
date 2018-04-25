@@ -7,6 +7,7 @@
 #include <d3d11.h>
 #include "WICTextureLoader.h"
 #include "SimpleShader.h"
+#include "FBXLoader.h"
 
 
 //Map pair types
@@ -40,5 +41,7 @@ public:
 	void LoadResources();
 	Resources(ID3D11Device *device, ID3D11DeviceContext *context, IDXGISwapChain* swapChain);
 	~Resources();
+
+	FBXLoader fishFBX;
 };
 
