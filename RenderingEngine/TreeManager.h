@@ -12,7 +12,7 @@ using namespace DirectX;
 
 struct TreeInstanceType
 {
-	XMFLOAT3 Position;
+	XMFLOAT4X4 world;
 };
 
 class TreeManager
@@ -20,7 +20,7 @@ class TreeManager
 	std::vector<Mesh*> meshes;
 	std::vector<Material*> materials;
 	std::vector<XMFLOAT3> positions;
-	TreeInstanceType* treeInstances;
+	XMFLOAT4X4* treeInstances;
 	int instanceCount;
 	ID3D11Buffer* instanceBuffer;
 	ID3D11Device* device;

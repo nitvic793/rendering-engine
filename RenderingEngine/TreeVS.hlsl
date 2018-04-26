@@ -1,4 +1,4 @@
-#define MAX_INSTANCE 64
+
 
 cbuffer externalData : register(b0)
 {
@@ -14,7 +14,8 @@ struct VertexShaderInput
 	float3 normal		: NORMAL;
 	float2 uv			: TEXCOORD;
 	float3 tangent		: TANGENT;
-	float3 instancePosition: INSTANCEPOS;
+
+	matrix instanceWorld: WORLD_PER_INSTANCE;
 };
 
 
@@ -39,18 +40,18 @@ VertexToPixel main(VertexShaderInput input, uint instanceID : SV_InstanceID)
 	//
 	// First we multiply them together to get a single matrix which represents
 	// all of those transformations (world to view to projection space)
-	matrix worldViewProj = mul(mul(world, view), projection);
-	input.position.x += instanceID;
+	matrix worldViewProj = mul(mul(input.instanceWorld, view), projection);
+	//input.position.x += instanceID;
 	/*input.position.x += input.instancePosition.x;
 	input.position.y += input.instancePosition.y;
 	input.position.z += input.instancePosition.z;*/
 
-	output.worldPos = mul(float4(input.position, 1.0f), world).xyz;
+	output.worldPos = mul(float4(input.position, 1.0f), input.instanceWorld).xyz;
 	output.position = mul(float4(input.position, 1.0f), worldViewProj);
 
-	output.normal = mul(input.normal, (float3x3)world);
+	output.normal = mul(input.normal, (float3x3)input.instanceWorld);
 	output.normal = normalize(output.normal);
 	output.uv = input.uv;
-	output.tangent = normalize(mul(input.tangent, (float3x3)world));
+	output.tangent = normalize(mul(input.tangent, (float3x3)input.instanceWorld));
 	return output;
 }

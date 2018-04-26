@@ -442,7 +442,7 @@ void Game::InitializeEntities()
 		XMFLOAT3(0, 90.f * XM_PI / 180, 0),
 		XMFLOAT3(0.03f, 0.03f, 0.03f)
 	));
-	trees->InitializeTrees({ "palm","palm_2" }, { "palm","palm_2" }, { XMFLOAT3(-1,0,0), XMFLOAT3(-4,0,0) });
+	trees->InitializeTrees({ "palm","palm_2" }, { "palm","palm_2" }, { XMFLOAT3(-30,-6,0), XMFLOAT3(-25,-7,0) });
 	terrain = std::unique_ptr<Terrain>(new Terrain());
 	terrain->Initialize("../../Assets/Terrain/heightmap.bmp", device, context);
 	terrain->SetMaterial(resources->materials["grass"]);
@@ -731,7 +731,7 @@ void Game::Draw(float deltaTime, float totalTime)
 		if (entity->hasShadow)
 			renderer->DrawEntity(entity);
 	}
-	//trees->Render(camera);
+	trees->Render(camera);
 
 	ID3D11ShaderResourceView *const nullSRV[4] = { NULL };
 	context->PSSetShaderResources(0, 4, nullSRV);
