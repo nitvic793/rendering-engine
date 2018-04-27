@@ -18,6 +18,9 @@
     <Filter Include="Assets\Models">
       <UniqueIdentifier>{c09bbd1a-eeb4-4164-8217-18d4c32239d9}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Shaders\PostProcess">
+      <UniqueIdentifier>{89049fde-4278-4f23-a077-c96e699a2945}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="DXCore.cpp">
@@ -184,6 +187,18 @@
     </FxCompile>
     <FxCompile Include="TreeVS.hlsl">
       <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="PostPS.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="BlurPS.hlsl">
+      <Filter>Shaders\PostProcess</Filter>
+    </FxCompile>
+    <FxCompile Include="BloomExtractPS.hlsl">
+      <Filter>Shaders\PostProcess</Filter>
+    </FxCompile>
+    <FxCompile Include="BloomPS.hlsl">
+      <Filter>Shaders\PostProcess</Filter>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>

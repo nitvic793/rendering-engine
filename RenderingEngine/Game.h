@@ -54,6 +54,8 @@ private:
 
 	void DrawRefraction();
 	void DrawFullscreenQuad(ID3D11ShaderResourceView* texture);
+	void DrawPostProcess(ID3D11ShaderResourceView* texture);
+	void BloomPostProcess(ID3D11ShaderResourceView* texture);
 
 	void CreateRipple(float x, float y, float z, float duration, float ringSize);
 	bool projectileHitWater;
@@ -91,6 +93,16 @@ private:
 	ID3D11SamplerState* refractSampler;
 	ID3D11RenderTargetView* refractionRTV;
 	ID3D11ShaderResourceView* refractionSRV;
+
+	//Post Processing
+	ID3D11ShaderResourceView* postProcessSRV;
+	ID3D11RenderTargetView* postProcessRTV;
+	ID3D11ShaderResourceView* bloomExtractSRV;
+	ID3D11RenderTargetView* bloomExtractRTV;
+	ID3D11ShaderResourceView* bloomBlurSRV;
+	ID3D11RenderTargetView* bloomBlurRTV;
+	ID3D11ShaderResourceView* bloomSRV;
+	ID3D11RenderTargetView* bloomRTV;
 
 	// An SRV is good enough for loading textures with the DirectX Toolkit and then
 	// using them with shaders 
