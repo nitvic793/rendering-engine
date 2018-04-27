@@ -24,17 +24,6 @@ class Renderer
 	ID3D11SamplerState* shadowSampler;
 	ID3D11ShaderResourceView* shadowSRV;
 
-	// reflection
-	DirectX::XMFLOAT4X4 reflectionViewMatrix;
-	ID3D11SamplerState* reflectionSampler;
-	ID3D11ShaderResourceView* reflectionSRV;
-	ID3D11DepthStencilView* reflectionDSV;
-	ID3D11ShaderResourceView* reflectionSRV;
-	ID3D11SamplerState* reflectionSampler;
-	ID3D11RasterizerState* reflectionRasterizer;
-	//ID3D11SamplerState* refractSampler;
-	ID3D11RenderTargetView* reflectionRTV;
-	ID3D11ShaderResourceView* reflectionSRV;
 public:
 	void SetShadowViewProj(DirectX::XMFLOAT4X4, DirectX::XMFLOAT4X4, ID3D11SamplerState*, ID3D11ShaderResourceView*);
 	void SetDepthStencilView(ID3D11DepthStencilView *depthStencilView);
