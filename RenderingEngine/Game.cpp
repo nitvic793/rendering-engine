@@ -425,7 +425,7 @@ void Game::RenderShadowMap()
 	shadowVP.Height = (float)this->height;
 	context->RSSetViewports(1, &shadowVP);
 
-	renderer->SetShadowViewProj(shadowViewMatrix, shadowProjectionMatrix, shadowSampler, shadowSRV);
+	renderer->SetShadowViewProj(shadowViewMatrix, shadowProjectionMatrix,  , shadowSRV);
 }
 
 void Game::InitializeEntities()
