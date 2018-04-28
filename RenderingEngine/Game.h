@@ -67,6 +67,7 @@ private:
 	SimplePixelShader*			pixelShader;
 	Camera*		camera;
 	std::unique_ptr<Terrain> terrain;
+	std::unique_ptr<Terrain> terrain2;
 
 	POINT prevMousePos;
 	Renderer *renderer;

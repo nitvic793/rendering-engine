@@ -15,10 +15,10 @@ SamplerState Sampler	: register(s0);
 
 float4 main(VertexToPixel input) : SV_TARGET
 {
-	float Distance = 2.5;
+	float Distance = 2.1;
 	float Range = 1.9;
-	float Near = 1.2;
-	float Far = 0.9;
+	float Near = 0.5;
+	float Far = 1.1;
 
 	/*float Distance = 10;
 	float Range = 20;
