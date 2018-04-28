@@ -25,6 +25,7 @@ class TreeManager
 	ID3D11Buffer* instanceBuffer;
 	ID3D11Device* device;
 	ID3D11DeviceContext* context;
+	ID3D11RasterizerState* rasterizer;
 	void Render(int index, Camera* camera);
 public:
 	void InitializeTrees(std::vector<std::string> meshNames, std::vector<std::string> materialNames, std::vector<XMFLOAT3> positionVector);

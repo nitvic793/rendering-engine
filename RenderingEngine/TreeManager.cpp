@@ -40,8 +40,9 @@ void TreeManager::Render(int index, Camera * camera)
 
 	vs->SetShader();
 	ps->SetShader();
-
+	context->RSSetState(rasterizer);
 	context->DrawInstanced(meshes[index]->GetVertexCount(), instanceCount, 0, 0);
+	context->RSSetState(nullptr);
 }
 
 void TreeManager::InitializeTrees(std::vector<std::string> meshNames, std::vector<std::string> materialNames, std::vector<XMFLOAT3> positionsVector)
@@ -97,6 +98,10 @@ TreeManager::TreeManager(ID3D11Device* device, ID3D11DeviceContext* context)
 	this->context = context;
 	instanceBuffer = nullptr;
 	treeInstances = nullptr;
+	D3D11_RASTERIZER_DESC  rasDesc = {};
+	rasDesc.FillMode = D3D11_FILL_SOLID;
+	rasDesc.CullMode = D3D11_CULL_NONE;
+	device->CreateRasterizerState(&rasDesc, &rasterizer);
 }
 
 
@@ -104,4 +109,5 @@ TreeManager::~TreeManager()
 {
 	if (instanceBuffer)instanceBuffer->Release();
 	if (treeInstances)delete[] treeInstances;
+	if (rasterizer)rasterizer->Release();
 }
