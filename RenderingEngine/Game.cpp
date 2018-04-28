@@ -674,7 +674,9 @@ void Game::BloomPostProcess(ID3D11ShaderResourceView* texture)
 
 	quadPS->SetShaderResourceView("Pixels", bloomExtractSRV);
 	quadPS->SetSamplerState("Sampler", sampler);
+	quadPS->SetFloat("blurValue", 3.0f);
 	quadPS->SetShader();
+	quadPS->CopyAllBufferData();
 
 	// Draw
 	context->Draw(3, 0);
@@ -702,6 +704,12 @@ void Game::BloomPostProcess(ID3D11ShaderResourceView* texture)
 
 void Game::DepthOfFieldPostProcess(ID3D11ShaderResourceView * texture)
 {
+	//DOF settings
+	float distance = 2.1f;
+	float range = 1.9f;
+	float nearDof = 0.5f;
+	float farDof = 1.1f;
+
 	//Blur pixels from main scene
 	context->OMSetRenderTargets(1, &dofBlurRTV, 0);
 	context->IASetVertexBuffers(0, 0, 0, 0, 0);
@@ -711,11 +719,11 @@ void Game::DepthOfFieldPostProcess(ID3D11ShaderResourceView * texture)
 	auto quadPS = resources->pixelShaders["blur"];
 	// Set up the fullscreen quad shaders
 	quadVS->SetShader();
-
+	quadPS->SetFloat("blurValue", 4);
 	quadPS->SetShaderResourceView("Pixels", texture);
 	quadPS->SetSamplerState("Sampler", sampler);
 	quadPS->SetShader();
-
+	quadPS->CopyAllBufferData();
 	// Draw
 	context->Draw(3, 0);
 
@@ -729,12 +737,17 @@ void Game::DepthOfFieldPostProcess(ID3D11ShaderResourceView * texture)
 	// Set up the fullscreen quad shaders
 	quadVS->SetShader();
 
+	quadPS->SetFloat("Distance", distance);
+	quadPS->SetFloat("Range", range);
+	quadPS->SetFloat("Near", nearDof);
+	quadPS->SetFloat("Far", farDof);
+
 	quadPS->SetShaderResourceView("Pixels", texture);
 	quadPS->SetShaderResourceView("BlurredPixels", dofBlurSRV);
 	quadPS->SetShaderResourceView("Depth", depthSRV);
 	quadPS->SetSamplerState("Sampler", sampler);
 	quadPS->SetShader();
-
+	quadPS->CopyAllBufferData();
 	// Draw
 	context->Draw(3, 0);
 
@@ -892,7 +905,6 @@ void Game::Draw(float deltaTime, float totalTime)
 	DrawSky();
 
 	// Reset blend state if blending
-
 	context->OMSetBlendState(0, 0, 0xFFFFFFFF);
 	context->OMSetRenderTargets(1, &postProcessRTV, 0);
 
@@ -900,14 +912,12 @@ void Game::Draw(float deltaTime, float totalTime)
 
 	context->OMSetRenderTargets(1, &postProcessRTV, depthStencilView);
 
-	renderer->DrawEntity(currentProjectile);
-	DrawWater();
-
 	for (auto entity : entities)
 	{
 		if (entity->hasShadow)
 			renderer->DrawEntity(entity);
 	}
+
 	trees->Render(camera);
 
 	ID3D11ShaderResourceView *const nullSRV[4] = { NULL };
@@ -918,6 +928,8 @@ void Game::Draw(float deltaTime, float totalTime)
 		if (!entity->hasShadow)
 			renderer->DrawEntity(entity);
 	}
+	renderer->DrawEntity(currentProjectile);
+	DrawWater();
 
 	context->PSSetShaderResources(0, 4, nullSRV);
 	ID3D11ShaderResourceView* nullSRV2[16] = {};

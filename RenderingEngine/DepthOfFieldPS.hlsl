@@ -8,6 +8,14 @@ struct VertexToPixel
 	float2 uv           : TEXCOORD0;
 };
 
+cbuffer dofSettings: register(b0)
+{
+	float Distance;
+	float Range;
+	float Near;
+	float Far;
+}
+
 Texture2D Pixels		: register(t0);
 Texture2D BlurredPixels	: register(t1);
 Texture2D Depth			: register(t2);
@@ -15,11 +23,6 @@ SamplerState Sampler	: register(s0);
 
 float4 main(VertexToPixel input) : SV_TARGET
 {
-	float Distance = 2.1;
-	float Range = 1.9;
-	float Near = 0.5;
-	float Far = 1.1;
-
 	/*float Distance = 10;
 	float Range = 20;
 	float Near = 0.1;
