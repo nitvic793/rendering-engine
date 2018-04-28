@@ -234,9 +234,9 @@ HRESULT DXCore::InitDirectX()
 	depthStencilDesc.Height				= height;
 	depthStencilDesc.MipLevels			= 1;
 	depthStencilDesc.ArraySize			= 1;
-	depthStencilDesc.Format				= DXGI_FORMAT_D24_UNORM_S8_UINT;
+	depthStencilDesc.Format				= DXGI_FORMAT_R32_TYPELESS;
 	depthStencilDesc.Usage				= D3D11_USAGE_DEFAULT;
-	depthStencilDesc.BindFlags			= D3D11_BIND_DEPTH_STENCIL;
+	depthStencilDesc.BindFlags			= D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
 	depthStencilDesc.CPUAccessFlags		= 0;
 	depthStencilDesc.MiscFlags			= 0;
 	depthStencilDesc.SampleDesc.Count	= 1;
@@ -244,7 +244,7 @@ HRESULT DXCore::InitDirectX()
 
 	D3D11_DEPTH_STENCIL_VIEW_DESC dsv_desc;
 	dsv_desc.Flags = 0;
-	dsv_desc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+	dsv_desc.Format = DXGI_FORMAT_D32_FLOAT;
 	dsv_desc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
 	dsv_desc.Texture2D.MipSlice = 0;
 
@@ -255,11 +255,11 @@ HRESULT DXCore::InitDirectX()
 	device->CreateDepthStencilView(depthBufferTexture, &dsv_desc, &depthStencilView);
 
 	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-	srvDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+	srvDesc.Format = DXGI_FORMAT_R32_FLOAT;
 	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-	srvDesc.Texture2D.MipLevels = -1;
+	srvDesc.Texture2D.MipLevels = 1;
 	srvDesc.Texture2D.MostDetailedMip = 0;
-	device->CreateShaderResourceView(depthBufferTexture, &srvDesc, &depthSRV);
+	auto result = device->CreateShaderResourceView(depthBufferTexture, &srvDesc, &depthSRV);
 
 	depthBufferTexture->Release();
 

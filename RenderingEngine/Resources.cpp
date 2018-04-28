@@ -223,6 +223,10 @@ void Resources::LoadResources()
 	bloomPS->LoadShaderFile(L"BloomPS.cso");
 	pixelShaders.insert(PixelShaderMapType("bloom", bloomPS));
 
+	auto dofPS = new SimplePixelShader(device, context);
+	dofPS->LoadShaderFile(L"DepthOfFieldPS.cso");
+	pixelShaders.insert(PixelShaderMapType("dof", dofPS));
+
 	//Load Materials
 	materials.insert(MaterialMapType("metal", new Material(shadowVS, shadowPS, shaderResourceViews["metal"], shaderResourceViews["metalNormal"], shaderResourceViews["metalSpecular"], sampler)));
 	materials.insert(MaterialMapType("fabric", new Material(vertexShader, pixelShader, shaderResourceViews["fabric"], shaderResourceViews["fabricNormal"], sampler)));

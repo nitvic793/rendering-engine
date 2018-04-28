@@ -94,6 +94,10 @@ Game::~Game()
 	bloomExtractSRV->Release();
 	bloomRTV->Release();
 	bloomSRV->Release();
+	dofBlurRTV->Release();
+	dofBlurSRV->Release();
+	dofRTV->Release();
+	dofSRV->Release();
 
 	displacementSampler->Release();
 	delete currentProjectile;
@@ -108,10 +112,8 @@ Game::~Game()
 // --------------------------------------------------------
 void Game::Init()
 {
-	// Helper methods for loading shaders, creating some basic
-	// geometry to draw and some simple camera matrices.
-	//  - You'll be expanding and/or replacing these later
 	projectileHitWater = false;
+	isDofEnabled = false;
 	RECT rect;
 	GetWindowRect(this->hWnd, &rect);
 	prevMousePos.x = width / 2;
@@ -290,6 +292,8 @@ void Game::Init()
 	ID3D11Texture2D* bloomExtractTexture;
 	ID3D11Texture2D* bloomBlurTexture;
 	ID3D11Texture2D* bloomTexture;
+	ID3D11Texture2D* blurTexture;
+	ID3D11Texture2D* dofTexture;
 
 	// Set up render texture
 	D3D11_TEXTURE2D_DESC ppDesc = {};
@@ -308,6 +312,8 @@ void Game::Init()
 	device->CreateTexture2D(&ppDesc, 0, &bloomExtractTexture);
 	device->CreateTexture2D(&ppDesc, 0, &bloomBlurTexture);
 	device->CreateTexture2D(&ppDesc, 0, &bloomTexture);
+	device->CreateTexture2D(&ppDesc, 0, &blurTexture);
+	device->CreateTexture2D(&ppDesc, 0, &dofTexture);
 
 	// Set up render target view
 	rtvDesc = {};
@@ -318,6 +324,8 @@ void Game::Init()
 	device->CreateRenderTargetView(bloomExtractTexture, &rtvDesc, &bloomExtractRTV);
 	device->CreateRenderTargetView(bloomBlurTexture, &rtvDesc, &bloomBlurRTV);
 	device->CreateRenderTargetView(bloomTexture, &rtvDesc, &bloomRTV);
+	device->CreateRenderTargetView(blurTexture, &rtvDesc, &dofBlurRTV);
+	device->CreateRenderTargetView(dofTexture, &rtvDesc, &dofRTV);
 
 	// Set up shader resource view for same texture
 	srvDesc = {};
@@ -329,11 +337,15 @@ void Game::Init()
 	device->CreateShaderResourceView(bloomExtractTexture, &srvDesc, &bloomExtractSRV);
 	device->CreateShaderResourceView(bloomBlurTexture, &srvDesc, &bloomBlurSRV);
 	device->CreateShaderResourceView(bloomTexture, &srvDesc, &bloomSRV);
+	device->CreateShaderResourceView(blurTexture, &srvDesc, &dofBlurSRV);
+	device->CreateShaderResourceView(dofTexture, &srvDesc, &dofSRV);
 
 	postProcessRenderTexture->Release();
 	bloomExtractTexture->Release();
 	bloomBlurTexture->Release();
 	bloomTexture->Release();
+	blurTexture->Release();
+	dofTexture->Release();
 
 	// Tell the input assembler stage of the pipeline what kind of
 	// geometric primitives (points, lines or triangles) we want to draw.  
@@ -498,7 +510,13 @@ void Game::InitializeEntities()
 		XMFLOAT3(0, 90.f * XM_PI / 180, 0),
 		XMFLOAT3(0.03f, 0.03f, 0.03f)
 	));
-	trees->InitializeTrees({ "palm","palm_2" }, { "palm","palm_2" }, { XMFLOAT3(-30,-6,0), XMFLOAT3(-25,-7,0) });
+	trees->InitializeTrees({ "palm","palm_2" }, { "palm","palm_2" }, 
+	{ 
+		XMFLOAT3(-30,-6,0),
+		XMFLOAT3(-25,-7,0),
+		XMFLOAT3(45,-7,70),
+		XMFLOAT3(55,-7,70)
+	});
 	terrain = std::unique_ptr<Terrain>(new Terrain());
 	terrain->Initialize("../../Assets/Terrain/heightmap.bmp", device, context);
 	terrain->SetMaterial(resources->materials["grass"]);
@@ -506,11 +524,11 @@ void Game::InitializeEntities()
 	terrain->SetPosition(-125, -10.5, -150);
 	light.AmbientColor = XMFLOAT4(0.2f, 0.2f, 0.2f, 0);
 	light.DiffuseColor = XMFLOAT4(0.9f, 0.9f, 0.9f, 1.f);
-	light.Direction = XMFLOAT3(1.f, 0, 0.f);
+	light.Direction = XMFLOAT3(0.6f, 0.4f, 0.f);
 
 	secondaryLight.AmbientColor = XMFLOAT4(0.1f, 0.1f, 0.1f, 0);
 	secondaryLight.DiffuseColor = XMFLOAT4(0.5f, 0.5f, 0.5f, 1);
-	secondaryLight.Direction = XMFLOAT3(0, -1, 0);
+	secondaryLight.Direction = XMFLOAT3(0.2f, -0.8, 0);
 
 	pointLight.Color = XMFLOAT4(0.0f, 0.f, 0.f, 1);
 	pointLight.Position = XMFLOAT3(0.4f, 2.f, -14.9f);
@@ -613,7 +631,7 @@ void Game::DrawFullscreenQuad(ID3D11ShaderResourceView * texture)
 	context->Draw(3, 0);
 }
 
-void Game::DrawPostProcess(ID3D11ShaderResourceView * texture)
+void Game::DrawPostProcess(ID3D11ShaderResourceView* texture)
 {
 	// First, turn off our buffers, as we'll be generating the vertex
 	// data on the fly in a special vertex shader using the index of each vert
@@ -668,7 +686,7 @@ void Game::BloomPostProcess(ID3D11ShaderResourceView* texture)
 	// Draw
 	context->Draw(3, 0);
 
-	//Apply blurred highlighted pixels to main scene
+	//Apply blurred highlighted pixels to main scene for bloom effect
 	context->OMSetRenderTargets(1, &bloomRTV, 0);
 	context->IASetVertexBuffers(0, 0, 0, 0, 0);
 	context->IASetIndexBuffer(0, DXGI_FORMAT_R32_UINT, 0);
@@ -679,6 +697,48 @@ void Game::BloomPostProcess(ID3D11ShaderResourceView* texture)
 
 	quadPS->SetShaderResourceView("BaseTexture", texture);
 	quadPS->SetShaderResourceView("BloomTexture", bloomBlurSRV);
+	quadPS->SetSamplerState("Sampler", sampler);
+	quadPS->SetShader();
+
+	// Draw
+	context->Draw(3, 0);
+
+	//Reset render target
+	context->OMSetRenderTargets(1, &backBufferRTV, depthStencilView);
+}
+
+void Game::DepthOfFieldPostProcess(ID3D11ShaderResourceView * texture)
+{
+	//Blur pixels from main scene
+	context->OMSetRenderTargets(1, &dofBlurRTV, 0);
+	context->IASetVertexBuffers(0, 0, 0, 0, 0);
+	context->IASetIndexBuffer(0, DXGI_FORMAT_R32_UINT, 0);
+
+	auto quadVS = resources->vertexShaders["quad"];
+	auto quadPS = resources->pixelShaders["blur"];
+	// Set up the fullscreen quad shaders
+	quadVS->SetShader();
+
+	quadPS->SetShaderResourceView("Pixels", texture);
+	quadPS->SetSamplerState("Sampler", sampler);
+	quadPS->SetShader();
+
+	// Draw
+	context->Draw(3, 0);
+
+	//Lerp between blurred texture and normal texture for DOF effect
+	context->OMSetRenderTargets(1, &dofRTV, 0);
+	context->IASetVertexBuffers(0, 0, 0, 0, 0);
+	context->IASetIndexBuffer(0, DXGI_FORMAT_R32_UINT, 0);
+
+	quadVS = resources->vertexShaders["quad"];
+	quadPS = resources->pixelShaders["dof"];
+	// Set up the fullscreen quad shaders
+	quadVS->SetShader();
+
+	quadPS->SetShaderResourceView("Pixels", texture);
+	quadPS->SetShaderResourceView("BlurredPixels", dofBlurSRV);
+	quadPS->SetShaderResourceView("Depth", depthSRV);
 	quadPS->SetSamplerState("Sampler", sampler);
 	quadPS->SetShader();
 
@@ -756,6 +816,12 @@ void Game::Update(float deltaTime, float totalTime)
 	{
 		projectilePreviousPosition = currentProjectile->GetPosition();
 		currentProjectile->Shoot(1.f, camera->GetDirection());
+	}
+
+	isDofEnabled = false;
+	if ((GetAsyncKeyState(VK_RBUTTON) & 0x8000) != 0)
+	{
+		isDofEnabled = true;
 	}
 
 	if ((GetAsyncKeyState(VK_SPACE) & 0x8000) != 0) {
@@ -882,10 +948,15 @@ void Game::Draw(float deltaTime, float totalTime)
 
 	context->OMSetBlendState(0, 0, 0xFFFFFFFF);
 	context->OMSetRenderTargets(1, &backBufferRTV, 0);
-
+	ID3D11ShaderResourceView *nextBuffer = postProcessSRV;
 	BloomPostProcess(postProcessSRV);
-
-	DrawPostProcess(bloomSRV);
+	nextBuffer = bloomSRV;
+	if (isDofEnabled)
+	{
+		DepthOfFieldPostProcess(bloomSRV);
+		nextBuffer = dofSRV;
+	}
+	DrawPostProcess(nextBuffer);
 
 	context->OMSetRenderTargets(1, &backBufferRTV, depthStencilView);
 
