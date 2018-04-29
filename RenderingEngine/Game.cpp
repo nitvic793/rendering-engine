@@ -439,7 +439,7 @@ void Game::RenderEntityShadow(Entity * entity)
 void Game::RenderShadowMap()
 {
 	XMMATRIX shView = XMMatrixLookAtLH(
-		XMVectorSet(0, 10, 1, 0),	// Start back and in the air
+		XMVectorSet(0, 20, 1, 0),	// Start back and in the air
 		XMVectorSet(0, 0, 0, 0),	// Look at the origin
 		XMVectorSet(0, 1, 0, 0));	// Up is up
 	XMStoreFloat4x4(&shadowViewMatrix, XMMatrixTranspose(shView));
@@ -519,7 +519,10 @@ void Game::InitializeEntities()
 	});
 	terrain = std::unique_ptr<Terrain>(new Terrain());
 	terrain->Initialize("../../Assets/Terrain/heightmap.bmp", device, context);
-	terrain->SetMaterial(resources->materials["grass"]);
+	terrain->SetSplatMap(resources->shaderResourceViews["splatmap"]);
+	terrain->SetMaterial(resources->materials["grassTerrain"]);
+	auto rm = resources;
+	terrain->SetTextures(rm->GetSRV("gravel"), rm->GetSRV("grass"), rm->GetSRV("sand"), rm->GetSRV("gravel"));
 
 	terrain->SetPosition(-125, -9.5, -150);
 	light.AmbientColor = XMFLOAT4(0.2f, 0.2f, 0.2f, 0);
@@ -778,7 +781,7 @@ void Game::DrawWater()
 	resources->pixelShaders["water"]->SetFloat3("CameraPosition", camera->GetPosition());
 	resources->pixelShaders["water"]->SetMatrix4x4("view", camera->GetViewMatrix());		// View matrix, so we can put normals into view space
 	resources->pixelShaders["water"]->CopyAllBufferData();
-	renderer->DrawEntity(water);
+	renderer->Draw(water);
 }
 
 // --------------------------------------------------------
@@ -899,7 +902,7 @@ void Game::Draw(float deltaTime, float totalTime)
 	// Use our refraction render target and our regular depth buffer
 	context->OMSetRenderTargets(1, &refractionRTV, depthStencilView);
 
-	renderer->DrawEntity(terrain.get());
+	renderer->Draw(terrain.get());
 	fishes->Render(renderer);
 
 	DrawSky();
@@ -915,7 +918,7 @@ void Game::Draw(float deltaTime, float totalTime)
 	for (auto entity : entities)
 	{
 		if (entity->hasShadow)
-			renderer->DrawEntity(entity);
+			renderer->Draw(entity);
 	}
 
 	trees->Render(camera);
@@ -926,9 +929,9 @@ void Game::Draw(float deltaTime, float totalTime)
 	for (auto entity : entities)
 	{
 		if (!entity->hasShadow)
-			renderer->DrawEntity(entity);
+			renderer->Draw(entity);
 	}
-	renderer->DrawEntity(currentProjectile);
+	renderer->Draw(currentProjectile);
 	DrawWater();
 
 	context->PSSetShaderResources(0, 4, nullSRV);
