@@ -62,15 +62,17 @@ void Renderer::DrawEntity(Entity* entity)
 		UINT offset = 0;
 		entity->SetCameraPosition(camera->GetPosition());
 		entity->SetLights(lights);
-		if (entity->hasShadow)
-			entity->PrepareMaterialWithShadows(camera->GetViewMatrix(), camera->GetProjectionMatrix(), shadowViewMatrix, shadowProjectionMatrix, shadowSampler, shadowSRV);
-		else
-			entity->PrepareMaterial(camera->GetViewMatrix(), camera->GetProjectionMatrix());
+
+		entity->PrepareMaterialAnimated(camera->GetViewMatrix(), camera->GetProjectionMatrix(), &resources->fishFBX);
+
+
 		auto mesh = entity->GetMesh();
 		auto vertexBuffer = mesh->GetVertexBuffer();
 		context->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
 		context->IASetIndexBuffer(mesh->GetIndexBuffer(), DXGI_FORMAT_R32_UINT, 0);
 		context->DrawIndexed((UINT)mesh->GetIndexCount(), 0, 0);
+
+		int a = 0;
 	}
 }
 

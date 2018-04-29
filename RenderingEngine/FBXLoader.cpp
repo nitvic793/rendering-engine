@@ -10,7 +10,7 @@ FBXLoader::FBXLoader()
 {
 	InitializeSdkObjects();
 
-	FbxString lFilePath("../../RuddFishAnimated.fbx");
+	FbxString lFilePath("../../axe-test.fbx");
 
 	if (lFilePath.IsEmpty())
 	{
@@ -212,7 +212,7 @@ void FBXLoader::LoadNodes(FbxNode* node, ID3D11Device* device)
 }
 
 
-std::shared_ptr<Mesh> FBXLoader::GetMesh(FbxNode * node , ID3D11Device* device)
+Mesh* FBXLoader::GetMesh(FbxNode * node , ID3D11Device* device)
 {
 	FbxString name1 = node->GetName();
 	
@@ -236,7 +236,7 @@ std::shared_ptr<Mesh> FBXLoader::GetMesh(FbxNode * node , ID3D11Device* device)
 			v.Position.x = (float)controlPoints[i].mData[0];
 			v.Position.y = (float)controlPoints[i].mData[1];
 			v.Position.z = (float)controlPoints[i].mData[2];
-			//v.Position.w = 1;
+			v.Position.w = 1;
 			v.Normal = XMFLOAT3(0, 0, 0);
 
 
@@ -274,11 +274,13 @@ std::shared_ptr<Mesh> FBXLoader::GetMesh(FbxNode * node , ID3D11Device* device)
 				vertices[ind].Normal.z += norm.mData[2];
 
 				FbxVector2 uvCoord(0, 0);
-				const char* uvSet = "map1";
+				const char* uvSet = "UVTex";
 				bool uvFlag = true;
 
 				fbxMesh->GetPolygonVertexUV(i, j, uvSet, uvCoord, uvFlag);
 				
+				//vertices[ind].UV.x += uvCoord.mData[0];
+				//vertices[ind].UV.y += uvCoord.mData[1];
 			}
 
 		}
@@ -415,9 +417,9 @@ std::shared_ptr<Mesh> FBXLoader::GetMesh(FbxNode * node , ID3D11Device* device)
 		}
 	
 		
-		std::shared_ptr<Mesh> M(new Mesh(&vertices[0], vertexCount, &indices[0], indexCount, device));
+		//std::shared_ptr<Mesh> M(new Mesh(&vertices[0], vertexCount, &indices[0], indexCount, device));
 
-		return(M);
+		return(new Mesh(&vertices[0], vertexCount, &indices[0], indexCount, device));
 	}
 	else
 		return(NULL);
@@ -603,18 +605,7 @@ void FBXLoader::GetAnimatedMatrixExtra()
 
 	for (int i = 0; i < skeleton.mJoints.size(); i++)
 	{
-		/*
-		FbxAMatrix jointTransform;
-		jointTransform = lEvaluator->GetNodeLocalTransform(skeleton.mJoints[i].mNode, time);
-		FbxVector4 vec = {};
-		vec = lEvaluator->GetNodeLocalRotation(skeleton.mJoints[i].mNode, time);
-		jointTransform = skeleton.mJoints[i].mNode->EvaluateLocalTransform(time);
 
-		jointTransform = jointTransform * skeleton.mJoints[i].mFbxTransform.Transpose();
-		jointTransform = jointTransform.Transpose();
-
-		skeleton.mJoints[i].mTransform = XMFLOAT4X4(jointTransform.GetRow(0)[0], jointTransform.GetRow(0)[1], jointTransform.GetRow(0)[2], jointTransform.GetRow(0)[3], jointTransform.GetRow(1)[0], jointTransform.GetRow(1)[1], jointTransform.GetRow(1)[2], jointTransform.GetRow(1)[3], jointTransform.GetRow(2)[0], jointTransform.GetRow(2)[1], jointTransform.GetRow(2)[2], jointTransform.GetRow(2)[3], jointTransform.GetRow(3)[0], jointTransform.GetRow(3)[1], jointTransform.GetRow(3)[2], jointTransform.GetRow(3)[3]);
-		*/
 		skeleton.mJoints[i].mTransform = GetJointGlobalTransform(i);
 	}
 	
@@ -634,64 +625,10 @@ XMFLOAT4X4 FBXLoader::GetJointGlobalTransform(int boneIndex)
 	FbxString nameLayer;
 	if (boneNode)
 	{
-		jointTransform = boneNode->EvaluateGlobalTransform(time);
+		jointTransform = boneNode->EvaluateGlobalTransform(start);
 	}
 
-	/*
-	int numAnimations = scene->GetSrcObjectCount<FbxAnimStack>();
-	//for (int animationIndex = 0; animationIndex < numAnimations; animationIndex++)
-	{
-		FbxAnimStack *animStack = scene->GetSrcObject<FbxAnimStack>(FbxCriteria::ObjectType(FbxAnimStack::ClassId), 0); // animationIndex
-		//FbxAnimStack* pAnimStack = FbxCast<FbxAnimStack>(scene->GetSrcObject(FBX_TYPE(FbxAnimStack), 0));
-		nameStack = animStack->GetName(); // Get the name of the animation if needed
 
-		int numLayers = animStack->GetMemberCount();
-		//for (int layerIndex = 0; layerIndex < numLayers; layerIndex++)
-		if(boneNode)
-		{
-			FbxAnimLayer *animLayer = (FbxAnimLayer*)animStack->GetMember(FbxCriteria::ObjectType(FbxAnimLayer::ClassId),0); // layerIndex
-			nameLayer = animLayer->GetName(); // Get the layer's name if needed
-
-			FbxAnimCurve *translationCurveX = boneNode->LclTranslation.GetCurve(animLayer, FBXSDK_CURVENODE_COMPONENT_X);
-			FbxAnimCurve *translationCurveY = boneNode->LclTranslation.GetCurve(animLayer, FBXSDK_CURVENODE_COMPONENT_Y);
-			FbxAnimCurve *translationCurveZ = boneNode->LclTranslation.GetCurve(animLayer, FBXSDK_CURVENODE_COMPONENT_Z);
-
-			FbxVector4 transCurve = FbxVector4(translationCurveX->Evaluate(start), translationCurveY->Evaluate(start), translationCurveZ->Evaluate(start));
-
-			FbxAnimCurve *rotationCurveX = boneNode->LclRotation.GetCurve(animLayer, FBXSDK_CURVENODE_COMPONENT_X);
-			FbxAnimCurve *rotationCurveY = boneNode->LclRotation.GetCurve(animLayer, FBXSDK_CURVENODE_COMPONENT_Y);
-			FbxAnimCurve *rotationCurveZ = boneNode->LclRotation.GetCurve(animLayer, FBXSDK_CURVENODE_COMPONENT_Z);
-
-			FbxVector4 rotationCurve = FbxVector4(rotationCurveX->Evaluate(start), rotationCurveY->Evaluate(start), rotationCurveZ->Evaluate(start));
-
-			FbxAnimCurve *scalingCurveX = boneNode->LclScaling.GetCurve(animLayer, FBXSDK_CURVENODE_COMPONENT_X);
-			FbxAnimCurve *scalingCurveY = boneNode->LclScaling.GetCurve(animLayer, FBXSDK_CURVENODE_COMPONENT_Y);
-			FbxAnimCurve *scalingCurveZ = boneNode->LclScaling.GetCurve(animLayer, FBXSDK_CURVENODE_COMPONENT_Z);
-
-			FbxVector4 scalingCurve = FbxVector4(scalingCurveX->Evaluate(start), scalingCurveY->Evaluate(start), scalingCurveZ->Evaluate(start));
-
-			jointTransform.SetT(transCurve);
-			jointTransform.SetR(rotationCurve);
-			jointTransform.SetS(scalingCurve);
-		}
-
-
-	}
-
-	/*
-	//jointTransform = skeleton.mJoints[boneIndex].mNode->EvaluateLocalTransform(time);
-	//jointTransform = jointTransform * skeleton.mJoints[boneIndex].mFbxTransform.Transpose();
-
-	if (skeleton.mJoints[boneIndex].mParentIndex != -1)
-	{
-		XMMATRIX matrix1 = XMLoadFloat4x4(&globalTransform);
-		XMMATRIX matrix2 = XMLoadFloat4x4(&skeleton.mJoints[skeleton.mJoints[boneIndex].mParentIndex].mTransform);
-		//jointTransform = jointTransform *skeleton.mJoints[skeleton.mJoints[boneIndex].mParentIndex].mFbxTransform.Transpose();
-
-		matrix1 *= matrix2;
-		//XMStoreFloat4x4(&globalTransform, matrix1);
-	}
-	*/
 	XMFLOAT4X4 globalTransform = FbxAMatrixToXMFloat4x4(jointTransform);
 	return XMFLOAT4X4(globalTransform);
 }

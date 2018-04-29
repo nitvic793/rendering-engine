@@ -161,6 +161,49 @@ void Entity::PrepareMaterial(XMFLOAT4X4 viewMatrix, XMFLOAT4X4 projectionMatrix)
 	pixelShader->SetShader();
 }
 
+void Entity::PrepareMaterialAnimated(XMFLOAT4X4 viewMatrix, XMFLOAT4X4 projectionMatrix, FBXLoader * fbxLoader)
+{
+	auto vertexShader = material->GetVertexShader();
+	auto pixelShader = material->GetPixelShader();
+
+	vertexShader->SetMatrix4x4("world", GetWorldMatrix());
+	vertexShader->SetMatrix4x4("view", viewMatrix);
+	vertexShader->SetMatrix4x4("projection", projectionMatrix);
+
+	int bonesSize = 0;
+	bonesSize = (sizeof(XMFLOAT4X4) * 20 * 2);
+	Bones bones[20];
+
+	fbxLoader->GetAnimatedMatrixExtra();
+
+	//Setting bones
+	int numBones = fbxLoader->skeleton.mJoints.size();
+	for (int i = 0; i < numBones; i++)
+	{
+
+		XMMATRIX jointTransformMatrix = XMLoadFloat4x4(&fbxLoader->skeleton.mJoints[i].mTransform);
+		XMMATRIX invJointTransformMatrix = XMLoadFloat4x4(&fbxLoader->skeleton.mJoints[i].mGlobalBindposeInverse);
+
+		XMFLOAT4X4 trans = {};
+		XMStoreFloat4x4(&trans, XMMatrixTranspose(jointTransformMatrix));
+		bones[i].BoneTransform = trans;
+		XMFLOAT4X4 trans2 = {};
+		XMStoreFloat4x4(&trans2, XMMatrixTranspose(invJointTransformMatrix));
+		bones[i].InvBoneTransform = trans2;
+	}
+	vertexShader->SetData("bones", &bones, bonesSize);
+
+	//pixelShader->SetSamplerState("basicSampler", material->GetSampler());
+	//pixelShader->SetShaderResourceView("diffuseTexture", material->GetSRV());
+	//pixelShader->SetShaderResourceView("normalTexture", material->GetNormalSRV());
+	//pixelShader->SetShaderResourceView("roughnessTexture", material->GetRoughnessSRV());
+
+	vertexShader->CopyAllBufferData();
+	pixelShader->CopyAllBufferData();
+	vertexShader->SetShader();
+	pixelShader->SetShader();
+}
+
 void Entity::SetLights(std::unordered_map<std::string, DirectionalLight> lights)
 {
 	auto pixelShader = material->GetPixelShader();

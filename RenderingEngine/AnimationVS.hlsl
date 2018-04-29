@@ -14,7 +14,7 @@ struct Bones
 
 cbuffer bones : register(b1)
 {
-	Bones bones[72];
+	Bones bones[20];
 }
 
 
@@ -24,6 +24,7 @@ struct VertexShaderInput
 	float4 position		: POSITION;     
 	float3 normal       : NORMAL;
 	//float2 uv			: TEXCOORD;
+	//float3 tangent		: TANGENT;
 	float4 boneid		: BONEID;
 	float4 weight		: WEIGHT;
 };
@@ -32,9 +33,11 @@ struct VertexShaderInput
 struct VertexToPixel
 {
 
-	float4 position		: SV_POSITION;	
-	float3 normal       : NORMAL;
+	float4 position		: SV_POSITION;
+	float3 normal		: NORMAL;
 	//float2 uv			: TEXCOORD;
+	//float3 worldPos		: POSITION;
+	//float3 tangent		: TANGENT;
 };
 
 
@@ -66,6 +69,7 @@ VertexToPixel main(VertexShaderInput input)
 		bonetransform += mul(mul(bones[input.boneid.w].BoneTransform, input.weight.w), bones[input.boneid.w].InvBoneTransform);
 	}
 
+	//output.worldPos = (mul(float4(input.position.x, input.position.y, input.position.z, 1.0f), world)).xyz;
 
 	output.position = mul(mul(bonetransform, input.position), worldViewProj);
 

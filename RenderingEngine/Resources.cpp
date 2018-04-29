@@ -253,15 +253,15 @@ void Resources::LoadResources()
 	loader.LoadFile("../../Assets/Models/fish01.obj");
 	AddToMeshMap(loader, meshes, device, "", shaderResourceViews, false);
 
+	// Animated fish data
 
+	//fishFBX = new FBXLoader();
 	fishFBX.LoadNodes(fishFBX.scene->GetRootNode(), device);
 	int numChildren = fishFBX.scene->GetRootNode()->GetChildCount();
-
-	FbxNode* childNode = fbxLoader.scene->GetRootNode()->GetChild(1);
+	FbxNode* childNode = fishFBX.scene->GetRootNode()->GetChild(0);
 	FbxString name1 = childNode->GetName();
-	meshes.insert(std::pair<std::string, Mesh*>("man", fbxLoader.GetMesh(childNode, device)));
-
-	materials.insert(MaterialMapType("rudd", new Material(animationVS, animationPS, shaderResourceViews["ruddTexture"], shaderResourceViews["ruddNormal"], sampler)));
+	meshes.insert(std::pair<std::string, Mesh*>("rudd", fishFBX.GetMesh(childNode, device)));
+	materials.insert(MaterialMapType("rudd", new Material(animationVS, animationPS, nullptr, nullptr, nullptr)));
 }
 
 Resources::Resources(ID3D11Device *device, ID3D11DeviceContext *context, IDXGISwapChain* swapChain)
@@ -281,4 +281,5 @@ Resources::~Resources()
 	for (auto it : pixelShaders)delete it.second;
 	for (auto it : vertexShaders)delete it.second;
 	sampler->Release();
+	//delete fishFBX;
 }

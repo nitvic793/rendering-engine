@@ -79,7 +79,7 @@ public:
 	void DestroySdkObjects(bool);
 	bool LoadScene(const char*);
 	void LoadNodes(FbxNode*, ID3D11Device*);
-	std::shared_ptr<Mesh> GetMesh(FbxNode*, ID3D11Device*);
+	Mesh* GetMesh(FbxNode*, ID3D11Device*);
 	unsigned int FindJointIndex(const std::string &);
 	void GetAnimatedMatrix();
 	void GetAnimatedMatrixExtra();

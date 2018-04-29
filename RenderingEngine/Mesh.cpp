@@ -15,7 +15,7 @@ Mesh::Mesh(Vertex *vertices, UINT vertexCount, UINT *indices, UINT indexCount, I
 
 Mesh::Mesh(VertexAnimated * vertices, UINT vertexCount, UINT * indices, UINT indexCount, ID3D11Device * device)
 {
-	CalculateTangentsAnimated(vertices, vertexCount, indices, indexCount);
+	//CalculateTangentsAnimated(vertices, vertexCount, indices, indexCount);
 	this->indexCount = indexCount;
 	this->vertexCount = vertexCount;
 
@@ -318,6 +318,7 @@ void Mesh::CalculateTangents(Vertex * vertices, UINT vertexCount, UINT * indices
 	delete[] tan1;
 }
 
+/*
 void Mesh::CalculateTangentsAnimated(VertexAnimated * vertices, UINT vertexCount, UINT * indices, UINT indexCount)
 {
 	XMFLOAT3 *tan1 = new XMFLOAT3[vertexCount * 2];
@@ -374,12 +375,12 @@ void Mesh::CalculateTangentsAnimated(VertexAnimated * vertices, UINT vertexCount
 		auto dot = XMVector3Dot(XMLoadFloat3(&n), XMLoadFloat3(&t));
 		XMStoreFloat3(&vertices[a].Tangent, XMVector3Normalize(XMLoadFloat3(&t) - XMLoadFloat3(&n)* dot));
 
-		// Calculate handedness
-		/*tangent[a].w = (Dot(Cross(n, t), tan2[a]) < 0.0F) ? -1.0F : 1.0F;*/
+
 	}
 
 	delete[] tan1;
 }
+*/
 
 XMFLOAT3 Mesh::GetMaxDimensions() const
 {

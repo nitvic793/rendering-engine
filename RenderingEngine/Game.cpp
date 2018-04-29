@@ -371,9 +371,9 @@ void Game::RenderEntityShadow(Entity * entity)
 void Game::RenderShadowMap()
 {
 	XMMATRIX shView = XMMatrixLookAtLH(
-		XMVectorSet(-10, 10, 10, 0),	// Start back and in the air
-		XMVectorSet(0, 0, 0, 0),	// Look at the origin
-		XMVectorSet(0, 1, 0, 0));	// Up is up
+		XMVectorSet(-10, 10, 10, 0),	
+		XMVectorSet(0, 0, 0, 0),
+		XMVectorSet(0, 1, 0, 0));	
 	XMStoreFloat4x4(&shadowViewMatrix, XMMatrixTranspose(shView));
 
 	XMMATRIX shProj = XMMatrixOrthographicLH(50.0f, 50.0f, 0.1f, 100.0f);
@@ -409,7 +409,8 @@ void Game::RenderShadowMap()
 
 	for (unsigned int i = 0; i < entities.size(); i++)
 	{
-		RenderEntityShadow(entities[i]);
+		if(entities[i]->hasShadow)
+			RenderEntityShadow(entities[i]);
 	}
 	RenderEntityShadow(currentProjectile);
 	
@@ -476,7 +477,8 @@ void Game::InitializeEntities()
 	entities.push_back(new Entity(resources->meshes["Rudd-Fish_Cube.001"], resources->materials["fish"]));
 	entities.push_back(new Entity(resources->meshes["palm"], resources->materials["palm"]));
 	entities.push_back(new Entity(resources->meshes["palm_2"], resources->materials["palm_2"]));
-	entities.push_back(new Entity(resources->meshes["tuna"], resources->materials["tuna"]));
+	//entities.push_back(new Entity(resources->meshes["tuna"], resources->materials["tuna"]));
+	entities.push_back(new Entity(resources->meshes["rudd"], resources->materials["rudd"]));
 	//entities.push_back(new Entity(resources->meshes["Coconut_Tree"], resources->materials["boat"]));
 
 	CreateWater();
@@ -494,7 +496,13 @@ void Game::InitializeEntities()
 
 	entities[3]->SetScale(0.5f, 0.5f, 0.5f);
 	entities[4]->SetScale(0.5f, 0.5f, 0.5f);
-	//entities[2]->hasShadow = false;
+
+
+	
+	entities[5]->SetPosition(1.f, 2.f, 1.f);
+	entities[5]->SetScale(0.01,0.01,0.01);
+	entities[5]->isAnimated = true;
+	
 }
 
 void Game::InitializeRenderer()

@@ -6,6 +6,7 @@
 #include <DirectXMath.h>
 #include <fstream>
 
+
 using namespace DirectX;
 
 struct Triangle
