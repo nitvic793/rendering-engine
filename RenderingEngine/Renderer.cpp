@@ -72,7 +72,7 @@ void Renderer::DrawEntity(Entity* entity)
 		context->IASetIndexBuffer(mesh->GetIndexBuffer(), DXGI_FORMAT_R32_UINT, 0);
 		context->DrawIndexed((UINT)mesh->GetIndexCount(), 0, 0);
 
-		int a = 0;
+		int a = 1;
 	}
 }
 

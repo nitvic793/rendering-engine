@@ -499,8 +499,9 @@ void Game::InitializeEntities()
 
 
 	
-	entities[5]->SetPosition(1.f, 2.f, 1.f);
-	entities[5]->SetScale(0.01,0.01,0.01);
+	entities[5]->SetPosition(1.f, 2.f, 5.f);
+	entities[5]->SetScale(0.02,0.02,0.02);
+	entities[5]->SetRotation(0,0,0);
 	entities[5]->isAnimated = true;
 	
 }

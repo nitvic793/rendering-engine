@@ -33,21 +33,21 @@ struct VertexToPixel
 
 	float4 position		: SV_POSITION;
 	float3 normal		: NORMAL;
-	//float2 uv			: TEXCOORD;
-	//float3 worldPos		: POSITION;
-	//float3 tangent		: TANGENT;
+	float2 uv			: TEXCOORD;
+	float3 worldPos		: POSITION;
+	float3 tangent		: TANGENT;
 };
 
 
 
-//Texture2D diffuseTexture : register(t0);
-//Texture2D normalTexture : register(t1);
-//Texture2D roughnessTexture : register(t2);
-//SamplerState basicSampler : register(s0);
+Texture2D diffuseTexture : register(t0);
+Texture2D normalTexture : register(t1);
+Texture2D roughnessTexture : register(t2);
+SamplerState basicSampler : register(s0);
 
 
 
-/*
+
 // Range-based attenuation function
 float Attenuate(float3 lightPosition, float lightRange, float3 worldPos)
 {
@@ -100,12 +100,11 @@ float3 calculateNormalFromMap(float2 uv, float3 normal, float3 tangent)
 	return normalize(mul(unpackedNormal, TBN));
 }
 
-*/
+
 
 float4 main(VertexToPixel input) : SV_TARGET
 {
-	//return(1,0,0,1);
-
+	/*
 	input.normal = normalize(input.normal);
 
 	//Light Calculations
@@ -114,9 +113,9 @@ float4 main(VertexToPixel input) : SV_TARGET
 	dirNdotL1 = saturate(dirNdotL1);
 
 	return float4((dirNdotL1*dirLights[0].DiffuseColor)  + dirLights[0].AmbientColor);
-	
+	*/
 
-	/*
+	
 	float4 surfaceColor = diffuseTexture.Sample(basicSampler, input.uv);
 	float3 finalNormal = calculateNormalFromMap(input.uv, input.normal, input.tangent);
 	input.normal = normalize(input.normal);
@@ -136,5 +135,5 @@ float4 main(VertexToPixel input) : SV_TARGET
 
 	clip(totalColor.a);
 	return totalColor;
-	*/
+	
 }

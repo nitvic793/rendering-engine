@@ -258,10 +258,10 @@ void Resources::LoadResources()
 	//fishFBX = new FBXLoader();
 	fishFBX.LoadNodes(fishFBX.scene->GetRootNode(), device);
 	int numChildren = fishFBX.scene->GetRootNode()->GetChildCount();
-	FbxNode* childNode = fishFBX.scene->GetRootNode()->GetChild(0);
+	FbxNode* childNode = fishFBX.scene->GetRootNode()->GetChild(1);
 	FbxString name1 = childNode->GetName();
 	meshes.insert(std::pair<std::string, Mesh*>("rudd", fishFBX.GetMesh(childNode, device)));
-	materials.insert(MaterialMapType("rudd", new Material(animationVS, animationPS, nullptr, nullptr, nullptr)));
+	materials.insert(MaterialMapType("rudd", new Material(animationVS, animationPS, shaderResourceViews["fishTexture"], shaderResourceViews["fishNormal"], sampler)));
 }
 
 Resources::Resources(ID3D11Device *device, ID3D11DeviceContext *context, IDXGISwapChain* swapChain)

@@ -193,10 +193,10 @@ void Entity::PrepareMaterialAnimated(XMFLOAT4X4 viewMatrix, XMFLOAT4X4 projectio
 	}
 	vertexShader->SetData("bones", &bones, bonesSize);
 
-	//pixelShader->SetSamplerState("basicSampler", material->GetSampler());
-	//pixelShader->SetShaderResourceView("diffuseTexture", material->GetSRV());
-	//pixelShader->SetShaderResourceView("normalTexture", material->GetNormalSRV());
-	//pixelShader->SetShaderResourceView("roughnessTexture", material->GetRoughnessSRV());
+	pixelShader->SetSamplerState("basicSampler", material->GetSampler());
+	pixelShader->SetShaderResourceView("diffuseTexture", material->GetSRV());
+	pixelShader->SetShaderResourceView("normalTexture", material->GetNormalSRV());
+	pixelShader->SetShaderResourceView("roughnessTexture", material->GetRoughnessSRV());
 
 	vertexShader->CopyAllBufferData();
 	pixelShader->CopyAllBufferData();
