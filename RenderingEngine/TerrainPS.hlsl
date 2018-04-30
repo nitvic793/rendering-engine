@@ -105,6 +105,7 @@ float3 calculateNormalFromMap(float2 uv, float3 normal, float3 tangent)
 float4 main(VertexToPixel input) : SV_TARGET
 {
 	float4 blend = splatMap.Sample(basicSampler, input.blendUV);
+	//return blend;
 	//return float4(blend.a,0,0,0);
 	float4 color0 = redTexture.Sample(basicSampler, input.uv);
 	float4 color1 = diffuseTexture.Sample(basicSampler, input.uv);
