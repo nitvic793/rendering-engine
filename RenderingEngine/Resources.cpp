@@ -199,6 +199,10 @@ void Resources::LoadResources()
 	shadowPS->LoadShaderFile(L"PS_Shadow.cso");
 	pixelShaders.insert(PixelShaderMapType("shadow", shadowPS));
 
+	auto postPS = new SimplePixelShader(device, context);
+	postPS->LoadShaderFile(L"PostPS.cso");
+	pixelShaders.insert(PixelShaderMapType("post", postPS));
+
 	auto preShadowVS = new SimpleVertexShader(device, context);
 	preShadowVS->LoadShaderFile(L"PreShadowVS.cso");
 	vertexShaders.insert(VertexShaderMapType("preShadow", preShadowVS));
@@ -206,6 +210,22 @@ void Resources::LoadResources()
 	auto treeVS = new SimpleVertexShader(device, context);
 	treeVS->LoadShaderFile(L"TreeVS.cso");
 	vertexShaders.insert(VertexShaderMapType("tree", treeVS));
+
+	auto bloomExtractPS = new SimplePixelShader(device, context);
+	bloomExtractPS->LoadShaderFile(L"BloomExtractPS.cso");
+	pixelShaders.insert(PixelShaderMapType("bloomExtract", bloomExtractPS));
+
+	auto blurPS = new SimplePixelShader(device, context);
+	blurPS->LoadShaderFile(L"BlurPS.cso");
+	pixelShaders.insert(PixelShaderMapType("blur", blurPS));
+
+	auto bloomPS = new SimplePixelShader(device, context);
+	bloomPS->LoadShaderFile(L"BloomPS.cso");
+	pixelShaders.insert(PixelShaderMapType("bloom", bloomPS));
+
+	auto dofPS = new SimplePixelShader(device, context);
+	dofPS->LoadShaderFile(L"DepthOfFieldPS.cso");
+	pixelShaders.insert(PixelShaderMapType("dof", dofPS));
 
 	//Load Materials
 	materials.insert(MaterialMapType("metal", new Material(shadowVS, shadowPS, shaderResourceViews["metal"], shaderResourceViews["metalNormal"], shaderResourceViews["metalSpecular"], sampler)));

@@ -312,7 +312,7 @@ void Terrain::Initialize(ID3D11Device * device, ID3D11DeviceContext * context)
 	delete indices;
 }
 
-bool Terrain::Initialize(const char * filename, ID3D11Device * device, ID3D11DeviceContext * context)
+bool Terrain::Initialize(const char* filename, ID3D11Device * device, ID3D11DeviceContext * context)
 {
 	FILE* filePtr;
 	int error;
