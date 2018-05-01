@@ -131,6 +131,9 @@ float4 main(VertexToPixel input) : SV_TARGET
 	float shadowAmount = shadowMapTexture.SampleCmpLevelZero(shadowSampler, shadowUV, depthFromLight);
 	//shadowAmount = 1;
 
+	// Gamma correction
+	surfaceColor.rgb = lerp(surfaceColor.rgb, pow(surfaceColor.rgb, 2.2), 1);
+
 	int i = 0;
 	for (i = 0; i < DirectionalLightCount; ++i)
 	{
@@ -141,5 +144,8 @@ float4 main(VertexToPixel input) : SV_TARGET
 	{
 		totalColor += calculatePointLight(finalNormal, input.worldPos, pointLights[i], roughness)  * surfaceColor;
 	}
-	return totalColor;
+
+	// Gamma correction
+	float3 gammaCorrectValue = lerp(totalColor, pow(totalColor, 1.0f / 2.2f), 1);
+	return float4(gammaCorrectValue,1);
 }
