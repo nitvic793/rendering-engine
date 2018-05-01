@@ -91,6 +91,8 @@ Game::~Game()
 	delete water;
 	delete hullShader;
 	delete domainShader;
+	particleBlendState->Release();
+	particleDepthState->Release();
 }
 
 // --------------------------------------------------------
@@ -276,6 +278,88 @@ void Game::Init()
 	shadowRastDesc.DepthBiasClamp = 0.0f;
 	shadowRastDesc.SlopeScaledDepthBias = 1.0f;
 	device->CreateRasterizerState(&shadowRastDesc, &shadowRasterizer);
+
+
+	//Post Process Setup
+	ID3D11Texture2D* postProcessRenderTexture;
+	ID3D11Texture2D* bloomExtractTexture;
+	ID3D11Texture2D* bloomBlurTexture;
+	ID3D11Texture2D* bloomTexture;
+	ID3D11Texture2D* blurTexture;
+	ID3D11Texture2D* dofTexture;
+
+	// Set up render texture
+	D3D11_TEXTURE2D_DESC ppDesc = {};
+	ppDesc.Width = width;
+	ppDesc.Height = height;
+	ppDesc.MipLevels = 1;
+	ppDesc.ArraySize = 1;
+	ppDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	ppDesc.Usage = D3D11_USAGE_DEFAULT;
+	ppDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+	ppDesc.CPUAccessFlags = 0;
+	ppDesc.MiscFlags = 0;
+	ppDesc.SampleDesc.Count = 1;
+	ppDesc.SampleDesc.Quality = 0;
+	device->CreateTexture2D(&ppDesc, 0, &postProcessRenderTexture);
+	device->CreateTexture2D(&ppDesc, 0, &bloomExtractTexture);
+	device->CreateTexture2D(&ppDesc, 0, &bloomBlurTexture);
+	device->CreateTexture2D(&ppDesc, 0, &bloomTexture);
+	device->CreateTexture2D(&ppDesc, 0, &blurTexture);
+	device->CreateTexture2D(&ppDesc, 0, &dofTexture);
+
+	// Set up render target view
+	rtvDesc = {};
+	rtvDesc.Format = ppDesc.Format;
+	rtvDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+	rtvDesc.Texture2D.MipSlice = 0;
+	device->CreateRenderTargetView(postProcessRenderTexture, &rtvDesc, &postProcessRTV);
+	device->CreateRenderTargetView(bloomExtractTexture, &rtvDesc, &bloomExtractRTV);
+	device->CreateRenderTargetView(bloomBlurTexture, &rtvDesc, &bloomBlurRTV);
+	device->CreateRenderTargetView(bloomTexture, &rtvDesc, &bloomRTV);
+	device->CreateRenderTargetView(blurTexture, &rtvDesc, &dofBlurRTV);
+	device->CreateRenderTargetView(dofTexture, &rtvDesc, &dofRTV);
+
+	// Set up shader resource view for same texture
+	srvDesc = {};
+	srvDesc.Format = rtDesc.Format;
+	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+	srvDesc.Texture2D.MipLevels = 1;
+	srvDesc.Texture2D.MostDetailedMip = 0;
+	device->CreateShaderResourceView(postProcessRenderTexture, &srvDesc, &postProcessSRV);
+	device->CreateShaderResourceView(bloomExtractTexture, &srvDesc, &bloomExtractSRV);
+	device->CreateShaderResourceView(bloomBlurTexture, &srvDesc, &bloomBlurSRV);
+	device->CreateShaderResourceView(bloomTexture, &srvDesc, &bloomSRV);
+	device->CreateShaderResourceView(blurTexture, &srvDesc, &dofBlurSRV);
+	device->CreateShaderResourceView(dofTexture, &srvDesc, &dofSRV);
+
+	postProcessRenderTexture->Release();
+	bloomExtractTexture->Release();
+	bloomBlurTexture->Release();
+	bloomTexture->Release();
+	blurTexture->Release();
+	dofTexture->Release();
+
+	// A depth state for the particles
+	D3D11_DEPTH_STENCIL_DESC dsDesc = {};
+	dsDesc.DepthEnable = true;
+	dsDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO; // Turns off depth writing
+	dsDesc.DepthFunc = D3D11_COMPARISON_LESS;
+	device->CreateDepthStencilState(&dsDesc, &particleDepthState);
+
+	// Blend for particles (additive)
+	D3D11_BLEND_DESC blend = {};
+	blend.AlphaToCoverageEnable = false;
+	blend.IndependentBlendEnable = false;
+	blend.RenderTarget[0].BlendEnable = true;
+	blend.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+	blend.RenderTarget[0].SrcBlend = D3D11_BLEND_ONE;
+	blend.RenderTarget[0].DestBlend = D3D11_BLEND_ONE;
+	blend.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+	blend.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
+	blend.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ONE;
+	blend.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+	device->CreateBlendState(&blend, &particleBlendState);
 
 	// Tell the input assembler stage of the pipeline what kind of
 	// geometric primitives (points, lines or triangles) we want to draw.  
@@ -604,6 +688,7 @@ void Game::OnResize()
 	camera->SetProjectionMatrix((float)width / height);
 }
 
+XMFLOAT3 hitPos;
 // --------------------------------------------------------
 // Update your game here - user input, move objects, AI, etc.
 // --------------------------------------------------------
@@ -642,24 +727,57 @@ void Game::Update(float deltaTime, float totalTime)
 		currentProjectile->Shoot(1.f, camera->GetDirection());
 	}
 
+	for (auto e : emitters)
+	{
+		e->Update(deltaTime);
+	}
+	isDofEnabled = false;
+	if ((GetAsyncKeyState(VK_RBUTTON) & 0x8000) != 0)
+	{
+		isDofEnabled = true;
+	}
+
+
 	if ((GetAsyncKeyState(VK_SPACE) & 0x8000) != 0) {
 		CreateRipple(0.0f, 0.0f, 50.0f, 2.0f, 2.0f);
 	}
+
 
 	/*if (fishes->CheckForCollision(currentProjectile))
 	{
 		printf("Hit!");
 	}*/
 
+	XMFLOAT3 pos = XMFLOAT3(0,0,0);
+
 	//Check for spear hitting the water
 	if (currentProjectile->GetPosition().y <= -7.0f && !projectileHitWater) {
 		projectileHitWater = true;
-		XMFLOAT3 pos = currentProjectile->GetPosition();
+		pos = currentProjectile->GetPosition();
+		hitPos = currentProjectile->GetPosition();
 		float x = pos.x;
 		float z = pos.z;
 		CreateRipple(x, 0.0f, z, 2.0f, 0.5f);
-	}
 
+		std::cout << pos.y << std::endl;
+		emitters.emplace_back(std::make_shared<Emitter>(
+			3,							// Max particles
+			100,							// Particles per second
+			1,								// Particle lifetime
+			1.0f,							// Start size
+			5.0f,							// End size
+			XMFLOAT4(0.2, 0.3f, 0.6f, 0.6f),	// Start color
+			XMFLOAT4(0, 0.05f, 0.2f, 1),		// End color
+			XMFLOAT3(0, 1, 0),				// Start velocity
+			XMFLOAT3(0, 1, 0),				// Start acceleration
+			device,
+			resources->vertexShaders["particle"],
+			resources->pixelShaders["particle"],
+			resources->shaderResourceViews["particle"],
+			XMFLOAT3(pos.x, pos.y + 1.5, pos.z)
+			));
+	}
+	
 	auto distance = XMVectorGetX(XMVector3Length(XMLoadFloat3(&currentProjectile->GetPosition()) - XMLoadFloat3(&camera->GetPosition())));
 
 	if (fabsf(distance) > 50 || fishes->CheckForCollision(currentProjectile))
@@ -721,13 +839,18 @@ void Game::Draw(float deltaTime, float totalTime)
 	renderer->DrawEntity(terrain.get());
 	renderer->DrawEntity(entities[2]);
 	fishes->Render(renderer);
+
+	
 	DrawSky();
 	//context->OMSetBlendState(blendState, 0, 0xFFFFFFFF);
 
 	// Reset blend state if blending
-	
+
 	context->OMSetBlendState(0, 0, 0xFFFFFFFF);
 	context->OMSetRenderTargets(1, &backBufferRTV, 0);
+
+	context->OMSetRenderTargets(1, &postProcessRTV, 0);
+
 
 	DrawFullscreenQuad(refractionSRV);
 
@@ -771,7 +894,41 @@ void Game::Draw(float deltaTime, float totalTime)
 		resources->pixelShaders["water"]->SetData("ripples", rippleData.data(), sizeof(RippleData) * MAX_RIPPLES);
 	}
 	resources->pixelShaders["water"]->SetInt("rippleCount", (int)ripples.size());
+			//emitter->SetPosition(XMFLOAT3(ripple.ripplePosition.x,-6, ripple.ripplePosition.z));
+		
+	for (auto e : emitters) 
+	{
+		if (!e->doneEmit) 
+		{
+			//// Particle states
+			float blend[4] = { 1,1,1,1 };
+			context->OMSetBlendState(particleBlendState, blend, 0xffffffff);  // Additive blending
+			//context->OMSetDepthStencilState(particleDepthState, 0);			// No depth WRITING
+			e->Draw(context, camera);
+			context->OMSetBlendState(0, 0, 0xFFFFFFFF);
+			//context->OMGetDepthStencilState(0, 0);
+		}
+		else 
+		{
+			emitters.pop_back();
+		}
+	}
 
+
+	context->OMSetBlendState(0, 0, 0xFFFFFFFF);
+	context->OMSetRenderTargets(1, &backBufferRTV, 0);
+	ID3D11ShaderResourceView *nextBuffer = postProcessSRV;
+	BloomPostProcess(postProcessSRV);
+	nextBuffer = bloomSRV;
+	if (isDofEnabled)
+	{
+		DepthOfFieldPostProcess(bloomSRV);
+		nextBuffer = dofSRV;
+	}
+	DrawPostProcess(nextBuffer);
+	
+	context->OMSetRenderTargets(1, &backBufferRTV, depthStencilView);
+	
 	renderer->Present();
 }
 

@@ -22,6 +22,7 @@
 #include "Water.h"
 #include "TreeManager.h"
 #include "FishController.h"
+#include "Emitter.h"
 
 class Game 
 	: public DXCore
@@ -120,5 +121,9 @@ private:
 
 	std::unique_ptr<TreeManager> trees;
 	std::unique_ptr<FishController> fishes;
+	Emitter* emitter;
+	ID3D11BlendState* particleBlendState;
+	ID3D11DepthStencilState* particleDepthState;
+	std::vector<std::shared_ptr<Emitter>> emitters;
 };
 

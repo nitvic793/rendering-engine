@@ -144,6 +144,9 @@ void Resources::LoadResources()
 	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/Rudd-Fish_Normalmap.png", nullptr, &srv);
 	shaderResourceViews.insert(SRVMapType("ruddNormal", srv));
 
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/particle.jpg", nullptr, &srv);
+	shaderResourceViews.insert(SRVMapType("particle", srv));
+
 	//Load Sampler
 	D3D11_SAMPLER_DESC samplerDesc = {};
 	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
@@ -217,9 +220,44 @@ void Resources::LoadResources()
 	animationVS->LoadShaderFile(L"AnimationVS.cso");
 	vertexShaders.insert(VertexShaderMapType("animation", animationVS));
 
+
 	auto animationPS = new SimplePixelShader(device, context);
 	animationPS->LoadShaderFile(L"AnimationPS.cso");
 	pixelShaders.insert(PixelShaderMapType("animation", animationPS));
+
+	auto bloomExtractPS = new SimplePixelShader(device, context);
+	bloomExtractPS->LoadShaderFile(L"BloomExtractPS.cso");
+	pixelShaders.insert(PixelShaderMapType("bloomExtract", bloomExtractPS));
+
+	auto blurPS = new SimplePixelShader(device, context);
+	blurPS->LoadShaderFile(L"BlurPS.cso");
+	pixelShaders.insert(PixelShaderMapType("blur", blurPS));
+
+	auto bloomPS = new SimplePixelShader(device, context);
+	bloomPS->LoadShaderFile(L"BloomPS.cso");
+	pixelShaders.insert(PixelShaderMapType("bloom", bloomPS));
+
+	auto dofPS = new SimplePixelShader(device, context);
+	dofPS->LoadShaderFile(L"DepthOfFieldPS.cso");
+	pixelShaders.insert(PixelShaderMapType("dof", dofPS));
+
+	auto terrainPS = new SimplePixelShader(device, context);
+	terrainPS->LoadShaderFile(L"TerrainPS.cso");
+	pixelShaders.insert(PixelShaderMapType("terrain", terrainPS));
+
+	auto terrainVS = new SimpleVertexShader(device, context);
+	terrainVS->LoadShaderFile(L"TerrainVS.cso");
+	vertexShaders.insert(VertexShaderMapType("terrain", terrainVS));
+
+	auto particlePS = new SimplePixelShader(device, context);
+	particlePS->LoadShaderFile(L"ParticlePS.cso");
+	pixelShaders.insert(PixelShaderMapType("particle", particlePS));
+
+	auto particleVS = new SimpleVertexShader(device, context);
+	particleVS->LoadShaderFile(L"ParticleVS.cso");
+	vertexShaders.insert(VertexShaderMapType("particle", particleVS));
+
+
 
 	//Load Materials
 	materials.insert(MaterialMapType("metal", new Material(shadowVS, shadowPS, shaderResourceViews["metal"], shaderResourceViews["metalNormal"], shaderResourceViews["metalSpecular"], sampler)));
