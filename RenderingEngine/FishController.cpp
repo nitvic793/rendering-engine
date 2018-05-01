@@ -30,7 +30,7 @@ void FishController::Render(Renderer* renderer)
 {
 	for (auto e : entities)
 	{
-		renderer->DrawEntity(e);
+		renderer->Draw(e);
 	}
 }
 
@@ -50,7 +50,7 @@ bool FishController::CheckForCollision(Entity * entity)
 
 FishController::FishController(Mesh* mesh, Material* mat, int count, XMFLOAT3 startPos, XMFLOAT3 endPos, float resetThreshold, XMFLOAT3 defaultRotation, XMFLOAT3 defaultScale)
 {
-	speed = 2.f;
+	speed = 4.f;
 	fishCount = count;
 	startPosition = startPos;
 	endPosition = endPos;
@@ -58,7 +58,12 @@ FishController::FishController(Mesh* mesh, Material* mat, int count, XMFLOAT3 st
 	resetThresholdDistance = resetThreshold;
 	for (int i = 0; i < count; ++i)
 	{
-		entities.push_back(new Entity(mesh, mat));
+		Entity *entity = new Entity(mesh, mat);
+		entity->SetPosition(RandomOffsetFromStart());
+		entity->SetScale(0.001, 0.001, 0.001);
+		entity->SetRotation(0, 0, 0);
+		entity->isAnimated = true;	
+		entities.push_back(entity);
 	}
 
 	srand(time(nullptr));

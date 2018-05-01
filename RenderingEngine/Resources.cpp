@@ -138,6 +138,30 @@ void Resources::LoadResources()
 	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/tuna.png", nullptr, &srv);
 	shaderResourceViews.insert(SRVMapType("tuna", srv));
 
+	CreateWICTextureFromFile(device, context, L"../../Assets/Terrain/splatmap.png", nullptr, &srv);
+	shaderResourceViews.insert(SRVMapType("splatmap", srv));
+
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/sand.png", nullptr, &srv);
+	shaderResourceViews.insert(SRVMapType("sand", srv));
+
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/sandNormal.png", nullptr, &srv);
+	shaderResourceViews.insert(SRVMapType("sandNormal", srv));
+
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/gravel.jpg", nullptr, &srv);
+	shaderResourceViews.insert(SRVMapType("gravel", srv));
+
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/gravelNormal.jpg", nullptr, &srv);
+	shaderResourceViews.insert(SRVMapType("gravelNormal", srv));
+
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/particle.jpg", nullptr, &srv);
+	shaderResourceViews.insert(SRVMapType("particle", srv));
+
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/Rudd-Fish_Colourmap.png", nullptr, &srv);
+	shaderResourceViews.insert(SRVMapType("ruddTexture", srv));
+
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/Rudd-Fish_Normalmap.png", nullptr, &srv);
+	shaderResourceViews.insert(SRVMapType("ruddNormal", srv));
+
 	//Load Sampler
 	D3D11_SAMPLER_DESC samplerDesc = {};
 	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
@@ -199,6 +223,10 @@ void Resources::LoadResources()
 	shadowPS->LoadShaderFile(L"PS_Shadow.cso");
 	pixelShaders.insert(PixelShaderMapType("shadow", shadowPS));
 
+	auto postPS = new SimplePixelShader(device, context);
+	postPS->LoadShaderFile(L"PostPS.cso");
+	pixelShaders.insert(PixelShaderMapType("post", postPS));
+
 	auto preShadowVS = new SimpleVertexShader(device, context);
 	preShadowVS->LoadShaderFile(L"PreShadowVS.cso");
 	vertexShaders.insert(VertexShaderMapType("preShadow", preShadowVS));
@@ -207,11 +235,54 @@ void Resources::LoadResources()
 	treeVS->LoadShaderFile(L"TreeVS.cso");
 	vertexShaders.insert(VertexShaderMapType("tree", treeVS));
 
+	auto bloomExtractPS = new SimplePixelShader(device, context);
+	bloomExtractPS->LoadShaderFile(L"BloomExtractPS.cso");
+	pixelShaders.insert(PixelShaderMapType("bloomExtract", bloomExtractPS));
+
+	auto blurPS = new SimplePixelShader(device, context);
+	blurPS->LoadShaderFile(L"BlurPS.cso");
+	pixelShaders.insert(PixelShaderMapType("blur", blurPS));
+
+	auto bloomPS = new SimplePixelShader(device, context);
+	bloomPS->LoadShaderFile(L"BloomPS.cso");
+	pixelShaders.insert(PixelShaderMapType("bloom", bloomPS));
+
+	auto dofPS = new SimplePixelShader(device, context);
+	dofPS->LoadShaderFile(L"DepthOfFieldPS.cso");
+	pixelShaders.insert(PixelShaderMapType("dof", dofPS));
+
+	auto terrainPS = new SimplePixelShader(device, context);
+	terrainPS->LoadShaderFile(L"TerrainPS.cso");
+	pixelShaders.insert(PixelShaderMapType("terrain", terrainPS));
+
+	auto terrainVS = new SimpleVertexShader(device, context);
+	terrainVS->LoadShaderFile(L"TerrainVS.cso");
+	vertexShaders.insert(VertexShaderMapType("terrain", terrainVS));
+
+	auto particlePS = new SimplePixelShader(device, context);
+	particlePS->LoadShaderFile(L"ParticlePS.cso");
+	pixelShaders.insert(PixelShaderMapType("particle", particlePS));
+
+	auto particleVS = new SimpleVertexShader(device, context);
+	particleVS->LoadShaderFile(L"ParticleVS.cso");
+	vertexShaders.insert(VertexShaderMapType("particle", particleVS));
+
+	auto animationVS = new SimpleVertexShader(device, context);
+	animationVS->LoadShaderFile(L"AnimationVS.cso");
+	vertexShaders.insert(VertexShaderMapType("animation", animationVS));
+
+	auto animationPS = new SimplePixelShader(device, context);
+	animationPS->LoadShaderFile(L"AnimationPS.cso");
+	pixelShaders.insert(PixelShaderMapType("animation", animationPS));
+
+
 	//Load Materials
+	materials.insert(MaterialMapType("terrain", new Material(shadowVS, terrainPS, nullptr, sampler)));
 	materials.insert(MaterialMapType("metal", new Material(shadowVS, shadowPS, shaderResourceViews["metal"], shaderResourceViews["metalNormal"], shaderResourceViews["metalSpecular"], sampler)));
 	materials.insert(MaterialMapType("fabric", new Material(vertexShader, pixelShader, shaderResourceViews["fabric"], shaderResourceViews["fabricNormal"], sampler)));
 	materials.insert(MaterialMapType("wood", new Material(vertexShader, pixelShader, shaderResourceViews["wood"], shaderResourceViews["woodNormal"], sampler)));
 	materials.insert(MaterialMapType("grass", new Material(vertexShader, pixelShader, shaderResourceViews["grass"], shaderResourceViews["grassNormal"], shaderResourceViews["grassSpecular"], sampler)));
+	materials.insert(MaterialMapType("grassTerrain", new Material(terrainVS, terrainPS, shaderResourceViews["grass"], shaderResourceViews["grassNormal"], shaderResourceViews["grassSpecular"], sampler)));
 	materials.insert(MaterialMapType("spear", new Material(vertexShader, pixelShader, shaderResourceViews["spear"], shaderResourceViews["spearNormal"], sampler)));
 	materials.insert(MaterialMapType("boat", new Material(shadowVS, shadowPS, shaderResourceViews["boat"], shaderResourceViews["boatNormal"], sampler)));
 	materials.insert(MaterialMapType("water", new Material(waterVS, waterPS, shaderResourceViews["waterColor"], shaderResourceViews["waterNormal"], sampler)));
@@ -237,6 +308,21 @@ void Resources::LoadResources()
 
 	loader.LoadFile("../../Assets/Models/fish01.obj");
 	AddToMeshMap(loader, meshes, device, "", shaderResourceViews, false);
+
+
+	// Animated fish data
+
+	fishFBX.LoadNodes(fishFBX.scene->GetRootNode(), device);
+	int numChildren = fishFBX.scene->GetRootNode()->GetChildCount();
+	FbxNode* childNode = fishFBX.scene->GetRootNode()->GetChild(1);
+	FbxString name1 = childNode->GetName();
+	meshes.insert(std::pair<std::string, Mesh*>("ruddFish", fishFBX.GetMesh(childNode, device)));
+	materials.insert(MaterialMapType("ruddFish", new Material(animationVS, animationPS, shaderResourceViews["ruddTexture"], shaderResourceViews["ruddNormal"], sampler)));
+}
+
+ID3D11ShaderResourceView * Resources::GetSRV(std::string name)
+{
+	return shaderResourceViews[name];
 }
 
 Resources::Resources(ID3D11Device *device, ID3D11DeviceContext *context, IDXGISwapChain* swapChain)

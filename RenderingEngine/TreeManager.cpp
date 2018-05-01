@@ -9,7 +9,7 @@ void TreeManager::Render(int index, Camera * camera)
 	ID3D11Buffer* bufferPointers[2];
 
 	strides[0] = sizeof(Vertex);
-	strides[1] = sizeof(TreeInstanceType);
+	strides[1] = sizeof(XMFLOAT4X4);
 	offsets[0] = 0;
 	offsets[1] = 0;
 	bufferPointers[0] = meshes[index]->GetVertexBuffer();
@@ -40,8 +40,9 @@ void TreeManager::Render(int index, Camera * camera)
 
 	vs->SetShader();
 	ps->SetShader();
-
+	context->RSSetState(rasterizer);
 	context->DrawInstanced(meshes[index]->GetVertexCount(), instanceCount, 0, 0);
+	context->RSSetState(nullptr);
 }
 
 void TreeManager::InitializeTrees(std::vector<std::string> meshNames, std::vector<std::string> materialNames, std::vector<XMFLOAT3> positionsVector)
@@ -57,24 +58,28 @@ void TreeManager::InitializeTrees(std::vector<std::string> meshNames, std::vecto
 		materials.push_back(rm->materials[mName]);
 	}
 
+	auto identityMat = XMMatrixIdentity();
 	positions = positionsVector;
 	instanceCount = (int)positions.size();
-	treeInstances = new TreeInstanceType[instanceCount];
+	treeInstances = new XMFLOAT4X4[instanceCount];
 	for (int i = 0; i < instanceCount; ++i)
 	{
-		treeInstances[i].Position = positions[i];
+		auto instaMat = identityMat * XMMatrixScaling(1, 1, 1) * XMMatrixRotationZ(0)* XMMatrixTranslationFromVector(XMLoadFloat3(&positions[i]));
+		XMStoreFloat4x4(&treeInstances[i], XMMatrixTranspose(instaMat));
+		//XMStoreFloat4x4(&worldInstances[i], XMMatrixTranspose(instaMat));
+		//treeInstances[i].world = positions[i];
 	}
 
 	D3D11_BUFFER_DESC instanceBufferDesc;
 	D3D11_SUBRESOURCE_DATA instanceData;
-	instanceBufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	instanceBufferDesc.ByteWidth = sizeof(TreeInstanceType) * instanceCount;
+	instanceBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+	instanceBufferDesc.ByteWidth = sizeof(XMFLOAT4X4) * instanceCount;
 	instanceBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-	instanceBufferDesc.CPUAccessFlags = 0;
+	instanceBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 	instanceBufferDesc.MiscFlags = 0;
 	instanceBufferDesc.StructureByteStride = 0;
 
-	instanceData.pSysMem = treeInstances;
+	instanceData.pSysMem = (void*)treeInstances;
 	instanceData.SysMemPitch = 0;
 	instanceData.SysMemSlicePitch = 0;
 
@@ -93,6 +98,10 @@ TreeManager::TreeManager(ID3D11Device* device, ID3D11DeviceContext* context)
 	this->context = context;
 	instanceBuffer = nullptr;
 	treeInstances = nullptr;
+	D3D11_RASTERIZER_DESC  rasDesc = {};
+	rasDesc.FillMode = D3D11_FILL_SOLID;
+	rasDesc.CullMode = D3D11_CULL_NONE;
+	device->CreateRasterizerState(&rasDesc, &rasterizer);
 }
 
 
@@ -100,4 +109,5 @@ TreeManager::~TreeManager()
 {
 	if (instanceBuffer)instanceBuffer->Release();
 	if (treeInstances)delete[] treeInstances;
+	if (rasterizer)rasterizer->Release();
 }

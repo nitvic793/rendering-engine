@@ -86,11 +86,26 @@ Game::~Game()
 	shadowSampler->Release();;
 	shadowRasterizer->Release();
 
+	postProcessSRV->Release();
+	postProcessRTV->Release();
+	bloomBlurRTV->Release();
+	bloomBlurSRV->Release();
+	bloomExtractRTV->Release();
+	bloomExtractSRV->Release();
+	bloomRTV->Release();
+	bloomSRV->Release();
+	dofBlurRTV->Release();
+	dofBlurSRV->Release();
+	dofRTV->Release();
+	dofSRV->Release();
+
 	displacementSampler->Release();
 	delete currentProjectile;
 	delete water;
 	delete hullShader;
 	delete domainShader;
+	particleBlendState->Release();
+	particleDepthState->Release();
 }
 
 // --------------------------------------------------------
@@ -99,10 +114,8 @@ Game::~Game()
 // --------------------------------------------------------
 void Game::Init()
 {
-	// Helper methods for loading shaders, creating some basic
-	// geometry to draw and some simple camera matrices.
-	//  - You'll be expanding and/or replacing these later
 	projectileHitWater = false;
+	isDofEnabled = false;
 	RECT rect;
 	GetWindowRect(this->hWnd, &rect);
 	prevMousePos.x = width / 2;
@@ -209,8 +222,6 @@ void Game::Init()
 
 	device->CreateBlendState(&bd, &blendState);
 
-
-
 	// Ask DirectX for the actual object
 	device->CreateSamplerState(&rSamp, &refractSampler);
 
@@ -277,6 +288,88 @@ void Game::Init()
 	shadowRastDesc.SlopeScaledDepthBias = 1.0f;
 	device->CreateRasterizerState(&shadowRastDesc, &shadowRasterizer);
 
+
+	//Post Process Setup
+	ID3D11Texture2D* postProcessRenderTexture;
+	ID3D11Texture2D* bloomExtractTexture;
+	ID3D11Texture2D* bloomBlurTexture;
+	ID3D11Texture2D* bloomTexture;
+	ID3D11Texture2D* blurTexture;
+	ID3D11Texture2D* dofTexture;
+
+	// Set up render texture
+	D3D11_TEXTURE2D_DESC ppDesc = {};
+	ppDesc.Width = width;
+	ppDesc.Height = height;
+	ppDesc.MipLevels = 1;
+	ppDesc.ArraySize = 1;
+	ppDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	ppDesc.Usage = D3D11_USAGE_DEFAULT;
+	ppDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+	ppDesc.CPUAccessFlags = 0;
+	ppDesc.MiscFlags = 0;
+	ppDesc.SampleDesc.Count = 1;
+	ppDesc.SampleDesc.Quality = 0;
+	device->CreateTexture2D(&ppDesc, 0, &postProcessRenderTexture);
+	device->CreateTexture2D(&ppDesc, 0, &bloomExtractTexture);
+	device->CreateTexture2D(&ppDesc, 0, &bloomBlurTexture);
+	device->CreateTexture2D(&ppDesc, 0, &bloomTexture);
+	device->CreateTexture2D(&ppDesc, 0, &blurTexture);
+	device->CreateTexture2D(&ppDesc, 0, &dofTexture);
+
+	// Set up render target view
+	rtvDesc = {};
+	rtvDesc.Format = ppDesc.Format;
+	rtvDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+	rtvDesc.Texture2D.MipSlice = 0;
+	device->CreateRenderTargetView(postProcessRenderTexture, &rtvDesc, &postProcessRTV);
+	device->CreateRenderTargetView(bloomExtractTexture, &rtvDesc, &bloomExtractRTV);
+	device->CreateRenderTargetView(bloomBlurTexture, &rtvDesc, &bloomBlurRTV);
+	device->CreateRenderTargetView(bloomTexture, &rtvDesc, &bloomRTV);
+	device->CreateRenderTargetView(blurTexture, &rtvDesc, &dofBlurRTV);
+	device->CreateRenderTargetView(dofTexture, &rtvDesc, &dofRTV);
+
+	// Set up shader resource view for same texture
+	srvDesc = {};
+	srvDesc.Format = rtDesc.Format;
+	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+	srvDesc.Texture2D.MipLevels = 1;
+	srvDesc.Texture2D.MostDetailedMip = 0;
+	device->CreateShaderResourceView(postProcessRenderTexture, &srvDesc, &postProcessSRV);
+	device->CreateShaderResourceView(bloomExtractTexture, &srvDesc, &bloomExtractSRV);
+	device->CreateShaderResourceView(bloomBlurTexture, &srvDesc, &bloomBlurSRV);
+	device->CreateShaderResourceView(bloomTexture, &srvDesc, &bloomSRV);
+	device->CreateShaderResourceView(blurTexture, &srvDesc, &dofBlurSRV);
+	device->CreateShaderResourceView(dofTexture, &srvDesc, &dofSRV);
+
+	postProcessRenderTexture->Release();
+	bloomExtractTexture->Release();
+	bloomBlurTexture->Release();
+	bloomTexture->Release();
+	blurTexture->Release();
+	dofTexture->Release();
+
+	// A depth state for the particles
+	D3D11_DEPTH_STENCIL_DESC dsDesc = {};
+	dsDesc.DepthEnable = true;
+	dsDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO; // Turns off depth writing
+	dsDesc.DepthFunc = D3D11_COMPARISON_LESS;
+	device->CreateDepthStencilState(&dsDesc, &particleDepthState);
+
+	// Blend for particles (additive)
+	D3D11_BLEND_DESC blend = {};
+	blend.AlphaToCoverageEnable = false;
+	blend.IndependentBlendEnable = false;
+	blend.RenderTarget[0].BlendEnable = true;
+	blend.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+	blend.RenderTarget[0].SrcBlend = D3D11_BLEND_ONE;
+	blend.RenderTarget[0].DestBlend = D3D11_BLEND_ONE;
+	blend.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+	blend.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
+	blend.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ONE;
+	blend.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+	device->CreateBlendState(&blend, &particleBlendState);
+
 	// Tell the input assembler stage of the pipeline what kind of
 	// geometric primitives (points, lines or triangles) we want to draw.  
 	// Essentially: "What kind of shape should the GPU draw with our data?"
@@ -320,8 +413,8 @@ void Game::CreateWater()
 {
 	time = 0.0f;
 	translate = 0.0f;
-	water = new Water(50,50);
-	water->Init(resources->materials["water"],device);
+	water = new Water(50, 50);
+	water->Init(resources->materials["water"], device);
 	water->SetPosition(-125, -6, -150);
 	//waterbject->SetScale(3, 3, 3);
 	water->CreateWaves();
@@ -346,8 +439,6 @@ void Game::CreateWater()
 #pragma endregion
 }
 
-
-
 void Game::RenderEntityShadow(Entity * entity)
 {
 	// Set buffers in the input assembler
@@ -371,7 +462,7 @@ void Game::RenderEntityShadow(Entity * entity)
 void Game::RenderShadowMap()
 {
 	XMMATRIX shView = XMMatrixLookAtLH(
-		XMVectorSet(0, 10, 1, 0),	// Start back and in the air
+		XMVectorSet(0, 20, 1, 0),	// Start back and in the air
 		XMVectorSet(0, 0, 0, 0),	// Look at the origin
 		XMVectorSet(0, 1, 0, 0));	// Up is up
 	XMStoreFloat4x4(&shadowViewMatrix, XMMatrixTranspose(shView));
@@ -433,28 +524,36 @@ void Game::InitializeEntities()
 	ShowCursor(false);
 	trees = std::unique_ptr<TreeManager>(new TreeManager(device, context));
 	fishes = std::unique_ptr<FishController>(new FishController(
-		resources->meshes["Rudd-Fish_Cube.001"],
-		resources->materials["fish"],
+		resources->meshes["ruddFish"], resources->materials["ruddFish"],
 		25,
-		XMFLOAT3(9.f, -8.5f, -15.f),
-		XMFLOAT3(9.f, -8.5f, 20.f),
-		5,
+		XMFLOAT3(9.f, -8.5f, -20.f),
+		XMFLOAT3(9.f, -8.5f, 35.f),
+		8,
 		XMFLOAT3(0, 90.f * XM_PI / 180, 0),
-		XMFLOAT3(0.03f, 0.03f, 0.03f)
+		XMFLOAT3(0.04f, 0.04f, 0.04f)
 	));
-	trees->InitializeTrees({ "palm","palm_2" }, { "palm","palm_2" }, { XMFLOAT3(-1,0,0), XMFLOAT3(-4,0,0) });
+	trees->InitializeTrees({ "palm","palm_2" }, { "palm","palm_2" }, 
+	{ 
+		XMFLOAT3(-30,-6,0),
+		XMFLOAT3(-25,-7,0),
+		XMFLOAT3(45,-7,70),
+		XMFLOAT3(55,-7,70)
+	});
 	terrain = std::unique_ptr<Terrain>(new Terrain());
 	terrain->Initialize("../../Assets/Terrain/heightmap.bmp", device, context);
-	terrain->SetMaterial(resources->materials["grass"]);
+	terrain->SetSplatMap(resources->shaderResourceViews["splatmap"]);
+	terrain->SetMaterial(resources->materials["grassTerrain"]);
+	auto rm = resources;
+	terrain->SetTextures(rm->GetSRV("gravel"), rm->GetSRV("grass"), rm->GetSRV("sand"), rm->GetSRV("gravel"));
 
-	terrain->SetPosition(-125, -10.5, -150);
+	terrain->SetPosition(-125, -9.5, -150);
 	light.AmbientColor = XMFLOAT4(0.2f, 0.2f, 0.2f, 0);
 	light.DiffuseColor = XMFLOAT4(0.9f, 0.9f, 0.9f, 1.f);
-	light.Direction = XMFLOAT3(1.f, 0, 0.f);
+	light.Direction = XMFLOAT3(0.6f, 0.4f, 0.f);
 
 	secondaryLight.AmbientColor = XMFLOAT4(0.1f, 0.1f, 0.1f, 0);
 	secondaryLight.DiffuseColor = XMFLOAT4(0.5f, 0.5f, 0.5f, 1);
-	secondaryLight.Direction = XMFLOAT3(0, -1, 0);
+	secondaryLight.Direction = XMFLOAT3(0.2f, -0.8, 0);
 
 	pointLight.Color = XMFLOAT4(0.0f, 0.f, 0.f, 1);
 	pointLight.Position = XMFLOAT3(0.4f, 2.f, -14.9f);
@@ -472,9 +571,7 @@ void Game::InitializeEntities()
 	entities.push_back(new Entity(resources->meshes["sphere"], resources->materials["metal"]));
 	entities.push_back(new Entity(resources->meshes["boat"], resources->materials["boat"]));
 	entities.push_back(new Entity(resources->meshes["Rudd-Fish_Cube.001"], resources->materials["fish"]));
-	entities.push_back(new Entity(resources->meshes["palm"], resources->materials["palm"]));
-	entities.push_back(new Entity(resources->meshes["palm_2"], resources->materials["palm_2"]));
-	entities.push_back(new Entity(resources->meshes["tuna"], resources->materials["tuna"]));
+
 	//entities.push_back(new Entity(resources->meshes["Coconut_Tree"], resources->materials["boat"]));
 
 	CreateWater();
@@ -487,11 +584,6 @@ void Game::InitializeEntities()
 	entities[2]->SetPosition(9.f, -8.5f, -15.f);
 	entities[2]->SetRotation(0, 90.f * XM_PI / 180, 0);
 
-	entities[3]->SetPosition(-24.f, -6.f, -4.f);
-	entities[4]->SetPosition(-24.f, -6.f, -4.f);
-
-	entities[3]->SetScale(0.5f, 0.5f, 0.5f);
-	entities[4]->SetScale(0.5f, 0.5f, 0.5f);
 	//entities[2]->hasShadow = false;
 }
 
@@ -557,6 +649,137 @@ void Game::DrawFullscreenQuad(ID3D11ShaderResourceView * texture)
 	context->Draw(3, 0);
 }
 
+void Game::DrawPostProcess(ID3D11ShaderResourceView* texture)
+{
+	// First, turn off our buffers, as we'll be generating the vertex
+	// data on the fly in a special vertex shader using the index of each vert
+	context->IASetVertexBuffers(0, 0, 0, 0, 0);
+	context->IASetIndexBuffer(0, DXGI_FORMAT_R32_UINT, 0);
+
+	auto quadVS = resources->vertexShaders["quad"];
+	auto quadPS = resources->pixelShaders["post"];
+	// Set up the fullscreen quad shaders
+	quadVS->SetShader();
+
+	quadPS->SetShaderResourceView("Pixels", texture);
+	quadPS->SetSamplerState("Sampler", sampler);
+	quadPS->SetShader();
+
+	// Draw
+	context->Draw(3, 0);
+}
+
+void Game::BloomPostProcess(ID3D11ShaderResourceView* texture)
+{
+	//Filter highlighted pixels from main scene
+	context->OMSetRenderTargets(1, &bloomExtractRTV, 0);
+	context->IASetVertexBuffers(0, 0, 0, 0, 0);
+	context->IASetIndexBuffer(0, DXGI_FORMAT_R32_UINT, 0);
+
+	auto quadVS = resources->vertexShaders["quad"];
+	auto quadPS = resources->pixelShaders["bloomExtract"];
+	// Set up the fullscreen quad shaders
+	quadVS->SetShader();
+
+	quadPS->SetShaderResourceView("Pixels", texture);
+	quadPS->SetSamplerState("Sampler", sampler);
+	quadPS->SetShader();
+
+	// Draw
+	context->Draw(3, 0);
+
+	//Blur highlighted pixels
+	context->OMSetRenderTargets(1, &bloomBlurRTV, 0);
+	context->IASetVertexBuffers(0, 0, 0, 0, 0);
+	context->IASetIndexBuffer(0, DXGI_FORMAT_R32_UINT, 0);
+
+	quadPS = resources->pixelShaders["blur"];
+	// Set up the fullscreen quad shaders
+	quadVS->SetShader();
+
+	quadPS->SetShaderResourceView("Pixels", bloomExtractSRV);
+	quadPS->SetSamplerState("Sampler", sampler);
+	quadPS->SetFloat("blurValue", 3.0f);
+	quadPS->SetShader();
+	quadPS->CopyAllBufferData();
+
+	// Draw
+	context->Draw(3, 0);
+
+	//Apply blurred highlighted pixels to main scene for bloom effect
+	context->OMSetRenderTargets(1, &bloomRTV, 0);
+	context->IASetVertexBuffers(0, 0, 0, 0, 0);
+	context->IASetIndexBuffer(0, DXGI_FORMAT_R32_UINT, 0);
+
+	quadPS = resources->pixelShaders["bloom"];
+	// Set up the fullscreen quad shaders
+	quadVS->SetShader();
+
+	quadPS->SetShaderResourceView("BaseTexture", texture);
+	quadPS->SetShaderResourceView("BloomTexture", bloomBlurSRV);
+	quadPS->SetSamplerState("Sampler", sampler);
+	quadPS->SetShader();
+
+	// Draw
+	context->Draw(3, 0);
+
+	//Reset render target
+	context->OMSetRenderTargets(1, &backBufferRTV, depthStencilView);
+}
+
+void Game::DepthOfFieldPostProcess(ID3D11ShaderResourceView * texture)
+{
+	//DOF settings
+	float distance = 2.1f;
+	float range = 1.9f;
+	float nearDof = 0.5f;
+	float farDof = 1.1f;
+
+	//Blur pixels from main scene
+	context->OMSetRenderTargets(1, &dofBlurRTV, 0);
+	context->IASetVertexBuffers(0, 0, 0, 0, 0);
+	context->IASetIndexBuffer(0, DXGI_FORMAT_R32_UINT, 0);
+
+	auto quadVS = resources->vertexShaders["quad"];
+	auto quadPS = resources->pixelShaders["blur"];
+	// Set up the fullscreen quad shaders
+	quadVS->SetShader();
+	quadPS->SetFloat("blurValue", 4);
+	quadPS->SetShaderResourceView("Pixels", texture);
+	quadPS->SetSamplerState("Sampler", sampler);
+	quadPS->SetShader();
+	quadPS->CopyAllBufferData();
+	// Draw
+	context->Draw(3, 0);
+
+	//Lerp between blurred texture and normal texture for DOF effect
+	context->OMSetRenderTargets(1, &dofRTV, 0);
+	context->IASetVertexBuffers(0, 0, 0, 0, 0);
+	context->IASetIndexBuffer(0, DXGI_FORMAT_R32_UINT, 0);
+
+	quadVS = resources->vertexShaders["quad"];
+	quadPS = resources->pixelShaders["dof"];
+	// Set up the fullscreen quad shaders
+	quadVS->SetShader();
+
+	quadPS->SetFloat("Distance", distance);
+	quadPS->SetFloat("Range", range);
+	quadPS->SetFloat("Near", nearDof);
+	quadPS->SetFloat("Far", farDof);
+
+	quadPS->SetShaderResourceView("Pixels", texture);
+	quadPS->SetShaderResourceView("BlurredPixels", dofBlurSRV);
+	quadPS->SetShaderResourceView("Depth", depthSRV);
+	quadPS->SetSamplerState("Sampler", sampler);
+	quadPS->SetShader();
+	quadPS->CopyAllBufferData();
+	// Draw
+	context->Draw(3, 0);
+
+	//Reset render target
+	context->OMSetRenderTargets(1, &backBufferRTV, depthStencilView);
+}
+
 void Game::CreateRipple(float x, float y, float z, float duration, float ringSize) {
 	Ripple r = Ripple(x, y, z, duration, ringSize);
 	ripples.push_back(r);
@@ -580,8 +803,9 @@ void Game::DrawWater()
 	resources->pixelShaders["water"]->SetFloat3("CameraPosition", camera->GetPosition());
 	resources->pixelShaders["water"]->SetMatrix4x4("view", camera->GetViewMatrix());		// View matrix, so we can put normals into view space
 	resources->pixelShaders["water"]->CopyAllBufferData();
-	renderer->DrawEntity(water);
+	renderer->Draw(water);
 }
+
 // --------------------------------------------------------
 // Handle resizing DirectX "stuff" to match the new window size.
 // For instance, updating our projection matrix's aspect ratio.
@@ -594,14 +818,12 @@ void Game::OnResize()
 	camera->SetProjectionMatrix((float)width / height);
 }
 
+XMFLOAT3 hitPos;
 // --------------------------------------------------------
 // Update your game here - user input, move objects, AI, etc.
 // --------------------------------------------------------
 void Game::Update(float deltaTime, float totalTime)
 {
-	//Water Position: -125, -6, -150
-	//std::cout << water->GetVertices()[40].Position.x << std::endl;
-	//std::cout << currentProjectile->GetPosition().x + 125 << std::endl;
 	// Water .........................................
 	time += 0.05f * deltaTime;
 	translate += 0.1f * deltaTime;
@@ -619,10 +841,6 @@ void Game::Update(float deltaTime, float totalTime)
 		entities[2]->SetPosition(9.f, -8.5f, -15.f);
 	}
 
-	//resources->vertexShaders["water"]->SetFloat("time", time); 
-	//resources->pixelShaders["water"]->SetFloat("translate", translate);
-	//.................................................
-
 	if (GetAsyncKeyState(VK_ESCAPE))
 		Quit();
 
@@ -631,25 +849,48 @@ void Game::Update(float deltaTime, float totalTime)
 		projectilePreviousPosition = currentProjectile->GetPosition();
 		currentProjectile->Shoot(1.f, camera->GetDirection());
 	}
+	for (auto e : emitters)
+	{
+		e->Update(deltaTime);
+	}
+	isDofEnabled = false;
+	if ((GetAsyncKeyState(VK_RBUTTON) & 0x8000) != 0)
+	{
+		isDofEnabled = true;
+	}
 
 	if ((GetAsyncKeyState(VK_SPACE) & 0x8000) != 0) {
 		CreateRipple(0.0f, 0.0f, 50.0f, 2.0f, 2.0f);
 	}
-
-	/*if (fishes->CheckForCollision(currentProjectile))
-	{
-		printf("Hit!");
-	}*/
-
+	XMFLOAT3 pos = XMFLOAT3(0,0,0);
 	//Check for spear hitting the water
 	if (currentProjectile->GetPosition().y <= -7.0f && !projectileHitWater) {
 		projectileHitWater = true;
-		XMFLOAT3 pos = currentProjectile->GetPosition();
+		pos = currentProjectile->GetPosition();
+		hitPos = currentProjectile->GetPosition();
 		float x = pos.x;
 		float z = pos.z;
 		CreateRipple(x, 0.0f, z, 2.0f, 0.5f);
-	}
 
+		std::cout << pos.y << std::endl;
+		emitters.emplace_back(std::make_shared<Emitter>(
+			3,							// Max particles
+			100,							// Particles per second
+			1,								// Particle lifetime
+			1.0f,							// Start size
+			5.0f,							// End size
+			XMFLOAT4(0.2, 0.3f, 0.6f, 0.6f),	// Start color
+			XMFLOAT4(0, 0.05f, 0.2f, 1),		// End color
+			XMFLOAT3(0, 1, 0),				// Start velocity
+			XMFLOAT3(0, 1, 0),				// Start acceleration
+			device,
+			resources->vertexShaders["particle"],
+			resources->pixelShaders["particle"],
+			resources->shaderResourceViews["particle"],
+			XMFLOAT3(pos.x, pos.y + 1.5, pos.z)
+			));
+	}
+	
 	auto distance = XMVectorGetX(XMVector3Length(XMLoadFloat3(&currentProjectile->GetPosition()) - XMLoadFloat3(&camera->GetPosition())));
 
 	if (fabsf(distance) > 50 || fishes->CheckForCollision(currentProjectile))
@@ -668,7 +909,7 @@ void Game::Update(float deltaTime, float totalTime)
 	{
 		entity->Update(deltaTime, totalTime);
 	}
-	//currentProjectile->SetPosition(camera->GetPosition());
+
 	currentProjectile->Update(deltaTime, totalTime);
 
 	//Update entities
@@ -676,7 +917,6 @@ void Game::Update(float deltaTime, float totalTime)
 
 	//Update ripples and Water shader (add support for multiple ripples later)
 	//Delete ripples afterward if they are at max duration
-
 	for (auto it = ripples.begin(); it != ripples.end(); ) {
 		(*it).Update(deltaTime);
 		if ((*it).AtMaxDuration()) {
@@ -687,7 +927,6 @@ void Game::Update(float deltaTime, float totalTime)
 			it++;
 		}
 	}
-
 }
 
 // --------------------------------------------------------
@@ -695,8 +934,6 @@ void Game::Update(float deltaTime, float totalTime)
 // --------------------------------------------------------
 void Game::Draw(float deltaTime, float totalTime)
 {
-	RenderShadowMap();
-
 	const float color[4] = { 0.11f, 0.11f, 0.11f, 0.0f };
 	renderer->ClearScreen(color);
 
@@ -705,33 +942,32 @@ void Game::Draw(float deltaTime, float totalTime)
 	context->ClearRenderTargetView(refractionRTV, color);
 	context->ClearDepthStencilView(depthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
 
+	RenderShadowMap();
+
 	// Use our refraction render target and our regular depth buffer
 	context->OMSetRenderTargets(1, &refractionRTV, depthStencilView);
 
-	renderer->DrawEntity(terrain.get());
-	renderer->DrawEntity(entities[2]);
+	renderer->Draw(terrain.get());
 	fishes->Render(renderer);
+	
+	
+	
 	DrawSky();
-	//context->OMSetBlendState(blendState, 0, 0xFFFFFFFF);
 
 	// Reset blend state if blending
-	
-	context->OMSetBlendState(0, 0, 0xFFFFFFFF);
-	context->OMSetRenderTargets(1, &backBufferRTV, 0);
+	context->OMSetRenderTargets(1, &postProcessRTV, 0);
 
 	DrawFullscreenQuad(refractionSRV);
 
-	context->OMSetRenderTargets(1, &backBufferRTV, depthStencilView);
-
-	DrawWater();
-	renderer->DrawEntity(currentProjectile);
+	context->OMSetRenderTargets(1, &postProcessRTV, depthStencilView);
 
 	for (auto entity : entities)
 	{
 		if (entity->hasShadow)
-			renderer->DrawEntity(entity);
+			renderer->Draw(entity);
 	}
-	//trees->Render(camera);
+
+	trees->Render(camera);
 
 	ID3D11ShaderResourceView *const nullSRV[4] = { NULL };
 	context->PSSetShaderResources(0, 4, nullSRV);
@@ -739,8 +975,10 @@ void Game::Draw(float deltaTime, float totalTime)
 	for (auto entity : entities)
 	{
 		if (!entity->hasShadow)
-			renderer->DrawEntity(entity);
+			renderer->Draw(entity);
 	}
+	renderer->Draw(currentProjectile);
+	DrawWater();
 
 	context->PSSetShaderResources(0, 4, nullSRV);
 	ID3D11ShaderResourceView* nullSRV2[16] = {};
@@ -750,7 +988,7 @@ void Game::Draw(float deltaTime, float totalTime)
 	resources->pixelShaders["water"]->SetFloat3("ripplePosition", XMFLOAT3(0.0f, 0.0f, 0.0f));
 	resources->pixelShaders["water"]->SetFloat("rippleRadius", 0.0f);
 	resources->pixelShaders["water"]->SetFloat("ringSize", 0.0f);
-	
+
 	//Convert Ripples to RippleData structs, then
 	//Pass ripples to the water shader
 	std::vector<RippleData> rippleData;
@@ -761,30 +999,47 @@ void Game::Draw(float deltaTime, float totalTime)
 		resources->pixelShaders["water"]->SetData("ripples", rippleData.data(), sizeof(RippleData) * MAX_RIPPLES);
 	}
 	resources->pixelShaders["water"]->SetInt("rippleCount", (int)ripples.size());
+			//emitter->SetPosition(XMFLOAT3(ripple.ripplePosition.x,-6, ripple.ripplePosition.z));
+		
+	for (auto e : emitters) 
+	{
+		if (!e->doneEmit) 
+		{
+			//// Particle states
+			float blend[4] = { 1,1,1,1 };
+			context->OMSetBlendState(particleBlendState, blend, 0xffffffff);  // Additive blending
+			//context->OMSetDepthStencilState(particleDepthState, 0);			// No depth WRITING
+			e->Draw(context, camera);
+			context->OMSetBlendState(0, 0, 0xFFFFFFFF);
+			//context->OMGetDepthStencilState(0, 0);
+		}
+		else 
+		{
+			emitters.pop_back();
+		}
+	}
 
+	context->OMSetBlendState(0, 0, 0xFFFFFFFF);
+	context->OMSetRenderTargets(1, &backBufferRTV, 0);
+	ID3D11ShaderResourceView *nextBuffer = postProcessSRV;
+	BloomPostProcess(postProcessSRV);
+	nextBuffer = bloomSRV;
+	if (isDofEnabled)
+	{
+		DepthOfFieldPostProcess(bloomSRV);
+		nextBuffer = dofSRV;
+	}
+	DrawPostProcess(nextBuffer);
+	
+	context->OMSetRenderTargets(1, &backBufferRTV, depthStencilView);
+	
 	renderer->Present();
 }
 
 void Game::Tesellation()
 {
 #pragma region Tesselation
-	// --- tessellation test ---
-	//vertexShader->SetFloat("gMaxTessDistance", 5);
-	//vertexShader->SetFloat("gMinTessDistance", 2);
-	//vertexShader->SetFloat("gMinTessFactor", 2);
-	//vertexShader->SetFloat("gMaxTessFactor", 3);
-	//domainShader->SetMatrix4x4("view", camera->GetViewMatrix());
-	//domainShader->SetMatrix4x4("projection", camera->GetProjectionMatrix());
-	//domainShader->SetShaderResourceView("heightSRV", resources->shaderResourceViews["waterDisplacement"]);
-	//domainShader->SetSamplerState("heightSampler", displacementSampler);
-	//hullShader->SetShader();
-	//domainShader->SetShader();
-	//hullShader->CopyAllBufferData();
-	//domainShader->CopyAllBufferData();
-	//context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
-	//renderer->DrawEntity(entities[2]);
 
-	// -- end tessellation --
 #pragma endregion
 }
 
@@ -793,7 +1048,6 @@ void Game::DrawSky()
 	// After I draw any and all opaque entities, I want to draw the sky
 	ID3D11Buffer* skyVB = resources->meshes["cube"]->GetVertexBuffer();
 	ID3D11Buffer* skyIB = resources->meshes["cube"]->GetIndexBuffer();
-
 
 	// Set the buffers
 	UINT stride = sizeof(Vertex);
@@ -816,7 +1070,6 @@ void Game::DrawSky()
 	context->RSSetState(skyRastState);
 	context->OMSetDepthStencilState(skyDepthState, 0);
 	context->DrawIndexed(resources->meshes["cube"]->GetIndexCount(), 0, 0);
-
 
 	// When done rendering, reset any and all states for the next frame
 	context->RSSetState(0);

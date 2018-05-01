@@ -199,6 +199,14 @@ void Terrain::CalculateUVCoordinates()
 
 }
 
+void Terrain::SetTextures(DXTexPtr red, DXTexPtr green, DXTexPtr blue, DXTexPtr alpha)
+{
+	redTexture = red;
+	blueTexture = blue;
+	greenTexture = green;
+	alphaTexture = alpha;
+}
+
 void Terrain::Initialize(ID3D11Device * device, ID3D11DeviceContext * context)
 {
 	mesh = new Mesh();
@@ -312,7 +320,7 @@ void Terrain::Initialize(ID3D11Device * device, ID3D11DeviceContext * context)
 	delete indices;
 }
 
-bool Terrain::Initialize(const char * filename, ID3D11Device * device, ID3D11DeviceContext * context)
+bool Terrain::Initialize(const char* filename, ID3D11Device * device, ID3D11DeviceContext * context)
 {
 	FILE* filePtr;
 	int error;
@@ -411,7 +419,7 @@ bool Terrain::Initialize(const char * filename, ID3D11Device * device, ID3D11Dev
 	int vertexCount = (terrainWidth - 1) * (terrainHeight - 1) * 6;
 	indexCount = vertexCount;
 	index = 0;
-	vertices = new Vertex[vertexCount];
+	vertices = new VertexTerrain[vertexCount];
 	indices = new UINT[indexCount];
 	float tu, tv;
 
@@ -433,7 +441,7 @@ bool Terrain::Initialize(const char * filename, ID3D11Device * device, ID3D11Dev
 
 			vertices[index].Position = XMFLOAT3(heightMap[index3].x, heightMap[index3].y, heightMap[index3].z);
 			vertices[index].UV = XMFLOAT2(0, 0);
-			//vertices[index].UV = XMFLOAT2(textureCoords[index3].x, tv);
+			vertices[index].BlendUV = XMFLOAT2(textureCoords[index3].x, tv);
 			vertices[index].Normal = XMFLOAT3(heightNormals[index3].x, heightNormals[index3].y, heightNormals[index3].z);
 			indices[index] = index;
 			index++;
@@ -448,7 +456,7 @@ bool Terrain::Initialize(const char * filename, ID3D11Device * device, ID3D11Dev
 
 			vertices[index].Position = XMFLOAT3(heightMap[index4].x, heightMap[index4].y, heightMap[index4].z);
 			vertices[index].UV = XMFLOAT2(1, 0);
-			//vertices[index].UV = XMFLOAT2(tu, tv);
+			vertices[index].BlendUV = XMFLOAT2(tu, tv);
 			vertices[index].Normal = XMFLOAT3(heightNormals[index4].x, heightNormals[index4].y, heightNormals[index4].z);
 			indices[index] = index;
 			index++;
@@ -456,7 +464,7 @@ bool Terrain::Initialize(const char * filename, ID3D11Device * device, ID3D11Dev
 			// Bottom left.
 			vertices[index].Position = XMFLOAT3(heightMap[index1].x, heightMap[index1].y, heightMap[index1].z);
 			vertices[index].UV = XMFLOAT2(0,1);
-			//vertices[index].UV = XMFLOAT2(textureCoords[index1].x, textureCoords[index1].y);
+			vertices[index].BlendUV = XMFLOAT2(textureCoords[index1].x, textureCoords[index1].y);
 			vertices[index].Normal = XMFLOAT3(heightNormals[index1].x, heightNormals[index1].y, heightNormals[index1].z);
 			indices[index] = index;
 			index++;
@@ -464,7 +472,7 @@ bool Terrain::Initialize(const char * filename, ID3D11Device * device, ID3D11Dev
 			// Bottom left.
 			vertices[index].Position = XMFLOAT3(heightMap[index1].x, heightMap[index1].y, heightMap[index1].z);
 			vertices[index].UV = XMFLOAT2(0, 1);
-			//vertices[index].UV = XMFLOAT2(textureCoords[index1].x, textureCoords[index1].y);
+			vertices[index].BlendUV = XMFLOAT2(textureCoords[index1].x, textureCoords[index1].y);
 			vertices[index].Normal = XMFLOAT3(heightNormals[index1].x, heightNormals[index1].y, heightNormals[index1].z);
 			indices[index] = index;
 			index++;
@@ -479,7 +487,7 @@ bool Terrain::Initialize(const char * filename, ID3D11Device * device, ID3D11Dev
 
 			vertices[index].Position = XMFLOAT3(heightMap[index4].x, heightMap[index4].y, heightMap[index4].z);
 			vertices[index].UV = XMFLOAT2(1, 0);
-			//vertices[index].UV = XMFLOAT2(tu, tv);
+			vertices[index].BlendUV = XMFLOAT2(tu, tv);
 			vertices[index].Normal = XMFLOAT3(heightNormals[index4].x, heightNormals[index4].y, heightNormals[index4].z);
 			indices[index] = index;
 			index++;
@@ -492,7 +500,7 @@ bool Terrain::Initialize(const char * filename, ID3D11Device * device, ID3D11Dev
 
 			vertices[index].Position = XMFLOAT3(heightMap[index2].x, heightMap[index2].y, heightMap[index2].z);
 			vertices[index].UV = XMFLOAT2(1, 1);
-			//vertices[index].UV = XMFLOAT2(tu, textureCoords[index2].y);
+			vertices[index].BlendUV = XMFLOAT2(tu, textureCoords[index2].y);
 			vertices[index].Normal = XMFLOAT3(heightNormals[index2].x, heightNormals[index2].y, heightNormals[index2].z);
 			indices[index] = index;
 			index++;
@@ -503,6 +511,58 @@ bool Terrain::Initialize(const char * filename, ID3D11Device * device, ID3D11Dev
 	delete vertices;
 	delete indices;
 	return true;
+}
+
+void Terrain::SetSplatMap(ID3D11ShaderResourceView * splat)
+{
+	splatMap = splat;
+}
+
+void Terrain::PrepareMaterialWithShadows(XMFLOAT4X4 viewMatrix, XMFLOAT4X4 projectionMatrix, XMFLOAT4X4 shadowViewMatrix, XMFLOAT4X4 shadowProjectionMatrix, ID3D11SamplerState * shadowSampler, ID3D11ShaderResourceView * shadowSRV)
+{
+	auto vertexShader = material->GetVertexShader();
+	auto pixelShader = material->GetPixelShader();
+	vertexShader->SetMatrix4x4("world", GetWorldMatrix());
+	vertexShader->SetMatrix4x4("view", viewMatrix);
+	vertexShader->SetMatrix4x4("projection", projectionMatrix);
+	vertexShader->SetMatrix4x4("shadowView", shadowViewMatrix);
+	vertexShader->SetMatrix4x4("shadowProjection", shadowProjectionMatrix);
+	pixelShader->SetSamplerState("basicSampler", material->GetSampler());
+	pixelShader->SetSamplerState("shadowSampler", shadowSampler);
+	pixelShader->SetShaderResourceView("diffuseTexture", greenTexture);
+	pixelShader->SetShaderResourceView("shadowMapTexture", shadowSRV);
+	pixelShader->SetShaderResourceView("redTexture", redTexture);
+	pixelShader->SetShaderResourceView("blueTexture", blueTexture);
+	pixelShader->SetShaderResourceView("alphaTexture", alphaTexture);
+	pixelShader->SetShaderResourceView("splatMap", splatMap);
+	pixelShader->SetShaderResourceView("normalTexture", material->GetNormalSRV());
+	pixelShader->SetShaderResourceView("roughnessTexture", material->GetRoughnessSRV());
+	vertexShader->CopyAllBufferData();
+	pixelShader->CopyAllBufferData();
+	vertexShader->SetShader();
+	pixelShader->SetShader();
+}
+
+void Terrain::PrepareMaterial(XMFLOAT4X4 viewMatrix, XMFLOAT4X4 projectionMatrix)
+{
+	auto vertexShader = material->GetVertexShader();
+	auto pixelShader = material->GetPixelShader();
+	vertexShader->SetMatrix4x4("world", GetWorldMatrix());
+	vertexShader->SetMatrix4x4("view", viewMatrix);
+	vertexShader->SetMatrix4x4("projection", projectionMatrix);
+
+	pixelShader->SetSamplerState("basicSampler", material->GetSampler());
+	pixelShader->SetShaderResourceView("diffuseTexture", redTexture);
+	if (material->GetNormalSRV())
+		pixelShader->SetShaderResourceView("normalTexture", material->GetNormalSRV());
+	else
+		pixelShader->SetShaderResourceView("normalTexture", nullptr);
+
+	pixelShader->SetShaderResourceView("roughnessTexture", material->GetRoughnessSRV());
+	vertexShader->CopyAllBufferData();
+	pixelShader->CopyAllBufferData();
+	vertexShader->SetShader();
+	pixelShader->SetShader();
 }
 
 Terrain::Terrain():

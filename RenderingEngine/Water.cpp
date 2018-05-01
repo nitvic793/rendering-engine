@@ -173,7 +173,7 @@ void Water::CreateWaves()
 {
 	waves[0] = Wave{ XMFLOAT2(0,1),0.4f,6 };
 	waves[1] = Wave{ XMFLOAT2(1,1),0.2f,10 };
-	waves[2] = Wave{ XMFLOAT2(0,1),1.0f,20 };
+	waves[2] = Wave{ XMFLOAT2(0,1),0.6f,20 };
 	waves[3] = Wave{ XMFLOAT2(1,1),0.1f,3 };
 	waves[4] = Wave{ XMFLOAT2(1,0),0.2f,6 };
 }
