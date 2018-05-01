@@ -13,15 +13,38 @@ Mesh::Mesh(Vertex *vertices, UINT vertexCount, UINT *indices, UINT indexCount, I
 	Initialize(vertices, vertexCount, indices, indexCount, device);
 }
 
+<<<<<<< HEAD
 Mesh::Mesh(VertexAnimated * vertices, UINT vertexCount, UINT * indices, UINT indexCount, ID3D11Device * device)
 {
 	CalculateTangentsAnimated(vertices, vertexCount, indices, indexCount);
+=======
+void Mesh::Initialize(VertexTerrain * vertices, UINT vertexCount, UINT * indices, UINT indexCount, ID3D11Device * device)
+{
+	minDimensions = XMFLOAT3(FLT_MAX, FLT_MAX, FLT_MAX);
+	maxDimensions = XMFLOAT3(-FLT_MAX, -FLT_MAX, -FLT_MAX);
+	for (UINT i = 0; i < vertexCount; ++i)
+	{
+		auto pos = vertices[i].Position;
+		if (pos.x < minDimensions.x)minDimensions.x = pos.x;
+		if (pos.y < minDimensions.y)minDimensions.y = pos.y;
+		if (pos.z < minDimensions.z)minDimensions.z = pos.z;
+		if (pos.x > maxDimensions.x)maxDimensions.x = pos.x;
+		if (pos.y > maxDimensions.y)maxDimensions.y = pos.y;
+		if (pos.z > maxDimensions.z)maxDimensions.z = pos.z;
+	}
+
+	CalculateTangents(vertices, vertexCount, indices, indexCount);
+>>>>>>> master
 	this->indexCount = indexCount;
 	this->vertexCount = vertexCount;
 
 	D3D11_BUFFER_DESC vbd;
 	vbd.Usage = D3D11_USAGE_IMMUTABLE;
+<<<<<<< HEAD
 	vbd.ByteWidth = sizeof(VertexAnimated) * vertexCount;
+=======
+	vbd.ByteWidth = sizeof(VertexTerrain) * vertexCount;
+>>>>>>> master
 	vbd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	vbd.CPUAccessFlags = 0;
 	vbd.MiscFlags = 0;
@@ -318,8 +341,12 @@ void Mesh::CalculateTangents(Vertex * vertices, UINT vertexCount, UINT * indices
 	delete[] tan1;
 }
 
+<<<<<<< HEAD
 
 void Mesh::CalculateTangentsAnimated(VertexAnimated * vertices, UINT vertexCount, UINT * indices, UINT indexCount)
+=======
+void Mesh::CalculateTangents(VertexTerrain * vertices, UINT vertexCount, UINT * indices, UINT indexCount)
+>>>>>>> master
 {
 	XMFLOAT3 *tan1 = new XMFLOAT3[vertexCount * 2];
 	XMFLOAT3 *tan2 = tan1 + vertexCount;
@@ -375,13 +402,21 @@ void Mesh::CalculateTangentsAnimated(VertexAnimated * vertices, UINT vertexCount
 		auto dot = XMVector3Dot(XMLoadFloat3(&n), XMLoadFloat3(&t));
 		XMStoreFloat3(&vertices[a].Tangent, XMVector3Normalize(XMLoadFloat3(&t) - XMLoadFloat3(&n)* dot));
 
+<<<<<<< HEAD
 
+=======
+		// Calculate handedness
+		/*tangent[a].w = (Dot(Cross(n, t), tan2[a]) < 0.0F) ? -1.0F : 1.0F;*/
+>>>>>>> master
 	}
 
 	delete[] tan1;
 }
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> master
 XMFLOAT3 Mesh::GetMaxDimensions() const
 {
 	return maxDimensions;
