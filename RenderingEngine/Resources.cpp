@@ -153,6 +153,9 @@ void Resources::LoadResources()
 	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/gravelNormal.jpg", nullptr, &srv);
 	shaderResourceViews.insert(SRVMapType("gravelNormal", srv));
 
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/particle.jpg", nullptr, &srv);
+	shaderResourceViews.insert(SRVMapType("particle", srv));
+
 	//Load Sampler
 	D3D11_SAMPLER_DESC samplerDesc = {};
 	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
@@ -249,6 +252,14 @@ void Resources::LoadResources()
 	auto terrainVS = new SimpleVertexShader(device, context);
 	terrainVS->LoadShaderFile(L"TerrainVS.cso");
 	vertexShaders.insert(VertexShaderMapType("terrain", terrainVS));
+
+	auto particlePS = new SimplePixelShader(device, context);
+	particlePS->LoadShaderFile(L"ParticlePS.cso");
+	pixelShaders.insert(PixelShaderMapType("particle", particlePS));
+
+	auto particleVS = new SimpleVertexShader(device, context);
+	particleVS->LoadShaderFile(L"ParticleVS.cso");
+	vertexShaders.insert(VertexShaderMapType("particle", particleVS));
 
 
 	//Load Materials
