@@ -45,8 +45,8 @@ cbuffer WaveInfo	:	register(b2)
 };
 
 static int numWaves = 5;
-static float steepness = 0.3;
-static float speed = 20;
+static float steepness = 0.7;
+static float speed = 30;
 float3 CalculateGerstnerWave(float3 inputVertex)
 {
 	float3 total = float3(0, 0, 0);
@@ -130,6 +130,42 @@ float3 ClaculateGerstnerTangents(float3 inputVertex, float3 inputTangents)
 	tangent.y = 1 - tangent.y;
 
 	return normalize(tangent);
+}
+
+void WaveEq()
+{
+	//----------------------------Water Motion-----------------------------------
+	//int u = 64;
+	//int v = 64;
+
+	//float s_X = 0;
+	//float s_Y = 0;
+	//float s_Z = 0;
+
+	//output.uv = float2(input.position[0] * 22.0 / 2816.0, input.position[2] * 16.5 / 2112.0);
+
+
+	//float2 X0 = float2(input.position[0], input.position[2]);
+	//float height = 0;
+	//for (int i = 0; i < 3; i++)
+	//{
+	//	float2 K = float2(1, i);				// K is wave vector
+	//	float w = 1.5 * (i + 1) / 3.0;			// w is frequency
+	//	float a = 0.001;							// a is amplitude
+	//	float2 X = X0 - K * a*sin(dot(K, X0) - w * time * 10);
+	//	float  y = a * cos(dot(K, X0) - w * time * 10);
+	//	s_X += X[0] / 64 - 0.5f;
+	//	s_Y += X[1] / 64 - 0.5f;
+	//	s_Z += y;
+	//	
+	//}
+	//input.position[0] = s_X;
+	//input.position[2] = s_Y;
+	//input.position[1] = s_Z; //s_Z
+	//
+	//
+	////---------------------------------------------------------------
+	//input.position *= 100.0f;
 }
 
 void DisplacementMapping() 

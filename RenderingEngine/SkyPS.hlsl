@@ -17,9 +17,5 @@ SamplerState BasicSampler	: register(s0);
 // Entry point for this pixel shader
 float4 main(VertexToPixel input) : SV_TARGET
 {
-	// Gamma correction
-	float4 skyColor = SkyTexture.Sample(BasicSampler, input.sampleDir);
-	skyColor.rgb = lerp(skyColor.rgb, pow(skyColor.rgb, 2.2), 1);
-	float3 gammaCorrectValue = lerp(skyColor, pow(skyColor, 1.0f / 2.2f), 1);
-	return float4(gammaCorrectValue,1);
+	return SkyTexture.Sample(BasicSampler, input.sampleDir);
 }

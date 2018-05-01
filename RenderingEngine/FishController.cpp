@@ -30,7 +30,7 @@ void FishController::Render(Renderer* renderer)
 {
 	for (auto e : entities)
 	{
-		renderer->Draw(e);
+		renderer->DrawEntity(e);
 	}
 }
 

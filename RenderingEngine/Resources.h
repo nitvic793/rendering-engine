@@ -39,7 +39,6 @@ public:
 	PixelShaderMap pixelShaders;
 	static Resources* GetInstance();
 	void LoadResources();
-	ID3D11ShaderResourceView* GetSRV(std::string name);
 	Resources(ID3D11Device *device, ID3D11DeviceContext *context, IDXGISwapChain* swapChain);
 	~Resources();
 

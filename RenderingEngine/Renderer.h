@@ -7,7 +7,6 @@
 #include "Entity.h"
 #include "Water.h"
 #include "Resources.h"
-#include "Terrain.h"
 
 class Renderer
 {
@@ -32,10 +31,13 @@ public:
 	void ClearScreen(const float color[4]);
 	void SetCamera(Camera* cam);
 	void SetLights(std::unordered_map<std::string, Light*> lightsMap);
-	void Draw(Entity *entity);
-	void Draw(Terrain *entity);
+	void DrawEntity(Entity *entity);
 	void DrawAsLineList(Entity *entity);
 	void Present();
+	void RenderToTexture(ID3D11Device* device,ID3D11DeviceContext*	context);
+	void RenderReflection(Entity* entity);
+	void DrawReflectionTexture();
+	void createwater(ID3D11Device* device, ID3D11SamplerState* sampler, SimpleVertexShader* vertexShader, SimplePixelShader* pixelShader);
 	Renderer(ID3D11DeviceContext *ctx, ID3D11RenderTargetView *backBuffer, ID3D11DepthStencilView *depthStencil, IDXGISwapChain *inSwapChain);
 	~Renderer();
 };

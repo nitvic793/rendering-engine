@@ -105,9 +105,6 @@ float4 main(VertexToPixel input) : SV_TARGET
 	float4 totalColor = float4(0, 0, 0, 0);
 	float roughness = roughnessTexture.Sample(basicSampler, input.uv).r;
 	int i = 0;
-	// Gamma correction
-	surfaceColor.rgb = lerp(surfaceColor.rgb, pow(surfaceColor.rgb, 2.2), 1);
-
 	for (i = 0; i < DirectionalLightCount; ++i)
 	{
 		totalColor += calculateDirectionalLight(finalNormal, input.worldPos, dirLights[i], roughness) * surfaceColor;
@@ -119,7 +116,5 @@ float4 main(VertexToPixel input) : SV_TARGET
 	}
 
 	clip(totalColor.a);
-	// Gamma correction
-	float3 gammaCorrectValue = lerp(totalColor, pow(totalColor, 1.0f / 2.2f), 1);
-	return float4(gammaCorrectValue, 1);
+	return totalColor;
 }
