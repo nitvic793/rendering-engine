@@ -24,6 +24,7 @@ XMFLOAT3 CalculateGerstnerWave(XMFLOAT3 input, Wave * waves, int numWaves) {
 }
 
 void CalculateVertices(XMFLOAT3 offset, Vertex* vertices) {
+	
 	for (int i = 0; i < 2500; i++) {
 		vertices[i].Position.x += offset.x;
 		vertices[i].Position.y += offset.y;
