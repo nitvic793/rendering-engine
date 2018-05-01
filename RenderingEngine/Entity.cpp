@@ -193,6 +193,25 @@ void Entity::PrepareMaterialAnimated(XMFLOAT4X4 viewMatrix, XMFLOAT4X4 projectio
 	}
 	vertexShader->SetData("bones", &bones, bonesSize);
 
+	/*
+	numBones = fbxLoader->skeleton.mJoints2.size();
+	for (int i = 0; i < numBones; i++)
+	{
+
+		XMMATRIX jointTransformMatrix = XMLoadFloat4x4(&fbxLoader->skeleton.mJoints2[i].mTransform);
+		XMMATRIX invJointTransformMatrix = XMLoadFloat4x4(&fbxLoader->skeleton.mJoints2[i].mGlobalBindposeInverse);
+
+		XMFLOAT4X4 trans = {};
+		XMStoreFloat4x4(&trans, XMMatrixTranspose(jointTransformMatrix));
+		bones[i].BoneTransform = trans;
+		XMFLOAT4X4 trans2 = {};
+		XMStoreFloat4x4(&trans2, XMMatrixTranspose(invJointTransformMatrix));
+		bones[i].InvBoneTransform = trans2;
+	}
+	vertexShader->SetData("bones2", &bones, bonesSize);
+	*/
+	//vertexShader->SetInt("instanceNumber", instanceNumber);
+
 	pixelShader->SetSamplerState("basicSampler", material->GetSampler());
 	pixelShader->SetShaderResourceView("diffuseTexture", material->GetSRV());
 	pixelShader->SetShaderResourceView("normalTexture", material->GetNormalSRV());

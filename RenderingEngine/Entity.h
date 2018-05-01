@@ -45,5 +45,6 @@ public:
 
 	bool hasShadow = true;
 	bool isAnimated = false;
+	//int instanceNumber = 0;
 };
 

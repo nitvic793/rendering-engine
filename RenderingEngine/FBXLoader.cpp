@@ -10,7 +10,7 @@ FBXLoader::FBXLoader()
 {
 	InitializeSdkObjects();
 
-	FbxString lFilePath("../../RuddFishAnimated6.fbx");
+	FbxString lFilePath("../../RuddFishAnimated.fbx");
 
 	if (lFilePath.IsEmpty())
 	{
@@ -193,6 +193,7 @@ void FBXLoader::LoadNodes(FbxNode* node, ID3D11Device* device)
 
 		joint.mName = node->GetName();
 		skeleton.mJoints.push_back(joint);
+		//skeleton.mJoints2.push_back(joint);
 
 	}
 	else if (node->GetNodeAttribute() && node->GetNodeAttribute()->GetAttributeType() && node->GetNodeAttribute()->GetAttributeType() == FbxNodeAttribute::eMesh)
@@ -324,6 +325,7 @@ Mesh* FBXLoader::GetMesh(FbxNode * node , ID3D11Device* device)
 				skeleton.mJoints[currJointIndex].mNode = currCluster->GetLink();
 				skeleton.mJoints[currJointIndex].mFbxTransform = transformLinkMatrix;
 				skeleton.mJoints[currJointIndex].mBoneIndex = currJointIndex;
+				//skeleton.mJoints2[currJointIndex] = skeleton.mJoints[currJointIndex];
 			
 				int Count = currCluster->GetControlPointIndicesCount();
 
@@ -449,7 +451,7 @@ void FBXLoader::GetAnimatedMatrixExtra()
 	FbxTime repeat = 0;
 	repeat.SetSecondDouble(3.0);
 	time.SetSecondDouble(T);
-	T += 0.03;
+	T += 0.005;
 	
 	if(time > repeat)
 	{
@@ -461,6 +463,9 @@ void FBXLoader::GetAnimatedMatrixExtra()
 	{
 
 		skeleton.mJoints[i].mTransform = GetJointGlobalTransform(i);
+		//time.SetSecondDouble(T+1.5f);
+		//skeleton.mJoints2[i].mTransform = GetJointGlobalTransform(i);
+		//time.SetSecondDouble(T);
 	}
 	
 
