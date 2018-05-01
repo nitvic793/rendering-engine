@@ -22,7 +22,7 @@ float4 AdjustSaturation(float4 color, float saturation)
 
 float4 main(VertexToPixel input) : SV_TARGET
 {
-	float BloomIntensity = 1.2;
+	float BloomIntensity = 0.2;
 	float BloomSaturation = 1.1;
 	float BaseIntensity = 1;
 	float BaseSaturation = 1;
