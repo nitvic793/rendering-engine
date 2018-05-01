@@ -74,6 +74,9 @@
     <ClCompile Include="FishController.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Emitter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DXCore.h">
@@ -134,6 +137,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="WaveVertexMath.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Emitter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -209,6 +215,8 @@
     <FxCompile Include="TerrainVS.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
+    <FxCompile Include="ParticlePS.hlsl" />
+    <FxCompile Include="ParticleVS.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
