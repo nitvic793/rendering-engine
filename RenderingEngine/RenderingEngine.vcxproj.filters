@@ -223,6 +223,12 @@
     </FxCompile>
     <FxCompile Include="ParticlePS.hlsl" />
     <FxCompile Include="ParticleVS.hlsl" />
+    <FxCompile Include="AnimationVS.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="AnimationPS.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

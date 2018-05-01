@@ -156,6 +156,12 @@ void Resources::LoadResources()
 	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/particle.jpg", nullptr, &srv);
 	shaderResourceViews.insert(SRVMapType("particle", srv));
 
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/Rudd-Fish_Colourmap.png", nullptr, &srv);
+	shaderResourceViews.insert(SRVMapType("ruddTexture", srv));
+
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/Rudd-Fish_Normalmap.png", nullptr, &srv);
+	shaderResourceViews.insert(SRVMapType("ruddNormal", srv));
+
 	//Load Sampler
 	D3D11_SAMPLER_DESC samplerDesc = {};
 	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
@@ -261,6 +267,14 @@ void Resources::LoadResources()
 	particleVS->LoadShaderFile(L"ParticleVS.cso");
 	vertexShaders.insert(VertexShaderMapType("particle", particleVS));
 
+	auto animationVS = new SimpleVertexShader(device, context);
+	animationVS->LoadShaderFile(L"AnimationVS.cso");
+	vertexShaders.insert(VertexShaderMapType("animation", animationVS));
+
+	auto animationPS = new SimplePixelShader(device, context);
+	animationPS->LoadShaderFile(L"AnimationPS.cso");
+	pixelShaders.insert(PixelShaderMapType("animation", animationPS));
+
 
 	//Load Materials
 	materials.insert(MaterialMapType("terrain", new Material(shadowVS, terrainPS, nullptr, sampler)));
@@ -294,6 +308,16 @@ void Resources::LoadResources()
 
 	loader.LoadFile("../../Assets/Models/fish01.obj");
 	AddToMeshMap(loader, meshes, device, "", shaderResourceViews, false);
+
+
+	// Animated fish data
+
+	fishFBX.LoadNodes(fishFBX.scene->GetRootNode(), device);
+	int numChildren = fishFBX.scene->GetRootNode()->GetChildCount();
+	FbxNode* childNode = fishFBX.scene->GetRootNode()->GetChild(1);
+	FbxString name1 = childNode->GetName();
+	meshes.insert(std::pair<std::string, Mesh*>("ruddFish", fishFBX.GetMesh(childNode, device)));
+	materials.insert(MaterialMapType("ruddFish", new Material(animationVS, animationPS, shaderResourceViews["ruddTexture"], shaderResourceViews["ruddNormal"], sampler)));
 }
 
 ID3D11ShaderResourceView * Resources::GetSRV(std::string name)

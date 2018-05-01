@@ -524,14 +524,13 @@ void Game::InitializeEntities()
 	ShowCursor(false);
 	trees = std::unique_ptr<TreeManager>(new TreeManager(device, context));
 	fishes = std::unique_ptr<FishController>(new FishController(
-		resources->meshes["Rudd-Fish_Cube.001"],
-		resources->materials["fish"],
+		resources->meshes["ruddFish"], resources->materials["ruddFish"],
 		25,
-		XMFLOAT3(9.f, -8.5f, -15.f),
-		XMFLOAT3(9.f, -8.5f, 20.f),
-		5,
+		XMFLOAT3(9.f, -8.5f, -20.f),
+		XMFLOAT3(9.f, -8.5f, 35.f),
+		8,
 		XMFLOAT3(0, 90.f * XM_PI / 180, 0),
-		XMFLOAT3(0.03f, 0.03f, 0.03f)
+		XMFLOAT3(0.04f, 0.04f, 0.04f)
 	));
 	trees->InitializeTrees({ "palm","palm_2" }, { "palm","palm_2" }, 
 	{ 
