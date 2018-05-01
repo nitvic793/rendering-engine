@@ -40,7 +40,8 @@ public:
 		SimpleVertexShader* vs,
 		SimplePixelShader* ps,
 		ID3D11ShaderResourceView* texture,
-		DirectX::XMFLOAT3 emitterPosition = DirectX::XMFLOAT3(0,0,0)
+		DirectX::XMFLOAT3 emitterPosition = DirectX::XMFLOAT3(0, 0, 0),
+		bool loop = false
 		);
 	~Emitter();
 
@@ -60,6 +61,7 @@ private:
 	float secondsPerParticle;
 	float timeSinceEmit;
 	float time = 0.0f;
+	float loop = false;
 
 	int livingParticleCount;
 	float lifetime;

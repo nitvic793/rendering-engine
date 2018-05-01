@@ -16,7 +16,8 @@ Emitter::Emitter(
 	SimpleVertexShader* vs,
 	SimplePixelShader* ps,
 	ID3D11ShaderResourceView* texture,
-	DirectX::XMFLOAT3 emitterPosition
+	DirectX::XMFLOAT3 emitterPosition,
+	bool _loop
 	)
 {
 	// Save params
@@ -36,6 +37,7 @@ Emitter::Emitter(
 
 	this->emitterPosition = emitterPosition;
 	this->emitterAcceleration = emitterAcceleration;
+	this->loop = _loop;
 
 	timeSinceEmit = 0;
 	livingParticleCount = 0;
@@ -153,14 +155,10 @@ void Emitter::Update(float dt)
 	time += dt;
 	
 	// Enough time to emit?
-	while (timeSinceEmit > secondsPerParticle && time <= 4)
+	while (timeSinceEmit > secondsPerParticle)
 	{
 		SpawnParticle();
 		timeSinceEmit -= secondsPerParticle;
-	}
-	if (time >= 4)
-	{
-		doneEmit = true;
 	}
 }
 
@@ -176,8 +174,11 @@ void Emitter::UpdateSingleParticle(float dt, int index)
 	{
 		// Recent death, so retire by moving alive count
 		firstAliveIndex++;
-		firstAliveIndex %= maxParticles;
-		livingParticleCount--;
+		if (loop)
+		{
+			firstAliveIndex %= maxParticles;
+			livingParticleCount--;
+		}
 		return;
 	}
 

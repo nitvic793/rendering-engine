@@ -866,27 +866,29 @@ void Game::Update(float deltaTime, float totalTime)
 	XMFLOAT3 pos = XMFLOAT3(0,0,0);
 	//Check for spear hitting the water
 	if (currentProjectile->GetPosition().y <= -7.0f && !projectileHitWater) {
-		std::cout << emitters.size() << std::endl;
 		projectileHitWater = true;
 		pos = currentProjectile->GetPosition();
 		hitPos = currentProjectile->GetPosition();
 		float x = pos.x;
 		float z = pos.z;
 		CreateRipple(x, 0.0f, z, 2.0f, 0.5f);
-		emitters.emplace_back(std::make_shared<Emitter>(100,							// Max particles
+
+		std::cout << pos.y << std::endl;
+		emitters.emplace_back(std::make_shared<Emitter>(
+			3,							// Max particles
 			100,							// Particles per second
-			4,								// Particle lifetime
+			1,								// Particle lifetime
 			1.0f,							// Start size
 			5.0f,							// End size
 			XMFLOAT4(0.2, 0.3f, 0.6f, 0.6f),	// Start color
-			XMFLOAT4(0, 0.05f, 0.2f, 0),		// End color
+			XMFLOAT4(0, 0.05f, 0.2f, 1),		// End color
 			XMFLOAT3(0, 1, 0),				// Start velocity
-			XMFLOAT3(0, -10, 0),				// Start acceleration
+			XMFLOAT3(0, 1, 0),				// Start acceleration
 			device,
 			resources->vertexShaders["particle"],
 			resources->pixelShaders["particle"],
 			resources->shaderResourceViews["particle"],
-			XMFLOAT3(pos.x, -6, pos.z)
+			XMFLOAT3(pos.x, pos.y + 1.5, pos.z)
 			));
 	}
 	
