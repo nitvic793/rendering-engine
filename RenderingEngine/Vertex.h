@@ -23,3 +23,13 @@ struct VertexTerrain
 	DirectX::XMFLOAT3 Tangent;
 	DirectX::XMFLOAT2 BlendUV;
 };
+
+struct VertexAnimated
+{
+	DirectX::XMFLOAT4 Position{ 0,0,0,0 };
+	DirectX::XMFLOAT3 Normal{ 0,0,0 };
+	DirectX::XMFLOAT2 UV{ 0,0 };
+	DirectX::XMFLOAT3 Tangent{ 0,0 ,0 };
+	DirectX::XMFLOAT4 Boneids{ 0,0,0,0 };
+	DirectX::XMFLOAT4 Weights{ 0,0,0,0 };
+};
