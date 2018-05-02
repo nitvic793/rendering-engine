@@ -874,15 +874,15 @@ void Game::Update(float deltaTime, float totalTime)
 
 		std::cout << pos.y << std::endl;
 		emitters.emplace_back(std::make_shared<Emitter>(
-			3,							// Max particles
+			100,							// Max particles
 			100,							// Particles per second
-			1,								// Particle lifetime
-			1.0f,							// Start size
-			5.0f,							// End size
-			XMFLOAT4(0.2, 0.3f, 0.6f, 0.6f),	// Start color
-			XMFLOAT4(0, 0.05f, 0.2f, 1),		// End color
-			XMFLOAT3(0, 1, 0),				// Start velocity
-			XMFLOAT3(0, 1, 0),				// Start acceleration
+			0.5,								// Particle lifetime
+			0.7f,							// Start size
+			0.1f,							// End size
+			XMFLOAT4(0.9, 0.9f, 1.0f, 0.5f),	// Start color
+			XMFLOAT4(1, 1.0f, 1.0f, 0),		// End color
+			XMFLOAT3(0, 7.2, 0),				// Start velocity
+			XMFLOAT3(0, -50, 0),				// Start acceleration
 			device,
 			resources->vertexShaders["particle"],
 			resources->pixelShaders["particle"],
@@ -1008,10 +1008,10 @@ void Game::Draw(float deltaTime, float totalTime)
 			//// Particle states
 			float blend[4] = { 1,1,1,1 };
 			context->OMSetBlendState(particleBlendState, blend, 0xffffffff);  // Additive blending
-			//context->OMSetDepthStencilState(particleDepthState, 0);			// No depth WRITING
+			context->OMSetDepthStencilState(particleDepthState, 0);			// No depth WRITING
 			e->Draw(context, camera);
 			context->OMSetBlendState(0, 0, 0xFFFFFFFF);
-			//context->OMGetDepthStencilState(0, 0);
+			context->OMSetDepthStencilState(0, 0);
 		}
 		else 
 		{
