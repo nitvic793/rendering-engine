@@ -781,7 +781,7 @@ void Game::DepthOfFieldPostProcess(ID3D11ShaderResourceView * texture)
 }
 
 void Game::CreateRipple(float x, float y, float z, float duration, float ringSize) {
-	Ripple r = Ripple(x, y, z, duration, ringSize);
+	Ripple r = Ripple(x, y, z, duration);// , ringSize);
 	ripples.push_back(r);
 }
 
@@ -860,17 +860,17 @@ void Game::Update(float deltaTime, float totalTime)
 	}
 
 	if ((GetAsyncKeyState(VK_SPACE) & 0x8000) != 0) {
-		CreateRipple(0.0f, 0.0f, 50.0f, 2.0f, 2.0f);
+		CreateRipple(0.0f, 0.0f, 50.0f, RIPPLE_DURATION);// , 2.0f);
 	}
 	XMFLOAT3 pos = XMFLOAT3(0,0,0);
 	//Check for spear hitting the water
-	if (currentProjectile->GetPosition().y <= -7.0f && !projectileHitWater) {
+	if (currentProjectile->GetPosition().y <= -7.0f && !projectileHitWater && currentProjectile->HasBeenShot()) {
 		projectileHitWater = true;
 		pos = currentProjectile->GetPosition();
 		hitPos = currentProjectile->GetPosition();
 		float x = pos.x;
 		float z = pos.z;
-		CreateRipple(x, 0.0f, z, 2.0f, 0.5f);
+		CreateRipple(x, 0.0f, z, RIPPLE_DURATION);// , 0.5f);
 
 		std::cout << pos.y << std::endl;
 		emitters.emplace_back(std::make_shared<Emitter>(

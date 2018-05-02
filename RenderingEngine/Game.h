@@ -1,6 +1,7 @@
 #pragma once
 
 #define MAX_RIPPLES 32
+#define RIPPLE_DURATION 10
 
 #include <memory>
 #include "DXCore.h"
@@ -59,7 +60,7 @@ private:
 	void BloomPostProcess(ID3D11ShaderResourceView* texture);
 	void DepthOfFieldPostProcess(ID3D11ShaderResourceView*  texture);
 
-	void CreateRipple(float x, float y, float z, float duration, float ringSize);
+	void CreateRipple(float x, float y, float z, float duration, float ringSize = 0);
 	bool projectileHitWater;
 	bool isDofEnabled;
 	std::vector<Ripple> ripples;
