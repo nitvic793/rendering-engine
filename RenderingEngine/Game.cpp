@@ -98,6 +98,8 @@ Game::~Game()
 	dofBlurSRV->Release();
 	dofRTV->Release();
 	dofSRV->Release();
+	lensFlareRTV->Release();
+	lensFlareSRV->Release();
 
 	displacementSampler->Release();
 	delete currentProjectile;
@@ -296,6 +298,7 @@ void Game::Init()
 	ID3D11Texture2D* bloomTexture;
 	ID3D11Texture2D* blurTexture;
 	ID3D11Texture2D* dofTexture;
+	ID3D11Texture2D* lensFlareTexture;
 
 	// Set up render texture
 	D3D11_TEXTURE2D_DESC ppDesc = {};
@@ -316,6 +319,7 @@ void Game::Init()
 	device->CreateTexture2D(&ppDesc, 0, &bloomTexture);
 	device->CreateTexture2D(&ppDesc, 0, &blurTexture);
 	device->CreateTexture2D(&ppDesc, 0, &dofTexture);
+	device->CreateTexture2D(&ppDesc, 0, &lensFlareTexture);
 
 	// Set up render target view
 	rtvDesc = {};
@@ -328,6 +332,7 @@ void Game::Init()
 	device->CreateRenderTargetView(bloomTexture, &rtvDesc, &bloomRTV);
 	device->CreateRenderTargetView(blurTexture, &rtvDesc, &dofBlurRTV);
 	device->CreateRenderTargetView(dofTexture, &rtvDesc, &dofRTV);
+	device->CreateRenderTargetView(lensFlareTexture, &rtvDesc, &lensFlareRTV);
 
 	// Set up shader resource view for same texture
 	srvDesc = {};
@@ -341,6 +346,7 @@ void Game::Init()
 	device->CreateShaderResourceView(bloomTexture, &srvDesc, &bloomSRV);
 	device->CreateShaderResourceView(blurTexture, &srvDesc, &dofBlurSRV);
 	device->CreateShaderResourceView(dofTexture, &srvDesc, &dofSRV);
+	device->CreateShaderResourceView(lensFlareTexture, &srvDesc, &lensFlareSRV);
 
 	postProcessRenderTexture->Release();
 	bloomExtractTexture->Release();
@@ -348,6 +354,7 @@ void Game::Init()
 	bloomTexture->Release();
 	blurTexture->Release();
 	dofTexture->Release();
+	lensFlareTexture->Release();
 
 	// A depth state for the particles
 	D3D11_DEPTH_STENCIL_DESC dsDesc = {};
@@ -779,6 +786,12 @@ void Game::DepthOfFieldPostProcess(ID3D11ShaderResourceView * texture)
 	//Reset render target
 	context->OMSetRenderTargets(1, &backBufferRTV, depthStencilView);
 }
+
+void Game::LensFlare(ID3D11ShaderResourceView * texture)
+{
+}
+
+
 
 void Game::CreateRipple(float x, float y, float z, float duration, float ringSize) {
 	Ripple r = Ripple(x, y, z, duration, ringSize);

@@ -58,6 +58,7 @@ private:
 	void DrawPostProcess(ID3D11ShaderResourceView* texture);
 	void BloomPostProcess(ID3D11ShaderResourceView* texture);
 	void DepthOfFieldPostProcess(ID3D11ShaderResourceView*  texture);
+	void LensFlare(ID3D11ShaderResourceView*  texture);
 
 	void CreateRipple(float x, float y, float z, float duration, float ringSize);
 	bool projectileHitWater;
@@ -112,6 +113,10 @@ private:
 	ID3D11RenderTargetView* dofBlurRTV;
 	ID3D11ShaderResourceView* dofSRV;
 	ID3D11RenderTargetView* dofRTV;
+
+	ID3D11ShaderResourceView* lensFlareSRV;
+	ID3D11RenderTargetView* lensFlareRTV;
+
 
 	// An SRV is good enough for loading textures with the DirectX Toolkit and then
 	// using them with shaders 
