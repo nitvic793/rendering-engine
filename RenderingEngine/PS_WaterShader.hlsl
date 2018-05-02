@@ -62,6 +62,7 @@ Texture2D roughnessTexture	: register(t2);
 TextureCube SkyTexture		: register(t3);
 Texture2D normalTextureTwo	: register(t4);
 Texture2D ScenePixels		: register(t5);
+Texture2D terrainHeight		: register(t6);
 SamplerState basicSampler	: register(s0);
 SamplerState RefractSampler	: register(s1);
 //Texture2D shadowMapTexture	: register(t3);
@@ -124,8 +125,8 @@ float4 calculatePointLight(float3 normal, float3 worldPos, PointLight light)
 float3 calculateNormalFromMap(float2 uv, float3 normal, float3 tangent)
 {
 	float3 normalFinal;
-	uv.x += translate * 0.2;
-	float3 normalFromTexture = normalTextureTwo.Sample(basicSampler, uv).xyz;
+	uv.x += translate ;
+	float3 normalFromTexture = normalTexture.Sample(basicSampler, uv).xyz;
 	float3 unpackedNormal = normalFromTexture * 2.0f - 1.0f;
 	float3 N = normal;
 	float3 T = normalize(tangent - N * dot(tangent, N));
@@ -133,7 +134,7 @@ float3 calculateNormalFromMap(float2 uv, float3 normal, float3 tangent)
 	float3x3 TBN = float3x3(T, B, N);
 	normalFinal = normalize(mul(unpackedNormal, TBN));
 
-	uv.y += translate * 0.1;
+	uv.y += translate;
 	float3 normalFromTexture2 = normalTextureTwo.Sample(basicSampler, uv).xyz;
 	unpackedNormal = normalFromTexture2 * 2.0f - 1.0f;
 	N = normal;
@@ -207,7 +208,7 @@ float4 main(DomainToPixel input) : SV_TARGET
 	// Sample, blend and translate multiple normals
 	float3 finalNormal = calculateNormalFromMap(input.uv, input.normal, input.tangent);
 	finalNormal = normalize(finalNormal);
-	
+	//return float4(finalNormal, 1);
 	// Calculate refraction
 	float2 refractUV = calculateRefraction(finalNormal,input.worldPos);
 
@@ -247,6 +248,9 @@ float4 main(DomainToPixel input) : SV_TARGET
 			finalNormal.z = lerp(finalNormal.z, rippleNormal.z, rippleIntensity);
 
 			finalNormal = normalize(finalNormal);
+			float4 foam = float4(1, 0, 0, 1);
+			if (ripplePosition.x == input.position.x && ripplePosition.z == input.position.z)
+				return foam;
 		}
 	}
 
@@ -265,8 +269,9 @@ float4 main(DomainToPixel input) : SV_TARGET
 		totalColor += calculatePointLight(finalNormal, input.worldPos, pointLights[i]);
 	}
 	reflection = calculateSkyboxReflection(finalNormal, input.worldPos);
+	
 	// Gamma correction
 	surfaceColor.rgb = lerp(surfaceColor.rgb, pow(surfaceColor.rgb, 2.2), 1);
 	float3 gammaCorrectValue = lerp(totalColor, pow(totalColor, 1.0f / 2.2f), 1);
-	return float4(gammaCorrectValue,1) * (reflection * ScenePixels.Sample(RefractSampler, input.screenUV + refractUV * 0.1f)) * ( reflectionCoeff + (1-reflectionCoeff)) + surfaceColor * 0.7;
+	return float4(gammaCorrectValue, 1) * (reflection * ScenePixels.Sample(RefractSampler, input.screenUV + refractUV * 0.1f)) * (reflectionCoeff + (1 - reflectionCoeff)) + surfaceColor * 0.7;
 }

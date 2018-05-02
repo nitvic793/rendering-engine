@@ -123,7 +123,7 @@ void Resources::LoadResources()
 	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/waterNormal2.png", nullptr, &srv);
 	shaderResourceViews.insert(SRVMapType("waterNormal2", srv));
 
-	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/waterNormal.png", nullptr, &srv);
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/waterNormal21.jpg", nullptr, &srv);
 	shaderResourceViews.insert(SRVMapType("waterNormal", srv));
 
 	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/Heightmaptest.png", nullptr, &srv);

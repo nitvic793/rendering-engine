@@ -826,7 +826,7 @@ void Game::Update(float deltaTime, float totalTime)
 {
 	// Water .........................................
 	time += 0.05f * deltaTime;
-	translate += 0.1f * deltaTime;
+	translate += 0.01f * deltaTime;
 	if (translate > 1.0f)
 	{
 		translate -= 1.0f;
