@@ -462,9 +462,9 @@ void Game::RenderEntityShadow(Entity * entity)
 void Game::RenderShadowMap()
 {
 	XMMATRIX shView = XMMatrixLookAtLH(
-		XMVectorSet(0, 20, 1, 0),	// Start back and in the air
-		XMVectorSet(0, 0, 0, 0),	// Look at the origin
-		XMVectorSet(0, 1, 0, 0));	// Up is up
+		XMVectorSet(-10, 10, 10, 0),
+		XMVectorSet(0, 0, 0, 0),
+		XMVectorSet(0, 1, 0, 0));
 	XMStoreFloat4x4(&shadowViewMatrix, XMMatrixTranspose(shView));
 
 	XMMATRIX shProj = XMMatrixOrthographicLH(20.0f, 20.0f, 0.1f, 100.0f);
