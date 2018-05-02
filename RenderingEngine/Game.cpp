@@ -874,7 +874,7 @@ void Game::Update(float deltaTime, float totalTime)
 
 		std::cout << pos.y << std::endl;
 		emitters.emplace_back(std::make_shared<Emitter>(
-			100,							// Max particles
+			50,							// Max particles
 			100,							// Particles per second
 			0.5,								// Particle lifetime
 			0.7f,							// Start size
