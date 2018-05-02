@@ -92,17 +92,6 @@ Emitter::Emitter(
 	ibDesc.ByteWidth = sizeof(unsigned int) * maxParticles * 6;
 	device->CreateBuffer(&ibDesc, &indexData, &indexBuffer);
 	
-	// Create a sampler state for texture sampling
-	D3D11_SAMPLER_DESC samplerDesc = {};
-	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-	samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-	samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-	samplerDesc.Filter = D3D11_FILTER_MAXIMUM_MIN_MAG_MIP_LINEAR;
-	samplerDesc.MaxAnisotropy = 16;
-	samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
-
-	// Ask the device to create a state
-	device->CreateSamplerState(&samplerDesc, &trilinear);
 	delete[] indices;
 }
 
@@ -219,11 +208,13 @@ void Emitter::SpawnParticle()
 	particles[firstDeadIndex].Age = 0;
 	particles[firstDeadIndex].Size = startSize;
 	particles[firstDeadIndex].Color = startColor;
-	particles[firstDeadIndex].Position = emitterPosition;
+	particles[firstDeadIndex].Position.x = emitterPosition.x + (((float)rand() / RAND_MAX) * 1.4f - 0.2f);
+	particles[firstDeadIndex].Position.y = emitterPosition.y;
+	particles[firstDeadIndex].Position.z = emitterPosition.z + (((float)rand() / RAND_MAX) * 1.4f - 0.2f);
 	particles[firstDeadIndex].StartVelocity = startVelocity;
-	particles[firstDeadIndex].StartVelocity.x += ((float)rand() / RAND_MAX) * 0.4f - 0.2f;
-	particles[firstDeadIndex].StartVelocity.y += ((float)rand() / RAND_MAX) * 0.4f - 0.2f;
-	particles[firstDeadIndex].StartVelocity.z += ((float)rand() / RAND_MAX) * 0.4f - 0.2f;
+	particles[firstDeadIndex].StartVelocity.x += ((float)rand() / RAND_MAX) * 5.4f - 0.2f;
+	particles[firstDeadIndex].StartVelocity.y += ((float)rand() / RAND_MAX) * 1.0f - 0.2f;
+	particles[firstDeadIndex].StartVelocity.z += ((float)rand() / RAND_MAX) * 5.4f - 0.2f;
 
 	// Increment and wrap
 	firstDeadIndex++;
@@ -300,7 +291,6 @@ void Emitter::Draw(ID3D11DeviceContext* context, Camera* camera)
 	vs->CopyAllBufferData();
 
 	ps->SetShaderResourceView("particle", texture);
-	ps->SetSamplerState("trilinear", trilinear);
 	ps->SetShader();
 	ps->CopyAllBufferData();
 

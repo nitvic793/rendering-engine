@@ -123,7 +123,7 @@ void Resources::LoadResources()
 	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/waterNormal2.png", nullptr, &srv);
 	shaderResourceViews.insert(SRVMapType("waterNormal2", srv));
 
-	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/waterNormal.png", nullptr, &srv);
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/waterNormal21.jpg", nullptr, &srv);
 	shaderResourceViews.insert(SRVMapType("waterNormal", srv));
 
 	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/Heightmaptest.png", nullptr, &srv);
@@ -153,7 +153,7 @@ void Resources::LoadResources()
 	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/gravelNormal.jpg", nullptr, &srv);
 	shaderResourceViews.insert(SRVMapType("gravelNormal", srv));
 
-	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/particle.jpg", nullptr, &srv);
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/particle1.png", nullptr, &srv);
 	shaderResourceViews.insert(SRVMapType("particle", srv));
 
 	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/Rudd-Fish_Colourmap.png", nullptr, &srv);

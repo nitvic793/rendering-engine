@@ -119,11 +119,11 @@ void Water::CalculateUVCoordinates()
 	// Calculate how much to increment the texture coordinates by.
 	// Increase water fidelity by increasing this value
 	// Change numbers in powers of 2
-	incrementValue = (float)16 / (float)breadth;
+	incrementValue = (float)2 / (float)breadth;
 	
 	// Calculate how many times to repeat the texture.
 	incrementCount = breadth;
-
+	
 	// Initialize the tu and tv coordinate values.
 	tuCoordinate = 0.0f;
 	tvCoordinate = 1.0f;

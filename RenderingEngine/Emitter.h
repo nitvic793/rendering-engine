@@ -88,6 +88,5 @@ private:
 	ID3D11ShaderResourceView* texture;
 	SimpleVertexShader* vs;
 	SimplePixelShader* ps;
-	ID3D11SamplerState* trilinear;
 };
 
