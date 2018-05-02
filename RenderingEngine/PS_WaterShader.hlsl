@@ -202,8 +202,8 @@ float3 Vector3Lerp(float3 a, float3 b, float i) {
 
 float3 CalculateRipple(float3 pixelPos, float3 ripplePos, float rippleRadius, float3 normal) {
 	float3 finalNormal = normal;
-	float ringSize = 10;
-	float frequency = 50;
+	float ringSize = 5;
+	float frequency = 30;
 	float outerRingRadius = rippleRadius;
 	float innerRingRadius = rippleRadius - ringSize;
 	float distance = calculateDistance(pixelPos, ripplePos);
