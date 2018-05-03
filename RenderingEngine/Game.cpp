@@ -117,6 +117,7 @@ Game::~Game()
 // --------------------------------------------------------
 void Game::Init()
 {
+	ShowCursor(true);
 	projectileHitWater = false;
 	isDofEnabled = false;
 	RECT rect;
