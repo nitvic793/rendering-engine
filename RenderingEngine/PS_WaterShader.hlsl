@@ -277,7 +277,7 @@ float4 main(DomainToPixel input) : SV_TARGET
 			float4 foam = float4(1, 0, 0, 1);
 			if (ripplePosition.x == input.position.x && ripplePosition.z == input.position.z)
 				return foam;
-		}
+		
 		finalNormal = CalculateRipple(input.worldPos, ripplePosition, rippleRadius, finalNormal);
 	}
 

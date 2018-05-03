@@ -162,6 +162,16 @@ void Resources::LoadResources()
 	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/Rudd-Fish_Normalmap.png", nullptr, &srv);
 	shaderResourceViews.insert(SRVMapType("ruddNormal", srv));
 
+	//Button textures
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/button_normal.png", nullptr, &srv);
+	shaderResourceViews.insert(SRVMapType("button_normal", srv));
+
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/button_hover.png", nullptr, &srv);
+	shaderResourceViews.insert(SRVMapType("button_hover", srv));
+
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/button_press.png", nullptr, &srv);
+	shaderResourceViews.insert(SRVMapType("button_press", srv));
+
 	//Load Sampler
 	D3D11_SAMPLER_DESC samplerDesc = {};
 	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;

@@ -3,6 +3,7 @@
 #define MAX_RIPPLES 32
 #define RIPPLE_DURATION 10
 
+#include "Canvas.h"
 #include <memory>
 #include "DXCore.h"
 #include "SimpleShader.h"
@@ -146,5 +147,9 @@ private:
 	ID3D11BlendState* particleBlendState;
 	ID3D11DepthStencilState* particleDepthState;
 	std::vector<std::shared_ptr<Emitter>> emitters;
+
+	//Canvas
+	Canvas *canvas;
+	bool gameStarted;
 };
 

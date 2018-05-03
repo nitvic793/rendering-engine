@@ -25,6 +25,7 @@ Game::Game(HINSTANCE hInstance)
 	vertexShader = 0;
 	pixelShader = 0;
 	camera = nullptr;
+	gameStarted = false;
 
 #if defined(DEBUG) || defined(_DEBUG)
 	// Do we want a console window?  Probably only in debug mode
@@ -106,6 +107,8 @@ Game::~Game()
 	delete domainShader;
 	particleBlendState->Release();
 	particleDepthState->Release();
+
+	delete canvas;
 }
 
 // --------------------------------------------------------
@@ -123,6 +126,11 @@ void Game::Init()
 	SetCursorPos(rect.left + width / 2, rect.top + height / 2);
 	resources = new Resources(device, context, swapChain);
 	resources->LoadResources();
+
+	//Create canvas
+	canvas = new Canvas(device, context, resources);
+	canvas->AssignMenuButtonFunction([&]() {gameStarted = true; canvas->StartGame(); });
+	canvas->AssignQuitButtonFunction([&]() {Quit(); });
 
 	LoadShaders();
 	CreateCamera();
@@ -824,6 +832,11 @@ XMFLOAT3 hitPos;
 // --------------------------------------------------------
 void Game::Update(float deltaTime, float totalTime)
 {
+	if (GetAsyncKeyState(VK_ESCAPE))
+		Quit();
+	canvas->Update(deltaTime);
+
+	if (!gameStarted) return;
 	// Water .........................................
 	time += 0.05f * deltaTime;
 	translate += 0.01f * deltaTime;
@@ -841,9 +854,6 @@ void Game::Update(float deltaTime, float totalTime)
 		entities[2]->SetPosition(9.f, -8.5f, -15.f);
 	}
 
-	if (GetAsyncKeyState(VK_ESCAPE))
-		Quit();
-
 	if ((GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0)
 	{
 		projectilePreviousPosition = currentProjectile->GetPosition();
@@ -859,9 +869,9 @@ void Game::Update(float deltaTime, float totalTime)
 		isDofEnabled = true;
 	}
 
-	if ((GetAsyncKeyState(VK_SPACE) & 0x8000) != 0) {
-		CreateRipple(0.0f, 0.0f, 50.0f, RIPPLE_DURATION);// , 2.0f);
-	}
+	//if ((GetAsyncKeyState(VK_SPACE) & 0x8000) != 0) {
+	//	CreateRipple(0.0f, 0.0f, 50.0f, RIPPLE_DURATION);// , 2.0f);
+	//}
 	XMFLOAT3 pos = XMFLOAT3(0,0,0);
 	//Check for spear hitting the water
 	if (currentProjectile->GetPosition().y <= -7.0f && !projectileHitWater && currentProjectile->HasBeenShot()) {
@@ -947,12 +957,16 @@ void Game::Draw(float deltaTime, float totalTime)
 	// Use our refraction render target and our regular depth buffer
 	context->OMSetRenderTargets(1, &refractionRTV, depthStencilView);
 
-	renderer->Draw(terrain.get());
-	fishes->Render(renderer);
+	if (gameStarted) {
+		renderer->Draw(terrain.get());
+		fishes->Render(renderer);
+	}
 	
 	
 	
-	DrawSky();
+	if (gameStarted)
+		DrawSky();
+
 
 	// Reset blend state if blending
 	context->OMSetRenderTargets(1, &postProcessRTV, 0);
@@ -963,22 +977,24 @@ void Game::Draw(float deltaTime, float totalTime)
 
 	for (auto entity : entities)
 	{
-		if (entity->hasShadow)
+		if (entity->hasShadow && gameStarted)
 			renderer->Draw(entity);
 	}
 
-	trees->Render(camera);
+	if (gameStarted) trees->Render(camera);
 
 	ID3D11ShaderResourceView *const nullSRV[4] = { NULL };
 	context->PSSetShaderResources(0, 4, nullSRV);
 
 	for (auto entity : entities)
 	{
-		if (!entity->hasShadow)
+		if (!entity->hasShadow && gameStarted)
 			renderer->Draw(entity);
 	}
-	renderer->Draw(currentProjectile);
-	DrawWater();
+	if (gameStarted)
+		renderer->Draw(currentProjectile);
+	if (gameStarted)
+		DrawWater();
 
 	context->PSSetShaderResources(0, 4, nullSRV);
 	ID3D11ShaderResourceView* nullSRV2[16] = {};
@@ -1009,7 +1025,7 @@ void Game::Draw(float deltaTime, float totalTime)
 			float blend[4] = { 1,1,1,1 };
 			context->OMSetBlendState(particleBlendState, blend, 0xffffffff);  // Additive blending
 			context->OMSetDepthStencilState(particleDepthState, 0);			// No depth WRITING
-			e->Draw(context, camera);
+			if (gameStarted) e->Draw(context, camera);
 			context->OMSetBlendState(0, 0, 0xFFFFFFFF);
 			context->OMSetDepthStencilState(0, 0);
 		}
@@ -1029,7 +1045,10 @@ void Game::Draw(float deltaTime, float totalTime)
 		DepthOfFieldPostProcess(bloomSRV);
 		nextBuffer = dofSRV;
 	}
-	DrawPostProcess(nextBuffer);
+	//if (gameStarted)
+		DrawPostProcess(nextBuffer);
+
+	canvas->Draw();
 	
 	context->OMSetRenderTargets(1, &backBufferRTV, depthStencilView);
 	
@@ -1095,6 +1114,8 @@ void Game::OnMouseDown(WPARAM buttonState, int x, int y)
 	// events even if the mouse leaves the window.  we'll be
 	// releasing the capture once a mouse button is released
 	SetCapture(hWnd);
+
+	canvas->OnMouseDown(x, y);
 }
 
 // --------------------------------------------------------
@@ -1107,6 +1128,8 @@ void Game::OnMouseUp(WPARAM buttonState, int x, int y)
 	// We don't care about the tracking the cursor outside
 	// the window anymore (we're not dragging if the mouse is up)
 	ReleaseCapture();
+
+	canvas->OnMouseUp(x, y);
 }
 
 // --------------------------------------------------------
@@ -1136,6 +1159,8 @@ void Game::OnMouseMove(WPARAM buttonState, int x, int y)
 	{
 
 	}
+
+	canvas->OnMouseMove(x, y);
 }
 
 // --------------------------------------------------------
