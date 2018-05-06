@@ -114,8 +114,14 @@ private:
 	ID3D11ShaderResourceView* dofSRV;
 	ID3D11RenderTargetView* dofRTV;
 
+	ID3D11ShaderResourceView* lensFlareThresholdSRV;
+	ID3D11RenderTargetView* lensFlareThresholdRTV;
+
 	ID3D11ShaderResourceView* lensFlareSRV;
 	ID3D11RenderTargetView* lensFlareRTV;
+
+	ID3D11ShaderResourceView* ghostGenerateSRV;
+	ID3D11RenderTargetView* ghostGenerateRTV;
 
 
 	// An SRV is good enough for loading textures with the DirectX Toolkit and then

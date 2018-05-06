@@ -162,6 +162,9 @@ void Resources::LoadResources()
 	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/Rudd-Fish_Normalmap.png", nullptr, &srv);
 	shaderResourceViews.insert(SRVMapType("ruddNormal", srv));
 
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/radial.png", nullptr, &srv);
+	shaderResourceViews.insert(SRVMapType("radial", srv));
+
 	//Load Sampler
 	D3D11_SAMPLER_DESC samplerDesc = {};
 	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
@@ -274,6 +277,19 @@ void Resources::LoadResources()
 	auto animationPS = new SimplePixelShader(device, context);
 	animationPS->LoadShaderFile(L"AnimationPS.cso");
 	pixelShaders.insert(PixelShaderMapType("animation", animationPS));
+
+	auto lfThresholdPS = new SimplePixelShader(device, context);
+	lfThresholdPS->LoadShaderFile(L"LFThresholdPS.cso");
+	pixelShaders.insert(PixelShaderMapType("lensFlareThreshold", lfThresholdPS));
+
+
+	auto ghostGenPS = new SimplePixelShader(device, context);
+	ghostGenPS->LoadShaderFile(L"GhostGenerationPS.cso");
+	pixelShaders.insert(PixelShaderMapType("ghostGen", ghostGenPS));
+
+	auto lensFlarePS = new SimplePixelShader(device, context);
+	lensFlarePS->LoadShaderFile(L"LensFlarePS.cso");
+	pixelShaders.insert(PixelShaderMapType("lensFlare", lensFlarePS));
 
 
 	//Load Materials
