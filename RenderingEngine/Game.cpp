@@ -101,6 +101,11 @@ Game::~Game()
 	lensFlareRTV->Release();
 	lensFlareSRV->Release();
 
+	lensFlareThresholdRTV->Release();
+	lensFlareThresholdSRV->Release();
+	ghostGenerateRTV->Release();
+	ghostGenerateSRV->Release();
+
 	displacementSampler->Release();
 	delete currentProjectile;
 	delete water;
