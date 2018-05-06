@@ -63,10 +63,10 @@ FishController::FishController(Mesh* mesh, Material* mat, int count, XMFLOAT3 st
 		entity->SetPosition(RandomOffsetFromStart());
 		entity->SetRotation(rotation.x, rotation.y, rotation.z);
 
-		if (i % 2 == 0)
+		//if (i % 2 == 0)
 			entity->SetScale(defaultScale.x, defaultScale.y, defaultScale.z);
-		else
-			entity->SetScale(defaultScale.x, defaultScale.y, -defaultScale.z);
+		//else
+			//entity->SetScale(defaultScale.x, defaultScale.y, -defaultScale.z);
 
 		entities.push_back(entity);
 	}
