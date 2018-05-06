@@ -142,7 +142,6 @@
     <ClCompile Include="SimpleShader.cpp" />
     <ClCompile Include="Terrain.cpp" />
     <ClCompile Include="TreeManager.cpp" />
-    <ClCompile Include="VirtualVertices.cpp" />
     <ClCompile Include="Water.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -168,7 +167,6 @@
     <ClInclude Include="Terrain.h" />
     <ClInclude Include="TreeManager.h" />
     <ClInclude Include="Vertex.h" />
-    <ClInclude Include="VirtualVertices.h" />
     <ClInclude Include="Water.h" />
     <ClInclude Include="WaveVertexMath.h" />
   </ItemGroup>

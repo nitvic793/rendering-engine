@@ -2,7 +2,6 @@
 
 #define MAX_RIPPLES 32
 #define RIPPLE_DURATION 10
-#define	NUM_OF_WAVES 10
 
 #include "Canvas.h"
 #include <memory>
@@ -26,7 +25,6 @@
 #include "TreeManager.h"
 #include "FishController.h"
 #include "Emitter.h"
-#include "VirtualVertices.h"
 
 class Game 
 	: public DXCore
@@ -149,9 +147,6 @@ private:
 	ID3D11BlendState* particleBlendState;
 	ID3D11DepthStencilState* particleDepthState;
 	std::vector<std::shared_ptr<Emitter>> emitters;
-
-	//Virtual vertices for approximating collision on the water
-	VirtualVertices virtualVertices;
 
 	//Canvas
 	Canvas *canvas;
