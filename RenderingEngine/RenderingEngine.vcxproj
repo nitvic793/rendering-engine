@@ -122,7 +122,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Button.cpp" />
     <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="Canvas.cpp" />
     <ClCompile Include="DXCore.cpp" />
     <ClCompile Include="Emitter.cpp" />
     <ClCompile Include="Entity.cpp" />
@@ -140,10 +142,13 @@
     <ClCompile Include="SimpleShader.cpp" />
     <ClCompile Include="Terrain.cpp" />
     <ClCompile Include="TreeManager.cpp" />
+    <ClCompile Include="VirtualVertices.cpp" />
     <ClCompile Include="Water.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Button.h" />
     <ClInclude Include="Camera.h" />
+    <ClInclude Include="Canvas.h" />
     <ClInclude Include="DXCore.h" />
     <ClInclude Include="Emitter.h" />
     <ClInclude Include="Entity.h" />
@@ -163,6 +168,7 @@
     <ClInclude Include="Terrain.h" />
     <ClInclude Include="TreeManager.h" />
     <ClInclude Include="Vertex.h" />
+    <ClInclude Include="VirtualVertices.h" />
     <ClInclude Include="Water.h" />
     <ClInclude Include="WaveVertexMath.h" />
   </ItemGroup>
@@ -214,6 +220,30 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+    </FxCompile>
+    <FxCompile Include="GhostGenerationPS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+    </FxCompile>
+    <FxCompile Include="LensFlarePS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+    </FxCompile>
+    <FxCompile Include="LFThresholdPS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
     </FxCompile>
     <FxCompile Include="ParticlePS.hlsl">

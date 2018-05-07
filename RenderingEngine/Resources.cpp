@@ -54,7 +54,7 @@ void AddToMeshMap(objl::Loader loader, MeshMap& map, ID3D11Device* device, std::
 	{
 		auto verts = MapObjlToVertex(mesh.Vertices);
 		auto indices = mesh.Indices;
-		Mesh* m = new Mesh(verts.data(), verts.size(), indices.data(), indices.size(), device);
+		Mesh* m = new Mesh(verts.data(), (UINT)verts.size(), indices.data(), (UINT)indices.size(), device);
 		map.insert(MeshMapType(prefix + mesh.MeshName, m));
 		if (loadTex)
 		{
@@ -161,6 +161,19 @@ void Resources::LoadResources()
 
 	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/Rudd-Fish_Normalmap.png", nullptr, &srv);
 	shaderResourceViews.insert(SRVMapType("ruddNormal", srv));
+
+	//Button textures
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/button_normal.png", nullptr, &srv);
+	shaderResourceViews.insert(SRVMapType("button_normal", srv));
+
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/button_hover.png", nullptr, &srv);
+	shaderResourceViews.insert(SRVMapType("button_hover", srv));
+
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/button_press.png", nullptr, &srv);
+	shaderResourceViews.insert(SRVMapType("button_press", srv));
+
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/radial.png", nullptr, &srv);
+	shaderResourceViews.insert(SRVMapType("radial", srv));
 
 	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/foam.png", nullptr, &srv);
 	shaderResourceViews.insert(SRVMapType("foam", srv));
@@ -277,6 +290,19 @@ void Resources::LoadResources()
 	auto animationPS = new SimplePixelShader(device, context);
 	animationPS->LoadShaderFile(L"AnimationPS.cso");
 	pixelShaders.insert(PixelShaderMapType("animation", animationPS));
+
+	auto lfThresholdPS = new SimplePixelShader(device, context);
+	lfThresholdPS->LoadShaderFile(L"LFThresholdPS.cso");
+	pixelShaders.insert(PixelShaderMapType("lensFlareThreshold", lfThresholdPS));
+
+
+	auto ghostGenPS = new SimplePixelShader(device, context);
+	ghostGenPS->LoadShaderFile(L"GhostGenerationPS.cso");
+	pixelShaders.insert(PixelShaderMapType("ghostGen", ghostGenPS));
+
+	auto lensFlarePS = new SimplePixelShader(device, context);
+	lensFlarePS->LoadShaderFile(L"LensFlarePS.cso");
+	pixelShaders.insert(PixelShaderMapType("lensFlare", lensFlarePS));
 
 
 	//Load Materials

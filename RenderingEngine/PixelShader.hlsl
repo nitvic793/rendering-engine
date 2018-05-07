@@ -118,8 +118,8 @@ float4 main(VertexToPixel input) : SV_TARGET
 		totalColor += calculatePointLight(finalNormal, input.worldPos, pointLights[i], roughness)  * surfaceColor;
 	}
 
-	clip(totalColor.a);
+	clip(0.9);
 	// Gamma correction
-	float3 gammaCorrectValue = lerp(totalColor, pow(totalColor, 1.0f / 2.2f), 1);
+	float3 gammaCorrectValue = (float3)lerp(totalColor, pow(totalColor, 1.0f / 2.2f), 1);
 	return float4(gammaCorrectValue, 1);
 }
