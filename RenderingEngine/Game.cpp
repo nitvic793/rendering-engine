@@ -304,7 +304,63 @@ void Game::Init()
 	shadowRastDesc.SlopeScaledDepthBias = 1.0f;
 	device->CreateRasterizerState(&shadowRastDesc, &shadowRasterizer);
 
+	SetupPostProcess();
+	
 
+	// A depth state for the particles
+	D3D11_DEPTH_STENCIL_DESC dsDesc = {};
+	dsDesc.DepthEnable = true;
+	dsDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO; // Turns off depth writing
+	dsDesc.DepthFunc = D3D11_COMPARISON_LESS;
+	device->CreateDepthStencilState(&dsDesc, &particleDepthState);
+
+	// Blend for particles (additive)
+	D3D11_BLEND_DESC blend = {};
+	blend.AlphaToCoverageEnable = false;
+	blend.IndependentBlendEnable = false;
+	blend.RenderTarget[0].BlendEnable = true;
+	blend.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+	blend.RenderTarget[0].SrcBlend = D3D11_BLEND_ONE;
+	blend.RenderTarget[0].DestBlend = D3D11_BLEND_ONE;
+	blend.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+	blend.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
+	blend.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ONE;
+	blend.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+	device->CreateBlendState(&blend, &particleBlendState);
+
+	// Tell the input assembler stage of the pipeline what kind of
+	// geometric primitives (points, lines or triangles) we want to draw.  
+	// Essentially: "What kind of shape should the GPU draw with our data?"
+	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+}
+
+void Game::SetupPostProcess(bool resize)
+{
+	if (resize)
+	{
+		postProcessSRV->Release();
+		postProcessRTV->Release();
+		bloomBlurRTV->Release();
+		bloomBlurSRV->Release();
+		bloomExtractRTV->Release();
+		bloomExtractSRV->Release();
+		bloomRTV->Release();
+		bloomSRV->Release();
+		dofBlurRTV->Release();
+		dofBlurSRV->Release();
+		dofRTV->Release();
+		dofSRV->Release();
+		lensFlareRTV->Release();
+		lensFlareSRV->Release();
+
+		lensFlareThresholdRTV->Release();
+		lensFlareThresholdSRV->Release();
+		ghostGenerateRTV->Release();
+		ghostGenerateSRV->Release();
+	}
+	D3D11_RENDER_TARGET_VIEW_DESC rtvDesc = {};
+	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+	D3D11_TEXTURE2D_DESC rtDesc = {};
 	//Post Process Setup
 	ID3D11Texture2D* postProcessRenderTexture;
 	ID3D11Texture2D* bloomExtractTexture;
@@ -379,32 +435,6 @@ void Game::Init()
 	lensFlareTexture->Release();
 	lensFlareThresholdTexture->Release();
 	ghostTexture->Release();
-
-	// A depth state for the particles
-	D3D11_DEPTH_STENCIL_DESC dsDesc = {};
-	dsDesc.DepthEnable = true;
-	dsDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO; // Turns off depth writing
-	dsDesc.DepthFunc = D3D11_COMPARISON_LESS;
-	device->CreateDepthStencilState(&dsDesc, &particleDepthState);
-
-	// Blend for particles (additive)
-	D3D11_BLEND_DESC blend = {};
-	blend.AlphaToCoverageEnable = false;
-	blend.IndependentBlendEnable = false;
-	blend.RenderTarget[0].BlendEnable = true;
-	blend.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
-	blend.RenderTarget[0].SrcBlend = D3D11_BLEND_ONE;
-	blend.RenderTarget[0].DestBlend = D3D11_BLEND_ONE;
-	blend.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
-	blend.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
-	blend.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ONE;
-	blend.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
-	device->CreateBlendState(&blend, &particleBlendState);
-
-	// Tell the input assembler stage of the pipeline what kind of
-	// geometric primitives (points, lines or triangles) we want to draw.  
-	// Essentially: "What kind of shape should the GPU draw with our data?"
-	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }
 
 // --------------------------------------------------------

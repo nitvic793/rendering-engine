@@ -190,7 +190,7 @@ float Fresnel(float3 normal, float3 worldPos)
 	float R0 = pow(((n1 - n2) / (n1 + n2)),2) ;
 
 	float R = R0 + (1 - R0)* pow((1 - saturate(cosTheta)), 5);
-	return R;
+	return cosTheta;
 }
 
 float3 Vector3Lerp(float3 a, float3 b, float i) {
@@ -253,30 +253,10 @@ float4 main(DomainToPixel input) : SV_TARGET
 		pos2.y = 0.0f;
 		float distance = calculateDistance(pos1, pos2);
 
-		//if (distance >= rippleRadius - 0.5f * ringSize && distance <= rippleRadius + 0.5f * ringSize) {
-		//	//Set t to be from 0 to 1
-		//	float t_01 = (distance - (rippleRadius - 0.5f * ringSize)) / ringSize;
-		//	//Set t to be from -1 to 1
-		//	float t = (t_01 - 0.5f) * 0.5f;
-		//	//ripple position to pixel position
-		//	float3 direction = normalize(pos1 - pos2);
-
-		//	float y = sin(t_01 * 3.14159);
-
-		//	float3 rippleNormal = normalize(float3(direction.x * t, 0.5f + 0.5f * y, direction.z * t));
-
-		//	// 0 - finalNormal, 1 - rippleNormal
-		//	finalNormal.x = lerp(finalNormal.x, rippleNormal.x, rippleIntensity);
-		//	finalNormal.y = lerp(finalNormal.y, rippleNormal.y, rippleIntensity);
-		//	finalNormal.z = lerp(finalNormal.z, rippleNormal.z, rippleIntensity);
-
-		//	finalNormal = normalize(finalNormal);
-		//}
-
-			finalNormal = normalize(finalNormal);
-			float4 foam = float4(1, 0, 0, 1);
-			if (ripplePosition.x == input.position.x && ripplePosition.z == input.position.z)
-				return foam;
+		finalNormal = normalize(finalNormal);
+		float4 foam = float4(1, 0, 0, 1);
+		if (ripplePosition.x == input.position.x && ripplePosition.z == input.position.z)
+			return foam;
 		
 		finalNormal = CalculateRipple(input.worldPos, ripplePosition, rippleRadius, finalNormal);
 	}
@@ -313,5 +293,5 @@ float4 main(DomainToPixel input) : SV_TARGET
 	//float3 gammaCorrectValue = lerp(totalColor, pow(totalColor, 1.0f / 2.2f), 1);
 	//return (float4(saturate(gammaCorrectValue), 1) + (reflection * (1 - reflectionCoeff) + reflectionCoeff * ScenePixels.Sample(RefractSampler, input.screenUV + refractUV * 0.1f) ) ) * surfaceColor * 0.4f;
 	float3 gammaCorrectValue = (float3)lerp(totalColor, pow(totalColor, 1.0f / 2.2f), 1);
-	return float4(gammaCorrectValue, 1) * (reflection * ScenePixels.Sample(RefractSampler, input.screenUV + refractUV * 0.1f)) * (reflectionCoeff + (1 - reflectionCoeff)) + surfaceColor * 0.7;
+	return float4(gammaCorrectValue, 1) * (reflection * ScenePixels.Sample(RefractSampler, input.screenUV + refractUV * 0.1f)) * (reflectionCoeff + (1 - reflectionCoeff)) + surfaceColor * 0.2;
 }

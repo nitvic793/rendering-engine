@@ -141,6 +141,7 @@ private:
 	void CreateWater();
 	void DrawWater();
 	void Tesellation();
+	void SetupPostProcess(bool resize = false);
 
 	// Shadow data
 	void RenderEntityShadow(Entity* entity);
