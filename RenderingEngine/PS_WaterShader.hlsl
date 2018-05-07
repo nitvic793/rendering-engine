@@ -62,7 +62,7 @@ Texture2D roughnessTexture	: register(t2);
 TextureCube SkyTexture		: register(t3);
 Texture2D normalTextureTwo	: register(t4);
 Texture2D ScenePixels		: register(t5);
-Texture2D terrainHeight		: register(t6);
+Texture2D waterSplash		: register(t6);
 SamplerState basicSampler	: register(s0);
 SamplerState RefractSampler	: register(s1);
 //Texture2D shadowMapTexture	: register(t3);
@@ -188,13 +188,13 @@ float2 calculateRefraction(float3 normal, float3 worldPos)
 float Fresnel(float3 normal, float3 worldPos)
 {
 	float3 dirToPixel = normalize(cameraPosition - worldPos);
-	float cosTheta = dot(normal, dirToPixel);
+	float cosTheta = dot(normal, -dirToPixel);
 	float n1 = 1.0f;	// index of refraction of air
-	float n2 = 1.3f;	// index of refraction of water
-	float R0 = ((n1 - n2) / (n1 + n2)) * ((n1 - n2) / (n1 + n2));
+	float n2 = 0.9f;	// index of refraction of water
+	float R0 = pow(((n1 - n2) / (n1 + n2)),2) ;
 
-	float R = R0 + (1 - R0)* pow((1 - cosTheta), 5);
-	return R;
+	float R = R0 + (1 - R0)* pow((1 - saturate(cosTheta)), 5);
+	return cosTheta;
 }
 
 float4 main(DomainToPixel input) : SV_TARGET
@@ -270,8 +270,19 @@ float4 main(DomainToPixel input) : SV_TARGET
 	}
 	reflection = calculateSkyboxReflection(finalNormal, input.worldPos);
 	
+	//if (rippleCount > 0)
+	//{
+	//	float dist = calculateDistance(ripples[0].ripplePosition, input.worldPos);
+	//	if (dist < 2) 
+	//	{
+	//		float4 a = waterSplash.Sample(basicSampler,input.uv);
+	//		//if (a.r > 0.7 || a.g > 0.7 || a.b > 0.7)
+	//			return lerp(totalColor,float4(1,1,1,1),1);
+	//	}
+	//}
+	
 	// Gamma correction
 	surfaceColor.rgb = lerp(surfaceColor.rgb, pow(surfaceColor.rgb, 2.2), 1);
 	float3 gammaCorrectValue = lerp(totalColor, pow(totalColor, 1.0f / 2.2f), 1);
-	return float4(gammaCorrectValue, 1) * (reflection * ScenePixels.Sample(RefractSampler, input.screenUV + refractUV * 0.1f)) * (reflectionCoeff + (1 - reflectionCoeff)) + surfaceColor * 0.7;
+	return (float4(saturate(gammaCorrectValue), 1) + (reflection * (1 - reflectionCoeff) + reflectionCoeff * ScenePixels.Sample(RefractSampler, input.screenUV + refractUV * 0.1f) ) ) * surfaceColor * 0.4f;
 }

@@ -802,6 +802,7 @@ void Game::DrawWater()
 	resources->pixelShaders["water"]->SetSamplerState("RefractSampler", refractSampler);	// Uses CLAMP on the edges
 	resources->pixelShaders["water"]->SetFloat3("CameraPosition", camera->GetPosition());
 	resources->pixelShaders["water"]->SetMatrix4x4("view", camera->GetViewMatrix());		// View matrix, so we can put normals into view space
+	resources->pixelShaders["water"]->SetShaderResourceView("waterSplash", resources->shaderResourceViews["particle"]);
 	resources->pixelShaders["water"]->CopyAllBufferData();
 	renderer->Draw(water);
 }

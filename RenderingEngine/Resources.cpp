@@ -162,6 +162,9 @@ void Resources::LoadResources()
 	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/Rudd-Fish_Normalmap.png", nullptr, &srv);
 	shaderResourceViews.insert(SRVMapType("ruddNormal", srv));
 
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/foam.png", nullptr, &srv);
+	shaderResourceViews.insert(SRVMapType("foam", srv));
+
 	//Load Sampler
 	D3D11_SAMPLER_DESC samplerDesc = {};
 	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
