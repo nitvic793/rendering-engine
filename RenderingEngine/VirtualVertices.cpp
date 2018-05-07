@@ -68,6 +68,17 @@ Vector3 &VirtualVertices::operator[](int index) {
 	return finalVertices[index];
 }
 
+bool VirtualVertices::HitWater(Vector3 spearTipPosition) {
+	for (int i = 0; i < vertexCount; i++) {
+		if (Vector3::Distance(spearTipPosition, finalVertices[i]) < DISTANCE && 
+			finalVertices[i].y - spearTipPosition.y >= 0 && 
+			finalVertices[i].y - spearTipPosition.y <= 0.5f) {
+			return true;
+		}
+	}
+	return false;
+}
+
 void VirtualVertices::ApplyGetstnerWaves(Wave *waves, int numWaves, float time) {
 	for (int i = 0; i < vertexCount; i++) {
 		finalVertices[i] = ApplyGerstnerWave(startVertices[i], waves, numWaves, time);

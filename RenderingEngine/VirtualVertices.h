@@ -11,6 +11,7 @@ using namespace std;
 
 const float STEEPNESS = 0.9f;
 const float SPEED = 20;
+const float DISTANCE = 5;
 
 class VirtualVertices {
 public:
@@ -20,6 +21,7 @@ public:
 	void SetVertices(Vertex *vertices, int VertexCount);
 	void ApplyGetstnerWaves(Wave *waves, int numWaves, float time);
 	Vector3 &operator[](int index);
+	bool HitWater(Vector3 spearTipPosition);
 private:
 	int vertexCount;
 	Vector3 position;

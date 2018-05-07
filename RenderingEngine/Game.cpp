@@ -829,6 +829,25 @@ void Game::OnResize()
 	camera->SetProjectionMatrix((float)width / height);
 }
 
+// --------------------------------------------------------
+// Calculate the tip position relative to the spear
+//	Get the forward vector
+//	Multiply it by the z extent of the spear's bounding box
+//	Rotate the resulting vector by a quaternion that represents the spears orientation
+// --------------------------------------------------------
+XMFLOAT3 GetTipPosition(ProjectileEntity &projectile) {
+	float tipDistance = projectile.GetBoundingBox().Extents.z;
+	Vector3 forward = Vector3::Forward * tipDistance;
+	XMFLOAT4 orientation = projectile.GetBoundingBox().Orientation;
+	XMVECTOR position = XMLoadFloat3(&forward);
+	XMVECTOR rot = XMLoadFloat4(&orientation);
+	XMVECTOR offset = XMVector3Rotate(position, rot);
+	XMFLOAT3 newOffset;
+	XMStoreFloat3(&newOffset, offset);
+
+	return newOffset;
+}
+
 XMFLOAT3 hitPos;
 // --------------------------------------------------------
 // Update your game here - user input, move objects, AI, etc.
@@ -850,7 +869,8 @@ void Game::Update(float deltaTime, float totalTime)
 
 	//Update the virtual vertices
 	virtualVertices.ApplyGetstnerWaves(water->GetWaves(), numWaves, time);
-	//entities[0]->SetPosition(virtualVertices[1249]);
+	//entities[0]->SetPosition(currentProjectile->GetPosition() + newOffset);
+	//entities[0]->SetScale(0.1f, 0.1f, 0.1f);
 	//cout << "x: " << virtualVertices[1249].x << " y: " << virtualVertices[1249].y << " z: " << virtualVertices[1249].z << endl;
 
 	fishes->Update(deltaTime, totalTime);
@@ -881,14 +901,19 @@ void Game::Update(float deltaTime, float totalTime)
 	//	CreateRipple(0.0f, 0.0f, 50.0f, RIPPLE_DURATION);// , 2.0f);
 	//}
 	XMFLOAT3 pos = XMFLOAT3(0,0,0);
+
+	Vector3 tipPosition = GetTipPosition(*currentProjectile);
+	bool hitWater = (virtualVertices.HitWater(currentProjectile->GetPosition() + tipPosition));
+
 	//Check for spear hitting the water
-	if (currentProjectile->GetPosition().y <= -7.0f && !projectileHitWater && currentProjectile->HasBeenShot()) {
+	if (/*currentProjectile->GetPosition().y <= -7.0f*/ hitWater && !projectileHitWater && currentProjectile->HasBeenShot()) {
 		projectileHitWater = true;
 		pos = currentProjectile->GetPosition();
-		hitPos = currentProjectile->GetPosition();
-		float x = pos.x;
-		float z = pos.z;
-		CreateRipple(x, 0.0f, z, RIPPLE_DURATION);// , 0.5f);
+		hitPos = currentProjectile->GetPosition() + tipPosition;
+		float x = hitPos.x;
+		float y = hitPos.y;
+		float z = hitPos.z;
+		CreateRipple(x, y, z, RIPPLE_DURATION);// , 0.5f);
 
 		std::cout << pos.y << std::endl;
 		emitters.emplace_back(std::make_shared<Emitter>(
@@ -905,7 +930,7 @@ void Game::Update(float deltaTime, float totalTime)
 			resources->vertexShaders["particle"],
 			resources->pixelShaders["particle"],
 			resources->shaderResourceViews["particle"],
-			XMFLOAT3(pos.x, pos.y + 1.5, pos.z)
+			XMFLOAT3(hitPos.x, hitPos.y, hitPos.z)
 			));
 	}
 	
