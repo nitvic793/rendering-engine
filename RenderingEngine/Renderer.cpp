@@ -127,6 +127,11 @@ Renderer::Renderer(ID3D11DeviceContext *ctx,
 	depthStencilView = depthStencil;
 }
 
+void Renderer::SetBackBuffer(ID3D11RenderTargetView* _backBufferRTV)
+{
+	backBufferRTV = _backBufferRTV;
+}
+
 Renderer::~Renderer()
 {
 }

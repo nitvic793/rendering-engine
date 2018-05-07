@@ -190,7 +190,7 @@ float Fresnel(float3 normal, float3 worldPos)
 	float R0 = pow(((n1 - n2) / (n1 + n2)),2) ;
 
 	float R = R0 + (1 - R0)* pow((1 - saturate(cosTheta)), 5);
-	return cosTheta;
+	return R;
 }
 
 float3 Vector3Lerp(float3 a, float3 b, float i) {
@@ -310,8 +310,8 @@ float4 main(DomainToPixel input) : SV_TARGET
 	
 	// Gamma correction
 	surfaceColor.rgb = lerp(surfaceColor.rgb, pow(surfaceColor.rgb, 2.2), 1);
-	float3 gammaCorrectValue = lerp(totalColor, pow(totalColor, 1.0f / 2.2f), 1);
-	return (float4(saturate(gammaCorrectValue), 1) + (reflection * (1 - reflectionCoeff) + reflectionCoeff * ScenePixels.Sample(RefractSampler, input.screenUV + refractUV * 0.1f) ) ) * surfaceColor * 0.4f;
+	//float3 gammaCorrectValue = lerp(totalColor, pow(totalColor, 1.0f / 2.2f), 1);
+	//return (float4(saturate(gammaCorrectValue), 1) + (reflection * (1 - reflectionCoeff) + reflectionCoeff * ScenePixels.Sample(RefractSampler, input.screenUV + refractUV * 0.1f) ) ) * surfaceColor * 0.4f;
 	float3 gammaCorrectValue = (float3)lerp(totalColor, pow(totalColor, 1.0f / 2.2f), 1);
 	return float4(gammaCorrectValue, 1) * (reflection * ScenePixels.Sample(RefractSampler, input.screenUV + refractUV * 0.1f)) * (reflectionCoeff + (1 - reflectionCoeff)) + surfaceColor * 0.7;
 }

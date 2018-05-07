@@ -901,6 +901,7 @@ void Game::OnResize()
 	// Handle base-level DX resize stuff
 	DXCore::OnResize();
 	renderer->SetDepthStencilView(depthStencilView);
+	renderer->SetBackBuffer(backBufferRTV);
 	camera->SetProjectionMatrix((float)width / height);
 }
 

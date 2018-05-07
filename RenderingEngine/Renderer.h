@@ -37,5 +37,6 @@ public:
 	void DrawAsLineList(Entity *entity);
 	void Present();
 	Renderer(ID3D11DeviceContext *ctx, ID3D11RenderTargetView *backBuffer, ID3D11DepthStencilView *depthStencil, IDXGISwapChain *inSwapChain);
+	void SetBackBuffer(ID3D11RenderTargetView* backBufferRTV);
 	~Renderer();
 };
