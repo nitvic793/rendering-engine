@@ -177,7 +177,7 @@ void Entity::PrepareMaterialAnimated(XMFLOAT4X4 viewMatrix, XMFLOAT4X4 projectio
 	fbxLoader->GetAnimatedMatrixExtra();
 
 	//Setting bones
-	int numBones = fbxLoader->skeleton.mJoints.size();
+	int numBones = (int)fbxLoader->skeleton.mJoints.size();
 	for (int i = 0; i < numBones; i++)
 	{
 

@@ -89,7 +89,7 @@ bool FBXLoader::LoadScene(const char* pFilename)
 	//int lFileFormat = -1;
 	int i, lAnimStackCount;
 	bool lStatus;
-	char lPassword[1024];
+//	char lPassword[1024];
 
 	// Get the file version number generate by the FBX SDK.
 	FbxManager::GetFileFormatVersion(lSDKMajor, lSDKMinor, lSDKRevision);
@@ -188,7 +188,7 @@ void FBXLoader::LoadNodes(FbxNode* node, ID3D11Device* device)
 		if (skeleton.mJoints.size() == 0)
 			joint.mParentIndex = -1;
 		else
-			joint.mParentIndex = skeleton.mJoints.size() - 1;
+			joint.mParentIndex = (int)skeleton.mJoints.size() - 1;
 			
 
 		joint.mName = node->GetName();
@@ -270,9 +270,9 @@ Mesh* FBXLoader::GetMesh(FbxNode * node , ID3D11Device* device)
 
 				fbxMesh->GetPolygonVertexNormal(i, j, norm);
 
-				vertices[ind].Normal.x += norm.mData[0];
-				vertices[ind].Normal.y += norm.mData[1];
-				vertices[ind].Normal.z += norm.mData[2];
+				vertices[ind].Normal.x += (float)norm.mData[0];
+				vertices[ind].Normal.y += (float)norm.mData[1];
+				vertices[ind].Normal.z += (float)norm.mData[2];
 
 				FbxVector2 uvCoord(0, 0);
 				const char* uvSet = "UVTex";
@@ -280,8 +280,8 @@ Mesh* FBXLoader::GetMesh(FbxNode * node , ID3D11Device* device)
 
 				fbxMesh->GetPolygonVertexUV(i, j, uvSet, uvCoord, uvFlag);
 				
-				vertices[ind].UV.x = uvCoord.mData[0];
-				vertices[ind].UV.y = uvCoord.mData[1];
+				vertices[ind].UV.x = (float)uvCoord.mData[0];
+				vertices[ind].UV.y = (float)uvCoord.mData[1];
 			}
 
 		}
@@ -319,9 +319,25 @@ Mesh* FBXLoader::GetMesh(FbxNode * node , ID3D11Device* device)
 				globalBindposeInverseMatrix = globalBindposeInverseMatrix.Transpose();
 				transformLinkMatrix = transformLinkMatrix.Transpose();
 
-				skeleton.mJoints[currJointIndex].mGlobalBindposeInverse = XMFLOAT4X4(globalBindposeInverseMatrix.GetRow(0)[0], globalBindposeInverseMatrix.GetRow(0)[1], globalBindposeInverseMatrix.GetRow(0)[2], globalBindposeInverseMatrix.GetRow(0)[3], globalBindposeInverseMatrix.GetRow(1)[0], globalBindposeInverseMatrix.GetRow(1)[1], globalBindposeInverseMatrix.GetRow(1)[2], globalBindposeInverseMatrix.GetRow(1)[3], globalBindposeInverseMatrix.GetRow(2)[0], globalBindposeInverseMatrix.GetRow(2)[1], globalBindposeInverseMatrix.GetRow(2)[2], globalBindposeInverseMatrix.GetRow(2)[3], globalBindposeInverseMatrix.GetRow(3)[0], globalBindposeInverseMatrix.GetRow(3)[1], globalBindposeInverseMatrix.GetRow(3)[2], globalBindposeInverseMatrix.GetRow(3)[3]);
+				skeleton.mJoints[currJointIndex].mGlobalBindposeInverse = XMFLOAT4X4((float)globalBindposeInverseMatrix.GetRow(0)[0],
+					(float)globalBindposeInverseMatrix.GetRow(0)[1], (float)globalBindposeInverseMatrix.GetRow(0)[2],
+					(float)globalBindposeInverseMatrix.GetRow(0)[3], (float)globalBindposeInverseMatrix.GetRow(1)[0],
+					(float)globalBindposeInverseMatrix.GetRow(1)[1], (float)globalBindposeInverseMatrix.GetRow(1)[2],
+					(float)globalBindposeInverseMatrix.GetRow(1)[3], (float)globalBindposeInverseMatrix.GetRow(2)[0],
+					(float)globalBindposeInverseMatrix.GetRow(2)[1], (float)globalBindposeInverseMatrix.GetRow(2)[2],
+					(float)globalBindposeInverseMatrix.GetRow(2)[3],
+					(float)globalBindposeInverseMatrix.GetRow(3)[0], (float)globalBindposeInverseMatrix.GetRow(3)[1],
+					(float)globalBindposeInverseMatrix.GetRow(3)[2], (float)globalBindposeInverseMatrix.GetRow(3)[3]);
 				skeleton.mJoints[currJointIndex].mNode = currCluster->GetLink();
-				skeleton.mJoints[currJointIndex].mTransform = XMFLOAT4X4(transformLinkMatrix.GetRow(0)[0], transformLinkMatrix.GetRow(0)[1], transformLinkMatrix.GetRow(0)[2], transformLinkMatrix.GetRow(0)[3], transformLinkMatrix.GetRow(1)[0], transformLinkMatrix.GetRow(1)[1], transformLinkMatrix.GetRow(1)[2], transformLinkMatrix.GetRow(1)[3], transformLinkMatrix.GetRow(2)[0], transformLinkMatrix.GetRow(2)[1], transformLinkMatrix.GetRow(2)[2], transformLinkMatrix.GetRow(2)[3], transformLinkMatrix.GetRow(3)[0], transformLinkMatrix.GetRow(3)[1], transformLinkMatrix.GetRow(3)[2], transformLinkMatrix.GetRow(3)[3]);
+				skeleton.mJoints[currJointIndex].mTransform = XMFLOAT4X4((float)transformLinkMatrix.GetRow(0)[0],
+					(float)transformLinkMatrix.GetRow(0)[1], (float)transformLinkMatrix.GetRow(0)[2],
+					(float)transformLinkMatrix.GetRow(0)[3], (float)transformLinkMatrix.GetRow(1)[0],
+					(float)transformLinkMatrix.GetRow(1)[1], (float)transformLinkMatrix.GetRow(1)[2],
+					(float)transformLinkMatrix.GetRow(1)[3], (float)transformLinkMatrix.GetRow(2)[0],
+					(float)transformLinkMatrix.GetRow(2)[1], (float)transformLinkMatrix.GetRow(2)[2],
+					(float)transformLinkMatrix.GetRow(2)[3], (float)transformLinkMatrix.GetRow(3)[0],
+					(float)transformLinkMatrix.GetRow(3)[1], (float)transformLinkMatrix.GetRow(3)[2],
+					(float)transformLinkMatrix.GetRow(3)[3]);
 				skeleton.mJoints[currJointIndex].mNode = currCluster->GetLink();
 				skeleton.mJoints[currJointIndex].mFbxTransform = transformLinkMatrix;
 				skeleton.mJoints[currJointIndex].mBoneIndex = currJointIndex;
@@ -338,27 +354,27 @@ Mesh* FBXLoader::GetMesh(FbxNode * node , ID3D11Device* device)
 					
 					if (vertices[index].Boneids.x == -1 && vertices[index].Weights.x == -1)
 					{		
-							vertices[index].Boneids.x = currJointIndex;
-							vertices[index].Weights.x = currCluster->GetControlPointWeights()[i];
+							vertices[index].Boneids.x = (float)currJointIndex;
+							vertices[index].Weights.x = (float)currCluster->GetControlPointWeights()[i];
 					}
 					else if (vertices[index].Boneids.y == -1 && vertices[index].Weights.y == -1)
 					{
-							vertices[index].Boneids.y = currJointIndex;
-							vertices[index].Weights.y = currCluster->GetControlPointWeights()[i];						
+							vertices[index].Boneids.y = (float)currJointIndex;
+							vertices[index].Weights.y = (float)currCluster->GetControlPointWeights()[i];
 					}
 					else if (vertices[index].Boneids.z == -1 && vertices[index].Weights.z == -1)
 					{
-							vertices[index].Boneids.z = currJointIndex;
-							vertices[index].Weights.z = currCluster->GetControlPointWeights()[i];
+							vertices[index].Boneids.z = (float)currJointIndex;
+							vertices[index].Weights.z = (float)currCluster->GetControlPointWeights()[i];
 					}
 					else if (vertices[index].Boneids.w == -1 && vertices[index].Weights.w == -1)
 					{
-							vertices[index].Boneids.w = currJointIndex;
-							vertices[index].Weights.w = currCluster->GetControlPointWeights()[i];
+							vertices[index].Boneids.w = (float)currJointIndex;
+							vertices[index].Weights.w = (float)currCluster->GetControlPointWeights()[i];
 					}
 					else
 					{
-						float currentWeight = currCluster->GetControlPointWeights()[i];
+						float currentWeight = (float)currCluster->GetControlPointWeights()[i];
 						//int smallestWeight = 0;
 
 						if (vertices[index].Weights.x < vertices[index].Weights.y)
@@ -367,48 +383,48 @@ Mesh* FBXLoader::GetMesh(FbxNode * node , ID3D11Device* device)
 							{
 								if (vertices[index].Weights.x < vertices[index].Weights.w)
 								{
-									vertices[index].Boneids.x = currJointIndex;
-									vertices[index].Weights.x = currentWeight;
+									vertices[index].Boneids.x = (float)currJointIndex;
+									vertices[index].Weights.x = (float)currentWeight;
 								}
 								else 
 								{
-									vertices[index].Boneids.w = currJointIndex;
-									vertices[index].Weights.w = currentWeight;
+									vertices[index].Boneids.w = (float)currJointIndex;
+									vertices[index].Weights.w = (float)currentWeight;
 								}
 							}
 							else if (vertices[index].Weights.w < vertices[index].Weights.z)
 							{
-								vertices[index].Boneids.w = currJointIndex;
-								vertices[index].Weights.w = currentWeight;
+								vertices[index].Boneids.w = (float)currJointIndex;
+								vertices[index].Weights.w = (float)currentWeight;
 							}
 							else
 							{
-								vertices[index].Boneids.z = currJointIndex;
-								vertices[index].Weights.z = currentWeight;
+								vertices[index].Boneids.z = (float)currJointIndex;
+								vertices[index].Weights.z = (float)currentWeight;
 							}
 						}
 						else if (vertices[index].Weights.z < vertices[index].Weights.y)
 						{
 							if (vertices[index].Weights.w < vertices[index].Weights.z)
 							{
-								vertices[index].Boneids.w = currJointIndex;
-								vertices[index].Weights.w = currentWeight;
+								vertices[index].Boneids.w = (float)currJointIndex;
+								vertices[index].Weights.w = (float)currentWeight;
 							}
 							else
 							{
-								vertices[index].Boneids.z = currJointIndex;
-								vertices[index].Weights.z = currentWeight;
+								vertices[index].Boneids.z = (float)currJointIndex;
+								vertices[index].Weights.z = (float)currentWeight;
 							}
 						}
 						else if (vertices[index].Weights.w < vertices[index].Weights.y)
 						{
-							vertices[index].Boneids.w = currJointIndex;
-							vertices[index].Weights.w = currentWeight;
+							vertices[index].Boneids.w = (float)currJointIndex;
+							vertices[index].Weights.w = (float)currentWeight;
 						}
 						else
 						{
-							vertices[index].Boneids.y = currJointIndex;
-							vertices[index].Weights.y = currentWeight;
+							vertices[index].Boneids.y = (float)currJointIndex;
+							vertices[index].Weights.y = (float)currentWeight;
 						}
 
 				
@@ -442,6 +458,7 @@ unsigned int FBXLoader::FindJointIndex(const std::string & jointname)
 			return i;
 		}
 	}
+	return 0;
 }
 
 
@@ -451,7 +468,7 @@ void FBXLoader::GetAnimatedMatrixExtra()
 	FbxTime repeat = 0;
 	repeat.SetSecondDouble(3.0);
 	time.SetSecondDouble(T);
-	T += 0.005;
+	T += 0.01;
 	
 	if(time > repeat)
 	{
@@ -507,5 +524,13 @@ XMFLOAT4X4 FBXLoader::GetJointGlobalTransform(int boneIndex)
 XMFLOAT4X4 FBXLoader::FbxAMatrixToXMFloat4x4(FbxAMatrix jointTransform)
 {
 	jointTransform = jointTransform.Transpose();
-	return XMFLOAT4X4(jointTransform.GetRow(0)[0], jointTransform.GetRow(0)[1], jointTransform.GetRow(0)[2], jointTransform.GetRow(0)[3], jointTransform.GetRow(1)[0], jointTransform.GetRow(1)[1], jointTransform.GetRow(1)[2], jointTransform.GetRow(1)[3], jointTransform.GetRow(2)[0], jointTransform.GetRow(2)[1], jointTransform.GetRow(2)[2], jointTransform.GetRow(2)[3], jointTransform.GetRow(3)[0], jointTransform.GetRow(3)[1], jointTransform.GetRow(3)[2], jointTransform.GetRow(3)[3]);
+	return XMFLOAT4X4((float)jointTransform.GetRow(0)[0],
+		(float)jointTransform.GetRow(0)[1], (float)jointTransform.GetRow(0)[2],
+		(float)jointTransform.GetRow(0)[3], (float)jointTransform.GetRow(1)[0],
+		(float)jointTransform.GetRow(1)[1], (float)jointTransform.GetRow(1)[2],
+		(float)jointTransform.GetRow(1)[3], (float)jointTransform.GetRow(2)[0],
+		(float)jointTransform.GetRow(2)[1], (float)jointTransform.GetRow(2)[2],
+		(float)jointTransform.GetRow(2)[3], (float)jointTransform.GetRow(3)[0],
+		(float)jointTransform.GetRow(3)[1], (float)jointTransform.GetRow(3)[2],
+		(float)jointTransform.GetRow(3)[3]);
 }

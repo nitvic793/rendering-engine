@@ -25,6 +25,7 @@ Game::Game(HINSTANCE hInstance)
 	vertexShader = 0;
 	pixelShader = 0;
 	camera = nullptr;
+	gameStarted = false;
 
 #if defined(DEBUG) || defined(_DEBUG)
 	// Do we want a console window?  Probably only in debug mode
@@ -113,6 +114,8 @@ Game::~Game()
 	delete domainShader;
 	particleBlendState->Release();
 	particleDepthState->Release();
+
+	delete canvas;
 }
 
 // --------------------------------------------------------
@@ -121,6 +124,7 @@ Game::~Game()
 // --------------------------------------------------------
 void Game::Init()
 {
+	ShowCursor(true);
 	projectileHitWater = false;
 	isDofEnabled = false;
 	RECT rect;
@@ -130,6 +134,11 @@ void Game::Init()
 	SetCursorPos(rect.left + width / 2, rect.top + height / 2);
 	resources = new Resources(device, context, swapChain);
 	resources->LoadResources();
+
+	//Create canvas
+	canvas = new Canvas(device, context, resources);
+	canvas->AssignMenuButtonFunction([&]() {gameStarted = true; canvas->StartGame(); });
+	canvas->AssignQuitButtonFunction([&]() {Quit(); });
 
 	LoadShaders();
 	CreateCamera();
@@ -440,6 +449,8 @@ void Game::CreateWater()
 	water->SetPosition(-125, -6, -150);
 	//waterbject->SetScale(3, 3, 3);
 	water->CreateWaves();
+	virtualVertices.SetVertices(water->GetVertices(), water->GetVertexCount());
+	virtualVertices.SetPosition(Vector3(-125, -6, -150));
 	resources->vertexShaders["water"]->SetData("waves", water->GetWaves(), sizeof(Wave) * NUM_OF_WAVES);
 
 #pragma region Displacement Mapping Disabled
@@ -484,9 +495,9 @@ void Game::RenderEntityShadow(Entity * entity)
 void Game::RenderShadowMap()
 {
 	XMMATRIX shView = XMMatrixLookAtLH(
-		XMVectorSet(0, 20, 1, 0),	// Start back and in the air
-		XMVectorSet(0, 0, 0, 0),	// Look at the origin
-		XMVectorSet(0, 1, 0, 0));	// Up is up
+		XMVectorSet(-10, 10, 10, 0),
+		XMVectorSet(0, 0, 0, 0),
+		XMVectorSet(0, 1, 0, 0));
 	XMStoreFloat4x4(&shadowViewMatrix, XMMatrixTranspose(shView));
 
 	XMMATRIX shProj = XMMatrixOrthographicLH(20.0f, 20.0f, 0.1f, 100.0f);
@@ -547,12 +558,12 @@ void Game::InitializeEntities()
 	trees = std::unique_ptr<TreeManager>(new TreeManager(device, context));
 	fishes = std::unique_ptr<FishController>(new FishController(
 		resources->meshes["ruddFish"], resources->materials["ruddFish"],
-		25,
+		5,
 		XMFLOAT3(9.f, -8.5f, -20.f),
 		XMFLOAT3(9.f, -8.5f, 35.f),
 		8,
 		XMFLOAT3(0, 90.f * XM_PI / 180, 0),
-		XMFLOAT3(0.04f, 0.04f, 0.04f)
+		XMFLOAT3(0.03f, 0.03f, 0.03f)
 	));
 	trees->InitializeTrees({ "palm","palm_2" }, { "palm","palm_2" },
 	{
@@ -575,7 +586,7 @@ void Game::InitializeEntities()
 
 	secondaryLight.AmbientColor = XMFLOAT4(0.1f, 0.1f, 0.1f, 0);
 	secondaryLight.DiffuseColor = XMFLOAT4(0.5f, 0.5f, 0.5f, 1);
-	secondaryLight.Direction = XMFLOAT3(0.2f, -0.8, 0);
+	secondaryLight.Direction = XMFLOAT3(0.2f, -0.8f, 0);
 
 	pointLight.Color = XMFLOAT4(0.0f, 0.f, 0.f, 1);
 	pointLight.Position = XMFLOAT3(0.4f, 2.f, -14.9f);
@@ -855,7 +866,7 @@ void Game::LensFlare(ID3D11ShaderResourceView * texture)
 
 
 void Game::CreateRipple(float x, float y, float z, float duration, float ringSize) {
-	Ripple r = Ripple(x, y, z, duration, ringSize);
+	Ripple r = Ripple(x, y, z, duration);// , ringSize);
 	ripples.push_back(r);
 }
 
@@ -892,19 +903,49 @@ void Game::OnResize()
 	camera->SetProjectionMatrix((float)width / height);
 }
 
+// --------------------------------------------------------
+// Calculate the tip position relative to the spear
+//	Get the forward vector
+//	Multiply it by the z extent of the spear's bounding box
+//	Rotate the resulting vector by a quaternion that represents the spears orientation
+// --------------------------------------------------------
+XMFLOAT3 GetTipPosition(ProjectileEntity &projectile) {
+	float tipDistance = projectile.GetBoundingBox().Extents.z;
+	Vector3 forward = Vector3::Forward * tipDistance;
+	XMFLOAT4 orientation = projectile.GetBoundingBox().Orientation;
+	XMVECTOR position = XMLoadFloat3(&forward);
+	XMVECTOR rot = XMLoadFloat4(&orientation);
+	XMVECTOR offset = XMVector3Rotate(position, rot);
+	XMFLOAT3 newOffset;
+	XMStoreFloat3(&newOffset, offset);
+
+	return newOffset;
+}
+
 XMFLOAT3 hitPos;
 // --------------------------------------------------------
 // Update your game here - user input, move objects, AI, etc.
 // --------------------------------------------------------
 void Game::Update(float deltaTime, float totalTime)
 {
+	if (GetAsyncKeyState(VK_ESCAPE))
+		Quit();
+	canvas->Update(deltaTime);
+
+	if (!gameStarted) return;
 	// Water .........................................
 	time += 0.05f * deltaTime;
-	translate += 0.1f * deltaTime;
+	translate += 0.01f * deltaTime;
 	if (translate > 1.0f)
 	{
 		translate -= 1.0f;
 	}
+
+	//Update the virtual vertices
+	virtualVertices.ApplyGetstnerWaves(water->GetWaves(), numWaves, time);
+	//entities[0]->SetPosition(currentProjectile->GetPosition() + newOffset);
+	//entities[0]->SetScale(0.1f, 0.1f, 0.1f);
+	//cout << "x: " << virtualVertices[1249].x << " y: " << virtualVertices[1249].y << " z: " << virtualVertices[1249].z << endl;
 
 	fishes->Update(deltaTime, totalTime);
 	float fishSpeed = 2.f;
@@ -914,9 +955,6 @@ void Game::Update(float deltaTime, float totalTime)
 	{
 		entities[2]->SetPosition(9.f, -8.5f, -15.f);
 	}
-
-	if (GetAsyncKeyState(VK_ESCAPE))
-		Quit();
 
 	if ((GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0)
 	{
@@ -933,35 +971,40 @@ void Game::Update(float deltaTime, float totalTime)
 		isDofEnabled = true;
 	}
 
-	if ((GetAsyncKeyState(VK_SPACE) & 0x8000) != 0) {
-		CreateRipple(0.0f, 0.0f, 50.0f, 2.0f, 2.0f);
-	}
-	XMFLOAT3 pos = XMFLOAT3(0, 0, 0);
+	//if ((GetAsyncKeyState(VK_SPACE) & 0x8000) != 0) {
+	//	CreateRipple(0.0f, 0.0f, 50.0f, RIPPLE_DURATION);// , 2.0f);
+	//}
+	XMFLOAT3 pos = XMFLOAT3(0,0,0);
+
+	Vector3 tipPosition = GetTipPosition(*currentProjectile);
+	bool hitWater = (virtualVertices.HitWater(currentProjectile->GetPosition() + tipPosition));
+
 	//Check for spear hitting the water
-	if (currentProjectile->GetPosition().y <= -7.0f && !projectileHitWater) {
+	if (/*currentProjectile->GetPosition().y <= -7.0f*/ hitWater && !projectileHitWater && currentProjectile->HasBeenShot()) {
 		projectileHitWater = true;
 		pos = currentProjectile->GetPosition();
-		hitPos = currentProjectile->GetPosition();
-		float x = pos.x;
-		float z = pos.z;
-		CreateRipple(x, 0.0f, z, 2.0f, 0.5f);
+		hitPos = currentProjectile->GetPosition() + tipPosition;
+		float x = hitPos.x;
+		float y = hitPos.y;
+		float z = hitPos.z;
+		CreateRipple(x, y, z, RIPPLE_DURATION);// , 0.5f);
 
 		std::cout << pos.y << std::endl;
 		emitters.emplace_back(std::make_shared<Emitter>(
-			3,							// Max particles
+			50,							// Max particles
 			100,							// Particles per second
-			1,								// Particle lifetime
-			1.0f,							// Start size
-			5.0f,							// End size
-			XMFLOAT4(0.2, 0.3f, 0.6f, 0.6f),	// Start color
-			XMFLOAT4(0, 0.05f, 0.2f, 1),		// End color
-			XMFLOAT3(0, 1, 0),				// Start velocity
-			XMFLOAT3(0, 1, 0),				// Start acceleration
+			0.5f,								// Particle lifetime
+			0.7f,							// Start size
+			0.1f,							// End size
+			XMFLOAT4(0.9f, 0.9f, 1.0f, 0.5f),	// Start color
+			XMFLOAT4(1, 1.0f, 1.0f, 0),		// End color
+			XMFLOAT3(0, 7.2f, 0),				// Start velocity
+			XMFLOAT3(0, -50, 0),				// Start acceleration
 			device,
 			resources->vertexShaders["particle"],
 			resources->pixelShaders["particle"],
 			resources->shaderResourceViews["particle"],
-			XMFLOAT3(pos.x, pos.y + 1.5, pos.z)
+			XMFLOAT3(hitPos.x, hitPos.y, hitPos.z)
 			));
 	}
 
@@ -1021,12 +1064,16 @@ void Game::Draw(float deltaTime, float totalTime)
 	// Use our refraction render target and our regular depth buffer
 	context->OMSetRenderTargets(1, &refractionRTV, depthStencilView);
 
-	renderer->Draw(terrain.get());
-	fishes->Render(renderer);
+	if (gameStarted) {
+		renderer->Draw(terrain.get());
+		fishes->Render(renderer);
+	}
+	
+	
+	
+	if (gameStarted)
+		DrawSky();
 
-
-
-	DrawSky();
 
 	// Reset blend state if blending
 	context->OMSetRenderTargets(1, &postProcessRTV, 0);
@@ -1037,22 +1084,24 @@ void Game::Draw(float deltaTime, float totalTime)
 
 	for (auto entity : entities)
 	{
-		if (entity->hasShadow)
+		if (entity->hasShadow && gameStarted)
 			renderer->Draw(entity);
 	}
 
-	trees->Render(camera);
+	if (gameStarted) trees->Render(camera);
 
 	ID3D11ShaderResourceView *const nullSRV[4] = { NULL };
 	context->PSSetShaderResources(0, 4, nullSRV);
 
 	for (auto entity : entities)
 	{
-		if (!entity->hasShadow)
+		if (!entity->hasShadow && gameStarted)
 			renderer->Draw(entity);
 	}
-	renderer->Draw(currentProjectile);
-	DrawWater();
+	if (gameStarted)
+		renderer->Draw(currentProjectile);
+	if (gameStarted)
+		DrawWater();
 
 	context->PSSetShaderResources(0, 4, nullSRV);
 	ID3D11ShaderResourceView* nullSRV2[16] = {};
@@ -1082,10 +1131,10 @@ void Game::Draw(float deltaTime, float totalTime)
 			//// Particle states
 			float blend[4] = { 1,1,1,1 };
 			context->OMSetBlendState(particleBlendState, blend, 0xffffffff);  // Additive blending
-			//context->OMSetDepthStencilState(particleDepthState, 0);			// No depth WRITING
-			e->Draw(context, camera);
+			context->OMSetDepthStencilState(particleDepthState, 0);			// No depth WRITING
+			if (gameStarted) e->Draw(context, camera);
 			context->OMSetBlendState(0, 0, 0xFFFFFFFF);
-			//context->OMGetDepthStencilState(0, 0);
+			context->OMSetDepthStencilState(0, 0);
 		}
 		else
 		{
@@ -1106,7 +1155,7 @@ void Game::Draw(float deltaTime, float totalTime)
 	LensFlare(nextBuffer);
 	nextBuffer = lensFlareSRV;
 	DrawPostProcess(nextBuffer);
-
+	canvas->Draw();
 	context->OMSetRenderTargets(1, &backBufferRTV, depthStencilView);
 
 	renderer->Present();
@@ -1171,6 +1220,8 @@ void Game::OnMouseDown(WPARAM buttonState, int x, int y)
 	// events even if the mouse leaves the window.  we'll be
 	// releasing the capture once a mouse button is released
 	SetCapture(hWnd);
+
+	canvas->OnMouseDown(x, y);
 }
 
 // --------------------------------------------------------
@@ -1183,6 +1234,8 @@ void Game::OnMouseUp(WPARAM buttonState, int x, int y)
 	// We don't care about the tracking the cursor outside
 	// the window anymore (we're not dragging if the mouse is up)
 	ReleaseCapture();
+
+	canvas->OnMouseUp(x, y);
 }
 
 // --------------------------------------------------------
@@ -1212,6 +1265,8 @@ void Game::OnMouseMove(WPARAM buttonState, int x, int y)
 	{
 
 	}
+
+	canvas->OnMouseMove(x, y);
 }
 
 // --------------------------------------------------------

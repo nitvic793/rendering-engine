@@ -37,10 +37,6 @@ struct PointLight
 struct RippleData {
 	float3 ripplePosition;
 	float rippleRadius;
-	float ringSize;
-	float rippleIntensity;
-	float padding1;
-	float padding2;
 };
 
 cbuffer externalData : register(b0)
@@ -62,6 +58,7 @@ Texture2D roughnessTexture	: register(t2);
 TextureCube SkyTexture		: register(t3);
 Texture2D normalTextureTwo	: register(t4);
 Texture2D ScenePixels		: register(t5);
+Texture2D terrainHeight		: register(t6);
 SamplerState basicSampler	: register(s0);
 SamplerState RefractSampler	: register(s1);
 //Texture2D shadowMapTexture	: register(t3);
@@ -124,8 +121,8 @@ float4 calculatePointLight(float3 normal, float3 worldPos, PointLight light)
 float3 calculateNormalFromMap(float2 uv, float3 normal, float3 tangent)
 {
 	float3 normalFinal;
-	uv.x += translate * 0.2;
-	float3 normalFromTexture = normalTextureTwo.Sample(basicSampler, uv).xyz;
+	uv.x += translate ;
+	float3 normalFromTexture = normalTexture.Sample(basicSampler, uv).xyz;
 	float3 unpackedNormal = normalFromTexture * 2.0f - 1.0f;
 	float3 N = normal;
 	float3 T = normalize(tangent - N * dot(tangent, N));
@@ -133,7 +130,7 @@ float3 calculateNormalFromMap(float2 uv, float3 normal, float3 tangent)
 	float3x3 TBN = float3x3(T, B, N);
 	normalFinal = normalize(mul(unpackedNormal, TBN));
 
-	uv.y += translate * 0.1;
+	uv.y += translate;
 	float3 normalFromTexture2 = normalTextureTwo.Sample(basicSampler, uv).xyz;
 	unpackedNormal = normalFromTexture2 * 2.0f - 1.0f;
 	N = normal;
@@ -196,6 +193,35 @@ float Fresnel(float3 normal, float3 worldPos)
 	return R;
 }
 
+float3 Vector3Lerp(float3 a, float3 b, float i) {
+	float3 newVector = float3(0, 0, 0);
+	newVector.x = lerp(a.x, b.x, i);
+	newVector.y = lerp(a.y, b.y, i);
+	newVector.z = lerp(a.z, b.z, i);
+	return newVector;
+}
+
+float3 CalculateRipple(float3 pixelPos, float3 ripplePos, float rippleRadius, float3 normal) {
+	float3 finalNormal = normal;
+	float ringSize = 5;
+	float frequency = 30;
+	float outerRingRadius = rippleRadius;
+	float innerRingRadius = rippleRadius - ringSize;
+	float distance = calculateDistance(pixelPos, ripplePos);
+	float intensity = (distance - innerRingRadius) / (outerRingRadius - innerRingRadius);
+	intensity = max(intensity, 0);
+	if (distance <= outerRingRadius && distance >= innerRingRadius) {
+		float3 outward = normalize(float3(pixelPos.x - ripplePos.x, 1, pixelPos.z - ripplePos.z));
+		float3 inward = normalize(float3(ripplePos.x - pixelPos.x, 1, ripplePos.z - pixelPos.z));
+		
+		float i = (cos((1 - intensity) * frequency) * 0.5) + 0.5;
+		finalNormal = Vector3Lerp(outward, inward, i);
+	}
+	finalNormal = Vector3Lerp(normal, finalNormal, intensity);
+	finalNormal = normalize(finalNormal);
+	return finalNormal;
+}
+
 float4 main(DomainToPixel input) : SV_TARGET
 {
 	// Fix normals and tangents
@@ -207,7 +233,7 @@ float4 main(DomainToPixel input) : SV_TARGET
 	// Sample, blend and translate multiple normals
 	float3 finalNormal = calculateNormalFromMap(input.uv, input.normal, input.tangent);
 	finalNormal = normalize(finalNormal);
-	
+	//return float4(finalNormal, 1);
 	// Calculate refraction
 	float2 refractUV = calculateRefraction(finalNormal,input.worldPos);
 
@@ -218,8 +244,6 @@ float4 main(DomainToPixel input) : SV_TARGET
 
 		float3 ripplePosition = ripples[r].ripplePosition;
 		float rippleRadius = ripples[r].rippleRadius;
-		float ringSize = ripples[r].ringSize;
-		float rippleIntensity = ripples[r].rippleIntensity;
 
 		//Handle ripples
 		//y position shouldn't matter for now
@@ -229,25 +253,32 @@ float4 main(DomainToPixel input) : SV_TARGET
 		pos2.y = 0.0f;
 		float distance = calculateDistance(pos1, pos2);
 
-		if (distance >= rippleRadius - 0.5f * ringSize && distance <= rippleRadius + 0.5f * ringSize) {
-			//Set t to be from 0 to 1
-			float t_01 = (distance - (rippleRadius - 0.5f * ringSize)) / ringSize;
-			//Set t to be from -1 to 1
-			float t = (t_01 - 0.5f) * 0.5f;
-			//ripple position to pixel position
-			float3 direction = normalize(pos1 - pos2);
+		//if (distance >= rippleRadius - 0.5f * ringSize && distance <= rippleRadius + 0.5f * ringSize) {
+		//	//Set t to be from 0 to 1
+		//	float t_01 = (distance - (rippleRadius - 0.5f * ringSize)) / ringSize;
+		//	//Set t to be from -1 to 1
+		//	float t = (t_01 - 0.5f) * 0.5f;
+		//	//ripple position to pixel position
+		//	float3 direction = normalize(pos1 - pos2);
 
-			float y = sin(t_01 * 3.14159);
+		//	float y = sin(t_01 * 3.14159);
 
-			float3 rippleNormal = normalize(float3(direction.x * t, 0.5f + 0.5f * y, direction.z * t));
+		//	float3 rippleNormal = normalize(float3(direction.x * t, 0.5f + 0.5f * y, direction.z * t));
 
-			// 0 - finalNormal, 1 - rippleNormal
-			finalNormal.x = lerp(finalNormal.x, rippleNormal.x, rippleIntensity);
-			finalNormal.y = lerp(finalNormal.y, rippleNormal.y, rippleIntensity);
-			finalNormal.z = lerp(finalNormal.z, rippleNormal.z, rippleIntensity);
+		//	// 0 - finalNormal, 1 - rippleNormal
+		//	finalNormal.x = lerp(finalNormal.x, rippleNormal.x, rippleIntensity);
+		//	finalNormal.y = lerp(finalNormal.y, rippleNormal.y, rippleIntensity);
+		//	finalNormal.z = lerp(finalNormal.z, rippleNormal.z, rippleIntensity);
+
+		//	finalNormal = normalize(finalNormal);
+		//}
 
 			finalNormal = normalize(finalNormal);
-		}
+			float4 foam = float4(1, 0, 0, 1);
+			if (ripplePosition.x == input.position.x && ripplePosition.z == input.position.z)
+				return foam;
+		
+		finalNormal = CalculateRipple(input.worldPos, ripplePosition, rippleRadius, finalNormal);
 	}
 
 	float reflectionCoeff = normalize(Fresnel(finalNormal, input.worldPos));
@@ -265,8 +296,9 @@ float4 main(DomainToPixel input) : SV_TARGET
 		totalColor += calculatePointLight(finalNormal, input.worldPos, pointLights[i]);
 	}
 	reflection = calculateSkyboxReflection(finalNormal, input.worldPos);
+	
 	// Gamma correction
 	surfaceColor.rgb = lerp(surfaceColor.rgb, pow(surfaceColor.rgb, 2.2), 1);
-	float3 gammaCorrectValue = lerp(totalColor, pow(totalColor, 1.0f / 2.2f), 1);
-	return float4(gammaCorrectValue,1) * (reflection * ScenePixels.Sample(RefractSampler, input.screenUV + refractUV * 0.1f)) * ( reflectionCoeff + (1-reflectionCoeff)) + surfaceColor * 0.7;
+	float3 gammaCorrectValue = (float3)lerp(totalColor, pow(totalColor, 1.0f / 2.2f), 1);
+	return float4(gammaCorrectValue, 1) * (reflection * ScenePixels.Sample(RefractSampler, input.screenUV + refractUV * 0.1f)) * (reflectionCoeff + (1 - reflectionCoeff)) + surfaceColor * 0.7;
 }

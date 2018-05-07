@@ -45,7 +45,7 @@ cbuffer WaveInfo	:	register(b2)
 };
 
 static int numWaves = 5;
-static float steepness = 0.3;
+static float steepness = 0.9;
 static float speed = 20;
 float3 CalculateGerstnerWave(float3 inputVertex)
 {

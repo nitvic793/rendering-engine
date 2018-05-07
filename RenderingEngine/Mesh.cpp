@@ -15,6 +15,20 @@ Mesh::Mesh(Vertex *vertices, UINT vertexCount, UINT *indices, UINT indexCount, I
 
 Mesh::Mesh(VertexAnimated * vertices, UINT vertexCount, UINT * indices, UINT indexCount, ID3D11Device * device)
 {
+	//Calculate max and min dimensions
+	minDimensions = XMFLOAT3(FLT_MAX, FLT_MAX, FLT_MAX);
+	maxDimensions = XMFLOAT3(-FLT_MAX, -FLT_MAX, -FLT_MAX);
+	for (UINT i = 0; i < vertexCount; ++i)
+	{
+		auto pos = vertices[i].Position;
+		if (pos.x < minDimensions.x)minDimensions.x = pos.x;
+		if (pos.y < minDimensions.y)minDimensions.y = pos.y;
+		if (pos.z < minDimensions.z)minDimensions.z = pos.z;
+		if (pos.x > maxDimensions.x)maxDimensions.x = pos.x;
+		if (pos.y > maxDimensions.y)maxDimensions.y = pos.y;
+		if (pos.z > maxDimensions.z)maxDimensions.z = pos.z;
+	}
+
 	CalculateTangents(vertices, vertexCount, indices, indexCount);
 	this->indexCount = indexCount;
 	this->vertexCount = vertexCount;

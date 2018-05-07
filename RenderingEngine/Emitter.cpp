@@ -208,11 +208,13 @@ void Emitter::SpawnParticle()
 	particles[firstDeadIndex].Age = 0;
 	particles[firstDeadIndex].Size = startSize;
 	particles[firstDeadIndex].Color = startColor;
-	particles[firstDeadIndex].Position = emitterPosition;
+	particles[firstDeadIndex].Position.x = emitterPosition.x + (((float)rand() / RAND_MAX) * 1.4f - 0.2f);
+	particles[firstDeadIndex].Position.y = emitterPosition.y;
+	particles[firstDeadIndex].Position.z = emitterPosition.z + (((float)rand() / RAND_MAX) * 1.4f - 0.2f);
 	particles[firstDeadIndex].StartVelocity = startVelocity;
-	particles[firstDeadIndex].StartVelocity.x += ((float)rand() / RAND_MAX) * 0.4f - 0.2f;
-	particles[firstDeadIndex].StartVelocity.y += ((float)rand() / RAND_MAX) * 0.4f - 0.2f;
-	particles[firstDeadIndex].StartVelocity.z += ((float)rand() / RAND_MAX) * 0.4f - 0.2f;
+	particles[firstDeadIndex].StartVelocity.x += ((float)rand() / RAND_MAX) * 5.4f - 0.2f;
+	particles[firstDeadIndex].StartVelocity.y += ((float)rand() / RAND_MAX) * 1.0f - 0.2f;
+	particles[firstDeadIndex].StartVelocity.z += ((float)rand() / RAND_MAX) * 5.4f - 0.2f;
 
 	// Increment and wrap
 	firstDeadIndex++;

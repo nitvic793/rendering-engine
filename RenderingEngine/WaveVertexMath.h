@@ -13,7 +13,7 @@ XMFLOAT3 CalculateGerstnerWave(XMFLOAT3 input, Wave * waves, int numWaves) {
 	XMFLOAT3 total = XMFLOAT3(0.0f, 0.0f, 0.0f);
 
 	for (int i = 0; i < numWaves; i++) {
-		float wi = 2 * 3.1416 / waves[i].wavelength;
+		float wi = 2 * 3.1416f / waves[i].wavelength;
 		float ai = waves[i].amplitude;
 		float phi = speed * wi;
 		//Continue from here
@@ -24,6 +24,7 @@ XMFLOAT3 CalculateGerstnerWave(XMFLOAT3 input, Wave * waves, int numWaves) {
 }
 
 void CalculateVertices(XMFLOAT3 offset, Vertex* vertices) {
+	
 	for (int i = 0; i < 2500; i++) {
 		vertices[i].Position.x += offset.x;
 		vertices[i].Position.y += offset.y;

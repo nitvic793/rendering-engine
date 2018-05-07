@@ -1,7 +1,9 @@
 #pragma once
 
 #define MAX_RIPPLES 32
+#define RIPPLE_DURATION 10
 
+#include "Canvas.h"
 #include <memory>
 #include "DXCore.h"
 #include "SimpleShader.h"
@@ -23,6 +25,7 @@
 #include "TreeManager.h"
 #include "FishController.h"
 #include "Emitter.h"
+#include "VirtualVertices.h"
 
 class Game 
 	: public DXCore
@@ -45,6 +48,7 @@ public:
 	void OnMouseMove (WPARAM buttonState, int x, int y);
 	void OnMouseWheel(float wheelDelta,   int x, int y);
 private:
+	int numWaves = 5;
 	void LoadShaders(); 
 	void CreateCamera();
 	void InitializeEntities();
@@ -60,7 +64,7 @@ private:
 	void DepthOfFieldPostProcess(ID3D11ShaderResourceView*  texture);
 	void LensFlare(ID3D11ShaderResourceView*  texture);
 
-	void CreateRipple(float x, float y, float z, float duration, float ringSize);
+	void CreateRipple(float x, float y, float z, float duration, float ringSize = 0);
 	bool projectileHitWater;
 	bool isDofEnabled;
 	std::vector<Ripple> ripples;
@@ -156,5 +160,12 @@ private:
 	ID3D11BlendState* particleBlendState;
 	ID3D11DepthStencilState* particleDepthState;
 	std::vector<std::shared_ptr<Emitter>> emitters;
+
+	//Virtual vertices for approximating collision on the water
+	VirtualVertices virtualVertices;
+
+	//Canvas
+	Canvas *canvas;
+	bool gameStarted;
 };
 

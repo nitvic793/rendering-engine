@@ -7,6 +7,10 @@ void ProjectileEntity::SetHasBeenShot(bool shot)
 	hasBeenShot = false;
 }
 
+bool ProjectileEntity::HasBeenShot() {
+	return hasBeenShot;
+}
+
 void ProjectileEntity::Update(float deltaTime, float totalTime)
 {
 	if (hasBeenShot)
