@@ -98,6 +98,8 @@ VertexToPixel main(VertexShaderInput input)
 
 	output.normal = (float3)mul((float3)mul(bonetransform, float4(input.tangent, 1)), (float3x3)world);
 
+	output.normal = normalize(output.normal);
+
 	output.worldPos = (float3)(mul(float4(input.position.x, input.position.y, input.position.z, 1.0f), world)).xyz;
 
 	output.uv = input.uv;
