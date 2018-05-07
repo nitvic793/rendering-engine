@@ -2,7 +2,6 @@
 
 #define MAX_RIPPLES 32
 #define RIPPLE_DURATION 10
-#define	NUM_OF_WAVES 10
 
 #include "Canvas.h"
 #include <memory>
@@ -49,6 +48,7 @@ public:
 	void OnMouseMove (WPARAM buttonState, int x, int y);
 	void OnMouseWheel(float wheelDelta,   int x, int y);
 private:
+	int numWaves = 5;
 	void LoadShaders(); 
 	void CreateCamera();
 	void InitializeEntities();

@@ -428,6 +428,7 @@ void Game::CreateWater()
 	//waterbject->SetScale(3, 3, 3);
 	water->CreateWaves();
 	virtualVertices.SetVertices(water->GetVertices(), water->GetVertexCount());
+	virtualVertices.SetPosition(Vector3(-125, -6, -150));
 	resources->vertexShaders["water"]->SetData("waves", water->GetWaves(), sizeof(Wave) * NUM_OF_WAVES);
 
 #pragma region Displacement Mapping Disabled
@@ -848,9 +849,9 @@ void Game::Update(float deltaTime, float totalTime)
 	}
 
 	//Update the virtual vertices
-	virtualVertices.ApplyGetstnerWaves(water->GetWaves(), NUM_OF_WAVES, time);
-	//entities[0]->SetPosition(virtualVertices[0]);
-	cout << "x: " << virtualVertices[0].x << " y: " << virtualVertices[0].y << " z: " << virtualVertices[0].z << endl;
+	virtualVertices.ApplyGetstnerWaves(water->GetWaves(), numWaves, time);
+	//entities[0]->SetPosition(virtualVertices[1249]);
+	//cout << "x: " << virtualVertices[1249].x << " y: " << virtualVertices[1249].y << " z: " << virtualVertices[1249].z << endl;
 
 	fishes->Update(deltaTime, totalTime);
 	float fishSpeed = 2.f;

@@ -9,6 +9,10 @@ VirtualVertices::~VirtualVertices() {
 	delete finalVertices;
 }
 
+void VirtualVertices::SetPosition(Vector3 position) {
+	this->position = position;
+}
+
 void VirtualVertices::SetVertices(Vertex *vertices, int vertexCount) {
 	this->vertexCount = vertexCount;
 	this->startVertices = new Vector3[vertexCount];
@@ -54,6 +58,8 @@ Vector3 VirtualVertices::ApplyGerstnerWave(Vector3 inputVertex, Wave *waves, int
 		total.y += wave.amplitude * sin(theta);
 		total.z += inputVertex.z + qi * ai * direction.y * cos(theta);
 	}
+
+	total += position;
 
 	return total;
 }
