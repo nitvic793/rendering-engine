@@ -564,7 +564,7 @@ void Game::InitializeEntities()
 
 	secondaryLight.AmbientColor = XMFLOAT4(0.1f, 0.1f, 0.1f, 0);
 	secondaryLight.DiffuseColor = XMFLOAT4(0.5f, 0.5f, 0.5f, 1);
-	secondaryLight.Direction = XMFLOAT3(0.2f, -0.8, 0);
+	secondaryLight.Direction = XMFLOAT3(0.2f, -0.8f, 0);
 
 	pointLight.Color = XMFLOAT4(0.0f, 0.f, 0.f, 1);
 	pointLight.Position = XMFLOAT3(0.4f, 2.f, -14.9f);
@@ -919,12 +919,12 @@ void Game::Update(float deltaTime, float totalTime)
 		emitters.emplace_back(std::make_shared<Emitter>(
 			50,							// Max particles
 			100,							// Particles per second
-			0.5,								// Particle lifetime
+			0.5f,								// Particle lifetime
 			0.7f,							// Start size
 			0.1f,							// End size
-			XMFLOAT4(0.9, 0.9f, 1.0f, 0.5f),	// Start color
+			XMFLOAT4(0.9f, 0.9f, 1.0f, 0.5f),	// Start color
 			XMFLOAT4(1, 1.0f, 1.0f, 0),		// End color
-			XMFLOAT3(0, 7.2, 0),				// Start velocity
+			XMFLOAT3(0, 7.2f, 0),				// Start velocity
 			XMFLOAT3(0, -50, 0),				// Start acceleration
 			device,
 			resources->vertexShaders["particle"],

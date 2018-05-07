@@ -70,7 +70,7 @@ ID3D11ShaderResourceView *Button::GetSRV() {
 }
 
 Vector2 Button::GetPosition() {
-	return Vector2(x, y);
+	return Vector2((float)x, (float)y);
 }
 
 void Button::AssignFunction(function<void()> func) {

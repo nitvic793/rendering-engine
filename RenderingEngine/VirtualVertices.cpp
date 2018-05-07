@@ -36,7 +36,7 @@ Vector3 VirtualVertices::ApplyGerstnerWave(Vector3 inputVertex, Wave *waves, int
 	{
 		Wave wave = waves[i];
 		// Wavelength (L): the crest-to-crest distance between waves in world space. Wavelength L relates to frequency w as w = 2/L.
-		float wi = 2 * 3.1416 / wave.wavelength;
+		float wi = 2 * 3.1416f / wave.wavelength;
 		// Amplitude (A): the height from the water plane to the wave crest.
 		float ai = wave.amplitude;
 		// Speed (S): the distance the crest moves forward per second.

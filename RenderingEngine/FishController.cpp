@@ -71,7 +71,7 @@ FishController::FishController(Mesh* mesh, Material* mat, int count, XMFLOAT3 st
 		entities.push_back(entity);
 	}
 
-	srand(time(nullptr));
+	srand((unsigned int)time(nullptr));
 	
 }
 

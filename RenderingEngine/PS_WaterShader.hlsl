@@ -299,6 +299,6 @@ float4 main(DomainToPixel input) : SV_TARGET
 	
 	// Gamma correction
 	surfaceColor.rgb = lerp(surfaceColor.rgb, pow(surfaceColor.rgb, 2.2), 1);
-	float3 gammaCorrectValue = lerp(totalColor, pow(totalColor, 1.0f / 2.2f), 1);
+	float3 gammaCorrectValue = (float3)lerp(totalColor, pow(totalColor, 1.0f / 2.2f), 1);
 	return float4(gammaCorrectValue, 1) * (reflection * ScenePixels.Sample(RefractSampler, input.screenUV + refractUV * 0.1f)) * (reflectionCoeff + (1 - reflectionCoeff)) + surfaceColor * 0.7;
 }

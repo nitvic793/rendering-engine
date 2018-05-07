@@ -54,7 +54,7 @@ void AddToMeshMap(objl::Loader loader, MeshMap& map, ID3D11Device* device, std::
 	{
 		auto verts = MapObjlToVertex(mesh.Vertices);
 		auto indices = mesh.Indices;
-		Mesh* m = new Mesh(verts.data(), verts.size(), indices.data(), indices.size(), device);
+		Mesh* m = new Mesh(verts.data(), (UINT)verts.size(), indices.data(), (UINT)indices.size(), device);
 		map.insert(MeshMapType(prefix + mesh.MeshName, m));
 		if (loadTex)
 		{
