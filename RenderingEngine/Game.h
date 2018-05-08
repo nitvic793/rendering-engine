@@ -169,5 +169,8 @@ private:
 	Canvas *canvas;
 	bool gameStarted;
 	void Blur(ID3D11ShaderResourceView* texture);
+	std::vector<ID3D11ShaderResourceView*> skyTextures;
+	int currentSky = 0;
+	bool prevSpaceBar;
 };
 

@@ -187,6 +187,12 @@ void Resources::LoadResources()
 	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/quit_hover.png", nullptr, &srv);
 	shaderResourceViews.insert(SRVMapType("quit_hover", srv));
 
+	CreateDDSTextureFromFile(device, L"../../Assets/Textures/Space2.dds", 0, &srv);
+	shaderResourceViews.insert(SRVMapType("spacesky2", srv));
+
+	CreateDDSTextureFromFile(device, L"../../Assets/Textures/mountain.dds", 0, &srv);
+	shaderResourceViews.insert(SRVMapType("mountain", srv));
+
 	//Load Sampler
 	D3D11_SAMPLER_DESC samplerDesc = {};
 	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;

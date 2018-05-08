@@ -664,6 +664,9 @@ void Game::InitializeEntities()
 	entities[1]->SetRotation(0, 90.f * XM_PI / 180, 0);
 
 	//entities[2]->hasShadow = false;
+	skyTextures.push_back(resources->shaderResourceViews["mountain"]);
+	skyTextures.push_back(resources->shaderResourceViews["cubemap"]);
+	skyTextures.push_back(resources->shaderResourceViews["spacesky2"]);
 }
 
 void Game::InitializeRenderer()
@@ -1139,6 +1142,12 @@ void Game::Update(float deltaTime, float totalTime)
 														 AudioVector3{ camera->GetDirection().x,camera->GetDirection().y,camera->GetDirection().z },	// Listener forward direction = camera's forward direction
 														 AudioVector3{ camera->GetUp().x,camera->GetUp().y,camera->GetUp().z });						// Listener Up direction
 	AudioEngine::Instance()->Update();
+
+	// Check for entity swap
+	bool currentSpacebar = (GetAsyncKeyState(' ') & 0x8000) != 0;
+	if (currentSpacebar && !prevSpaceBar)
+		currentSky = (currentSky + 1) % skyTextures.size();
+	prevSpaceBar = currentSpacebar;
 }
 
 // --------------------------------------------------------
@@ -1283,7 +1292,7 @@ void Game::DrawSky()
 	resources->vertexShaders["sky"]->CopyAllBufferData();
 	resources->vertexShaders["sky"]->SetShader();
 
-	resources->pixelShaders["sky"]->SetShaderResourceView("SkyTexture", resources->shaderResourceViews["cubemap"]);
+	resources->pixelShaders["sky"]->SetShaderResourceView("SkyTexture", skyTextures[currentSky]);
 	resources->pixelShaders["sky"]->SetSamplerState("BasicSampler", sampler);
 	resources->pixelShaders["sky"]->SetShader();
 
