@@ -633,7 +633,7 @@ void Game::InitializeEntities()
 
 	currentProjectile = new ProjectileEntity(resources->meshes["spear"], resources->materials["spear"]);
 	currentProjectile->SetRotation(180 * XM_PI / 180, 0, 90 * XM_PI / 180);
-	currentProjectile->SetPosition(0.4f, 2.f, -14.9f);
+	currentProjectile->SetPosition(0.4f, 3.f, -14.9f);
 	currentProjectile->SetScale(1.5f, 1.5f, 1.5f);
 
 	//entities.push_back(new Entity(resources->meshes["sphere"], resources->materials["metal"]));
@@ -646,7 +646,7 @@ void Game::InitializeEntities()
 	//entities[0]->SetPosition(1.f, 1.f, 1.f);
 
 	entities[0]->SetScale(0.6f, 0.6f, 0.6f);
-	entities[0]->SetPosition(0.f, -5.5f, 0.f);
+	entities[0]->SetPosition(0.f, -5.0f, 0.f);
 	entities[0]->SetRotation(0, 180.f * XM_PI / 180, 0);
 	entities[1]->SetScale(0.03f, 0.03f, 0.03f);
 	entities[1]->SetPosition(9.f, -8.5f, -15.f);
