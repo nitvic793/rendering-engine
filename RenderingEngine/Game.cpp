@@ -631,21 +631,21 @@ void Game::InitializeEntities()
 	currentProjectile->SetPosition(0.4f, 2.f, -14.9f);
 	currentProjectile->SetScale(1.5f, 1.5f, 1.5f);
 
-	entities.push_back(new Entity(resources->meshes["sphere"], resources->materials["metal"]));
+	//entities.push_back(new Entity(resources->meshes["sphere"], resources->materials["metal"]));
 	entities.push_back(new Entity(resources->meshes["boat"], resources->materials["boat"]));
 	entities.push_back(new Entity(resources->meshes["Rudd-Fish_Cube.001"], resources->materials["fish"]));
 
 	//entities.push_back(new Entity(resources->meshes["Coconut_Tree"], resources->materials["boat"]));
 
 	CreateWater();
-	entities[0]->SetPosition(1.f, 1.f, 1.f);
+	//entities[0]->SetPosition(1.f, 1.f, 1.f);
 
-	entities[1]->SetScale(0.6f, 0.6f, 0.6f);
-	entities[1]->SetPosition(0.f, -5.5f, 0.f);
-	entities[1]->SetRotation(0, 180.f * XM_PI / 180, 0);
-	entities[2]->SetScale(0.03f, 0.03f, 0.03f);
-	entities[2]->SetPosition(9.f, -8.5f, -15.f);
-	entities[2]->SetRotation(0, 90.f * XM_PI / 180, 0);
+	entities[0]->SetScale(0.6f, 0.6f, 0.6f);
+	entities[0]->SetPosition(0.f, -5.5f, 0.f);
+	entities[0]->SetRotation(0, 180.f * XM_PI / 180, 0);
+	entities[1]->SetScale(0.03f, 0.03f, 0.03f);
+	entities[1]->SetPosition(9.f, -8.5f, -15.f);
+	entities[1]->SetRotation(0, 90.f * XM_PI / 180, 0);
 
 	//entities[2]->hasShadow = false;
 }
@@ -981,11 +981,11 @@ void Game::Update(float deltaTime, float totalTime)
 
 	fishes->Update(deltaTime, totalTime);
 	float fishSpeed = 2.f;
-	entities[2]->Move(XMFLOAT3((sin(totalTime * 3) / 600), 0, fishSpeed*deltaTime));
+	entities[1]->Move(XMFLOAT3((sin(totalTime * 3) / 600), 0, fishSpeed*deltaTime));
 
-	if (entities[2]->GetPosition().z >= 30.f)
+	if (entities[1]->GetPosition().z >= 30.f)
 	{
-		entities[2]->SetPosition(9.f, -8.5f, -15.f);
+		entities[1]->SetPosition(9.f, -8.5f, -15.f);
 	}
 
 	if ((GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0)
@@ -1062,7 +1062,7 @@ void Game::Update(float deltaTime, float totalTime)
 	currentProjectile->Update(deltaTime, totalTime);
 
 	//Update entities
-	entities[1]->SetRotation(cos(totalTime) / 20, 180.f * XM_PI / 180, -sin(totalTime) / 20);
+	entities[0]->SetRotation(cos(totalTime) / 20, 180.f * XM_PI / 180, -sin(totalTime) / 20);
 
 	//Update ripples and Water shader (add support for multiple ripples later)
 	//Delete ripples afterward if they are at max duration
