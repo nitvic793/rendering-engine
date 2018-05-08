@@ -14,6 +14,7 @@ class Camera
 
 	float rotationY;
 	float rotationX;
+	XMFLOAT3 currentUp;
 public:
 	XMFLOAT3 GetPosition();
 	XMFLOAT3 GetDirection();
@@ -26,6 +27,7 @@ public:
 	XMFLOAT4X4 GetReflectionMatrix();
 	virtual void Update(float deltaTime);
 	Camera(float aspectRatio);
+	XMFLOAT3 GetUp();
 	~Camera();
 };
 

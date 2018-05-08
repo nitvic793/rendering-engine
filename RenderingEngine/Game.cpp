@@ -116,6 +116,7 @@ Game::~Game()
 	particleDepthState->Release();
 
 	delete canvas;
+	AudioEngine::Instance()->ShutDown();
 }
 
 // --------------------------------------------------------
@@ -134,7 +135,10 @@ void Game::Init()
 	SetCursorPos(rect.left + width / 2, rect.top + height / 2);
 	resources = new Resources(device, context, swapChain);
 	resources->LoadResources();
-
+	
+	//Audio Engine
+	AudioEngine::Instance()->Init();
+	
 	//Create canvas
 	canvas = new Canvas(device, context, resources);
 	canvas->AssignMenuButtonFunction([&]() {gameStarted = true; canvas->StartGame(); });
@@ -584,6 +588,13 @@ void Game::RenderShadowMap()
 
 void Game::InitializeEntities()
 {
+	//Audio setup
+	AudioEngine::Instance()->Set3dListenerAndOrientation(AudioVector3{ camera->GetPosition().x,camera->GetPosition().y,camera->GetPosition().z },	// Listener position in on the camera
+														 AudioVector3{ 0,0,1 }, AudioVector3{ 0,1,0 });
+	AudioEngine::Instance()->LoadSound("../../Assets/Sounds/calmwaves.wav", true, true,true);	// looping background sound
+	AudioEngine::Instance()->LoadSound("../../Assets/Sounds/splash.wav", true);	// non-looping splash sound
+	AudioEngine::Instance()->PlaySounds("../../Assets/Sounds/calmwaves.wav", AudioVector3{ camera->GetPosition().x,camera->GetPosition().y,camera->GetPosition().z }, 1.0f); // play sound at camera position
+
 	ShowCursor(false);
 	trees = std::unique_ptr<TreeManager>(new TreeManager(device, context));
 	fishes = std::unique_ptr<FishController>(new FishController(
@@ -1021,7 +1032,7 @@ void Game::Update(float deltaTime, float totalTime)
 		float z = hitPos.z;
 		CreateRipple(x, y, z, RIPPLE_DURATION);// , 0.5f);
 
-		std::cout << pos.y << std::endl;
+		AudioEngine::Instance()->PlaySounds("../../Assets/Sounds/splash.wav", AudioVector3{ x,y,z }, 30.0f); // play sound at camera position
 		emitters.emplace_back(std::make_shared<Emitter>(
 			50,							// Max particles
 			100,							// Particles per second
@@ -1076,6 +1087,12 @@ void Game::Update(float deltaTime, float totalTime)
 			it++;
 		}
 	}
+
+	//Audio engine interactions
+	AudioEngine::Instance()->Set3dListenerAndOrientation(AudioVector3{ camera->GetPosition().x,camera->GetPosition().y,camera->GetPosition().z },		// Listener at camera position
+														 AudioVector3{ camera->GetDirection().x,camera->GetDirection().y,camera->GetDirection().z },	// Listener forward direction = camera's forward direction
+														 AudioVector3{ camera->GetUp().x,camera->GetUp().y,camera->GetUp().z });																		// Listener Up direction
+	AudioEngine::Instance()->Update();
 }
 
 // --------------------------------------------------------

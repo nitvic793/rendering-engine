@@ -169,3 +169,12 @@ Camera::Camera(float aspectRatio)
 Camera::~Camera()
 {
 }
+
+XMFLOAT3 Camera::GetUp()
+{
+	XMVECTOR up = XMVectorSet(0, 1, 0, 0);
+	auto rotQuaternion = XMQuaternionRotationRollPitchYaw(rotationX, rotationY, 0);
+	up = XMVector3Rotate(up, rotQuaternion);
+	XMStoreFloat3(&currentUp, up);
+	return currentUp;
+}
