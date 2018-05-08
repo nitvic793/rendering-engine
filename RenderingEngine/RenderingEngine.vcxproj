@@ -90,6 +90,9 @@
       <AdditionalLibraryDirectories>$(SolutionDir)/References/libs/;$(SolutionDir)/FBXSDK/lib/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>fmodstudio64_vc.lib;fmodstudio_vc.lib;fmod64_vc.lib;fmod_vc.lib;libfbxsdk.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>xcopy /y  "$(ProjectDir)..\References\*.dll" "$(OutDir)"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
