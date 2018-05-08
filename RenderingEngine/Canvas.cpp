@@ -3,11 +3,12 @@
 Canvas::Canvas(ID3D11Device* device, ID3D11DeviceContext* context, Resources *resources) {
 	this->device = device;
 	this->context = context;
+	res = resources;
 	spriteBatch.reset(new SpriteBatch(context));
 	spriteFont.reset(new SpriteFont(device, L"../../Assets/Fonts/Calibri.spritefont"));
 
-	menuButton = new Button("Start Game!", 576, 296, 128, 128, resources->GetSRV("button_normal"), resources->GetSRV("button_hover"), resources->GetSRV("button_press"));
-	quitButton = new Button("Quit", 1200, 600, 128, 128, resources->GetSRV("button_normal"), resources->GetSRV("button_hover"), resources->GetSRV("button_press"));
+	menuButton = new Button("", 599, 296, 190, 45, resources->GetSRV("button_normal"), resources->GetSRV("button_hover"), resources->GetSRV("button_press"));
+	quitButton = new Button("", 1150, 600, 128, 128, resources->GetSRV("quit"), resources->GetSRV("quit_hover"), resources->GetSRV("quit"));
 	quitButton->SetEnabled(false);
 }
 
@@ -53,6 +54,7 @@ void Canvas::Draw() {
 	spriteBatch->Begin(SpriteSortMode_Deferred, states.NonPremultiplied());
 	
 	if (menuButton->IsEnabled()) {
+		spriteBatch->Draw(res->GetSRV("title"), Vector2(378,100));
 		spriteBatch->Draw(menuButton->GetSRV(), menuButton->GetPosition());
 		spriteFont->DrawString(spriteBatch.get(), menuButton->GetText().c_str(), menuButton->GetPosition() + Vector2(0, 50), Colors::Black);
 	}
@@ -77,5 +79,5 @@ void Canvas::AssignQuitButtonFunction(function<void()> func) {
 
 void Canvas::StartGame() {
 	menuButton->SetEnabled(false);
-	quitButton->SetEnabled(true);
+	quitButton->SetEnabled(false);
 }

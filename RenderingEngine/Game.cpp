@@ -748,6 +748,30 @@ void Game::DrawPostProcess(ID3D11ShaderResourceView* texture)
 	context->Draw(3, 0);
 }
 
+void Game::Blur(ID3D11ShaderResourceView* texture)
+{
+	auto quadVS = resources->vertexShaders["quad"];
+	auto quadPS = resources->pixelShaders["blur"];
+	context->OMSetRenderTargets(1, &bloomBlurRTV, 0);
+	context->IASetVertexBuffers(0, 0, 0, 0, 0);
+	context->IASetIndexBuffer(0, DXGI_FORMAT_R32_UINT, 0);
+
+	quadPS = resources->pixelShaders["blur"];
+	// Set up the fullscreen quad shaders
+	quadVS->SetShader();
+
+	quadPS->SetShaderResourceView("Pixels", texture);
+	quadPS->SetSamplerState("Sampler", sampler);
+	quadPS->SetFloat("blurValue", 5.0f);
+	quadPS->SetShader();
+	quadPS->CopyAllBufferData();
+
+	// Draw
+	context->Draw(3, 0);
+	//Reset render target
+	context->OMSetRenderTargets(1, &backBufferRTV, depthStencilView);
+}
+
 void Game::BloomPostProcess(ID3D11ShaderResourceView* texture)
 {
 	//Filter highlighted pixels from main scene
@@ -976,11 +1000,28 @@ XMFLOAT3 hitPos;
 // --------------------------------------------------------
 void Game::Update(float deltaTime, float totalTime)
 {
-	if (GetAsyncKeyState(VK_ESCAPE))
-		Quit();
+	
+		bool currentEsc = (GetAsyncKeyState(VK_ESCAPE) & 0x8000) != 0;
+		if (currentEsc && !prevEsc)
+		{
+
+			if (gameStarted)
+			{
+				canvas->quitButton->SetEnabled(true);
+				gameStarted = false;
+			}
+			else
+			{
+				canvas->quitButton->SetEnabled(false);
+				gameStarted = true;
+			}
+			//Quit();
+		}
+		prevEsc= currentEsc;
+	
 	canvas->Update(deltaTime);
 
-	if (!gameStarted) return;
+	//if (!gameStarted) return;
 	// Water .........................................
 	time += 0.05f * deltaTime;
 	translate += 0.01f * deltaTime;
@@ -1096,7 +1137,7 @@ void Game::Update(float deltaTime, float totalTime)
 	//Audio engine interactions
 	AudioEngine::Instance()->Set3dListenerAndOrientation(AudioVector3{ camera->GetPosition().x,camera->GetPosition().y,camera->GetPosition().z },		// Listener at camera position
 														 AudioVector3{ camera->GetDirection().x,camera->GetDirection().y,camera->GetDirection().z },	// Listener forward direction = camera's forward direction
-														 AudioVector3{ camera->GetUp().x,camera->GetUp().y,camera->GetUp().z });																		// Listener Up direction
+														 AudioVector3{ camera->GetUp().x,camera->GetUp().y,camera->GetUp().z });						// Listener Up direction
 	AudioEngine::Instance()->Update();
 }
 
@@ -1118,15 +1159,13 @@ void Game::Draw(float deltaTime, float totalTime)
 	// Use our refraction render target and our regular depth buffer
 	context->OMSetRenderTargets(1, &refractionRTV, depthStencilView);
 
-	if (gameStarted) trees->Render(camera);
+		trees->Render(camera);
 
-	if (gameStarted) {
 		renderer->Draw(terrain.get());
 		fishes->Render(renderer);
-	}
+	
 
-	if (gameStarted)
-		DrawSky();
+	DrawSky();
 
 	// Reset blend state if blending
 	context->OMSetRenderTargets(1, &postProcessRTV, 0);
@@ -1137,12 +1176,10 @@ void Game::Draw(float deltaTime, float totalTime)
 
 	for (auto entity : entities)
 	{
-		if (entity->hasShadow && gameStarted)
+		if (entity->hasShadow )
 			renderer->Draw(entity);
 	}
-
-
-
+	
 	ID3D11ShaderResourceView *const nullSRV[4] = { NULL };
 	context->PSSetShaderResources(0, 4, nullSRV);
 
@@ -1151,9 +1188,7 @@ void Game::Draw(float deltaTime, float totalTime)
 		if (!entity->hasShadow && gameStarted)
 			renderer->Draw(entity);
 	}
-	if (gameStarted)
 		renderer->Draw(currentProjectile);
-	if (gameStarted)
 		DrawWater();
 
 	context->PSSetShaderResources(0, 4, nullSRV);
@@ -1198,16 +1233,24 @@ void Game::Draw(float deltaTime, float totalTime)
 	context->OMSetBlendState(0, 0, 0xFFFFFFFF);
 	context->OMSetRenderTargets(1, &backBufferRTV, 0);
 	ID3D11ShaderResourceView *nextBuffer = postProcessSRV;
-	BloomPostProcess(postProcessSRV);
-	nextBuffer = bloomSRV;
-	if (isDofEnabled)
+	if (gameStarted)
 	{
-		DepthOfFieldPostProcess(bloomSRV);
-		nextBuffer = dofSRV;
-	}
-	LensFlare(nextBuffer);
-	nextBuffer = lensFlareSRV;
+		BloomPostProcess(postProcessSRV);
+		nextBuffer = bloomSRV;
+		if (isDofEnabled)
+		{
+			DepthOfFieldPostProcess(bloomSRV);
+			nextBuffer = dofSRV;
+		}
+		LensFlare(nextBuffer);
+		nextBuffer = lensFlareSRV;
 	DrawPostProcess(nextBuffer);
+	}
+	else 
+	{
+		Blur(postProcessSRV);
+		DrawPostProcess(bloomBlurSRV);
+	}
 	canvas->Draw();
 	context->OMSetRenderTargets(1, &backBufferRTV, depthStencilView);
 
@@ -1304,11 +1347,13 @@ void Game::OnMouseMove(WPARAM buttonState, int x, int y)
 	float speed = 0.6f;
 	float deltaX = (float)x - prevMousePos.x;
 	float deltaY = (float)y - prevMousePos.y;
-	camera->RotateX(speed * deltaY * XM_PI / 180);
-	camera->RotateY(speed * deltaX * XM_PI / 180);
-
-	currentProjectile->RotateY(speed * deltaX * XM_PI / 180);
-	currentProjectile->RotateX(speed * deltaY * XM_PI / 180);
+	if (gameStarted)
+	{
+		camera->RotateX(speed * deltaY * XM_PI / 180);
+		camera->RotateY(speed * deltaX * XM_PI / 180);
+		currentProjectile->RotateY(speed * deltaX * XM_PI / 180);
+		currentProjectile->RotateX(speed * deltaY * XM_PI / 180);
+	}
 	//}
 	// Save the previous mouse position, so we have it for the future
 	prevMousePos.x = x;

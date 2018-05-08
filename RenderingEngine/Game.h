@@ -132,7 +132,7 @@ private:
 	// using them with shaders 
 	ID3D11ShaderResourceView* textureSRV;
 	ID3D11ShaderResourceView* normalMapSRV;
-
+	bool prevEsc;
 	float time, translate;
 	float transparency = 0.45f;
 	Water * water;
@@ -168,5 +168,6 @@ private:
 	//Canvas
 	Canvas *canvas;
 	bool gameStarted;
+	void Blur(ID3D11ShaderResourceView* texture);
 };
 

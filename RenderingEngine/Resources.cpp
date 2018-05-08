@@ -178,6 +178,15 @@ void Resources::LoadResources()
 	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/foam.png", nullptr, &srv);
 	shaderResourceViews.insert(SRVMapType("foam", srv));
 
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/title.png", nullptr, &srv);
+	shaderResourceViews.insert(SRVMapType("title", srv));
+
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/quit.png", nullptr, &srv);
+	shaderResourceViews.insert(SRVMapType("quit", srv));
+
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/quit_hover.png", nullptr, &srv);
+	shaderResourceViews.insert(SRVMapType("quit_hover", srv));
+
 	//Load Sampler
 	D3D11_SAMPLER_DESC samplerDesc = {};
 	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;

@@ -26,6 +26,7 @@ public:
 	void AssignMenuButtonFunction(function<void()> func);
 	void AssignQuitButtonFunction(function<void()> func);
 	void StartGame();
+	Button *quitButton;
 private:
 	ID3D11Device * device;
 	ID3D11DeviceContext* context;
@@ -34,5 +35,5 @@ private:
 	unique_ptr<SpriteFont> spriteFont;
 
 	Button *menuButton;
-	Button *quitButton;
+	Resources* res;
 };
