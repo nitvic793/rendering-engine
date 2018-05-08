@@ -45,6 +45,33 @@ void TreeManager::Render(int index, Camera * camera)
 	context->RSSetState(nullptr);
 }
 
+void TreeManager::RenderShadowBuffer(int index, SimpleVertexShader * shadowVS)
+{
+	unsigned int strides[2];
+	unsigned int offsets[2];
+	ID3D11Buffer* bufferPointers[2];
+
+	strides[0] = sizeof(Vertex);
+	strides[1] = sizeof(XMFLOAT4X4);
+	offsets[0] = 0;
+	offsets[1] = 0;
+	bufferPointers[0] = meshes[index]->GetVertexBuffer();
+	bufferPointers[1] = instanceBuffer;
+	context->IASetVertexBuffers(0, 2, bufferPointers, strides, offsets);
+	context->IASetIndexBuffer(meshes[index]->GetIndexBuffer(), DXGI_FORMAT_R32_UINT, 0);
+	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+	XMFLOAT4X4 world;
+	XMStoreFloat4x4(&world, XMMatrixTranspose(XMMatrixIdentity()));
+	shadowVS->SetMatrix4x4("world", world);
+	shadowVS->CopyAllBufferData();
+
+	// Finally do the actual drawing
+	context->RSSetState(rasterizer);
+	context->DrawInstanced(meshes[index]->GetVertexCount(), instanceCount, 0, 0);
+	context->RSSetState(nullptr);
+}
+
 void TreeManager::InitializeTrees(std::vector<std::string> meshNames, std::vector<std::string> materialNames, std::vector<XMFLOAT3> positionsVector)
 {
 	auto rm = Resources::GetInstance();
@@ -90,6 +117,12 @@ void TreeManager::Render(Camera* camera)
 {
 	for (int i = 0; i < meshes.size(); ++i)
 		Render(i, camera);
+}
+
+void TreeManager::RenderShadow(SimpleVertexShader * shadowVS)
+{
+	for (int i = 0; i < meshes.size(); ++i)
+		RenderShadowBuffer(i, shadowVS);
 }
 
 TreeManager::TreeManager(ID3D11Device* device, ID3D11DeviceContext* context)

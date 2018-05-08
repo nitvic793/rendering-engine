@@ -249,7 +249,7 @@ void Game::Init()
 	// Shadow data initialization
 	//////////////////////////////
 
-	shadowMapSize = 2048;
+	shadowMapSize = 8192;
 
 	// Create the actual texture that will be the shadow map
 	D3D11_TEXTURE2D_DESC shadowDesc = {};
@@ -309,7 +309,7 @@ void Game::Init()
 	device->CreateRasterizerState(&shadowRastDesc, &shadowRasterizer);
 
 	SetupPostProcess();
-	
+
 
 	// A depth state for the particles
 	D3D11_DEPTH_STENCIL_DESC dsDesc = {};
@@ -529,12 +529,12 @@ void Game::RenderEntityShadow(Entity * entity)
 void Game::RenderShadowMap()
 {
 	XMMATRIX shView = XMMatrixLookAtLH(
-		XMVectorSet(-10, 10, 10, 0),
+		XMVectorSet(-40, 40, 10, 0),
 		XMVectorSet(0, 0, 0, 0),
 		XMVectorSet(0, 1, 0, 0));
 	XMStoreFloat4x4(&shadowViewMatrix, XMMatrixTranspose(shView));
 
-	XMMATRIX shProj = XMMatrixOrthographicLH(20.0f, 20.0f, 0.1f, 100.0f);
+	XMMATRIX shProj = XMMatrixOrthographicLH(290.0f, 200.0f, 0.1f, 100.0f);
 	XMStoreFloat4x4(&shadowProjectionMatrix, XMMatrixTranspose(shProj));
 
 	ID3D11RenderTargetView * nullRTV = NULL;
@@ -569,6 +569,11 @@ void Game::RenderShadowMap()
 		RenderEntityShadow(entities[i]);
 	}
 	RenderEntityShadow(currentProjectile);
+	auto shadowInstanced = resources->vertexShaders["shadowInstanced"];
+	shadowInstanced->SetShader();
+	shadowInstanced->SetMatrix4x4("view", shadowViewMatrix);
+	shadowInstanced->SetMatrix4x4("projection", shadowProjectionMatrix);
+	trees->RenderShadow(shadowInstanced);
 
 	//shadowDSV = nullptr;
 	context->OMSetRenderTargets(1, &nullRTV, NULL);
@@ -608,10 +613,10 @@ void Game::InitializeEntities()
 	));
 	trees->InitializeTrees({ "palm","palm_2" }, { "palm","palm_2" },
 	{
-		XMFLOAT3(-30,-6,0),
-		XMFLOAT3(-25,-7,0),
-		XMFLOAT3(45,-7,70),
-		XMFLOAT3(55,-7,70)
+		XMFLOAT3(-30, -5, 18),
+		XMFLOAT3(-25, -6.5f, 0),
+		XMFLOAT3(45, -7, 70),
+		XMFLOAT3(55, -7, 70)
 	});
 	terrain = std::unique_ptr<Terrain>(new Terrain());
 	terrain->Initialize("../../Assets/Terrain/heightmap.bmp", device, context);
@@ -620,14 +625,14 @@ void Game::InitializeEntities()
 	auto rm = resources;
 	terrain->SetTextures(rm->GetSRV("gravel"), rm->GetSRV("grass"), rm->GetSRV("sand"), rm->GetSRV("gravel"));
 
-	terrain->SetPosition(-125, -9.5, -150);
+	terrain->SetPosition(-125, -10.5, -150);
 	light.AmbientColor = XMFLOAT4(0.2f, 0.2f, 0.2f, 0);
 	light.DiffuseColor = XMFLOAT4(0.9f, 0.9f, 0.9f, 1.f);
-	light.Direction = XMFLOAT3(0.6f, 0.4f, 0.f);
+	light.Direction = XMFLOAT3(-0.6f, 0.4f, 0.f);
 
 	secondaryLight.AmbientColor = XMFLOAT4(0.1f, 0.1f, 0.1f, 0);
 	secondaryLight.DiffuseColor = XMFLOAT4(0.5f, 0.5f, 0.5f, 1);
-	secondaryLight.Direction = XMFLOAT3(0.2f, -0.8f, 0);
+	secondaryLight.Direction = XMFLOAT3(-0.2f, -0.8f, 0);
 
 	pointLight.Color = XMFLOAT4(0.0f, 0.f, 0.f, 1);
 	pointLight.Position = XMFLOAT3(0.4f, 2.f, -14.9f);
@@ -639,24 +644,24 @@ void Game::InitializeEntities()
 
 	currentProjectile = new ProjectileEntity(resources->meshes["spear"], resources->materials["spear"]);
 	currentProjectile->SetRotation(180 * XM_PI / 180, 0, 90 * XM_PI / 180);
-	currentProjectile->SetPosition(0.4f, 2.f, -14.9f);
+	currentProjectile->SetPosition(0.4f, 3.f, -14.9f);
 	currentProjectile->SetScale(1.5f, 1.5f, 1.5f);
 
-	entities.push_back(new Entity(resources->meshes["sphere"], resources->materials["metal"]));
+	//entities.push_back(new Entity(resources->meshes["sphere"], resources->materials["metal"]));
 	entities.push_back(new Entity(resources->meshes["boat"], resources->materials["boat"]));
 	entities.push_back(new Entity(resources->meshes["Rudd-Fish_Cube.001"], resources->materials["fish"]));
 
 	//entities.push_back(new Entity(resources->meshes["Coconut_Tree"], resources->materials["boat"]));
 
 	CreateWater();
-	entities[0]->SetPosition(1.f, 1.f, 1.f);
+	//entities[0]->SetPosition(1.f, 1.f, 1.f);
 
-	entities[1]->SetScale(0.6f, 0.6f, 0.6f);
-	entities[1]->SetPosition(0.f, -5.5f, 0.f);
-	entities[1]->SetRotation(0, 180.f * XM_PI / 180, 0);
-	entities[2]->SetScale(0.03f, 0.03f, 0.03f);
-	entities[2]->SetPosition(9.f, -8.5f, -15.f);
-	entities[2]->SetRotation(0, 90.f * XM_PI / 180, 0);
+	entities[0]->SetScale(0.6f, 0.6f, 0.6f);
+	entities[0]->SetPosition(0.f, -5.0f, 0.f);
+	entities[0]->SetRotation(0, 180.f * XM_PI / 180, 0);
+	entities[1]->SetScale(0.03f, 0.03f, 0.03f);
+	entities[1]->SetPosition(9.f, -8.5f, -15.f);
+	entities[1]->SetRotation(0, 90.f * XM_PI / 180, 0);
 
 	//entities[2]->hasShadow = false;
 }
@@ -881,7 +886,7 @@ void Game::LensFlare(ID3D11ShaderResourceView * texture)
 
 	context->OMSetRenderTargets(1, &bloomBlurRTV, 0);
 	quadPS = resources->pixelShaders["blur"];
-	quadPS->SetFloat("blurValue", 4	);
+	quadPS->SetFloat("blurValue", 4);
 	quadPS->SetSamplerState("Sampler", sampler);
 	quadPS->SetShaderResourceView("Pixels", ghostGenerateSRV);
 	quadPS->CopyAllBufferData();
@@ -992,11 +997,11 @@ void Game::Update(float deltaTime, float totalTime)
 
 	fishes->Update(deltaTime, totalTime);
 	float fishSpeed = 2.f;
-	entities[2]->Move(XMFLOAT3((sin(totalTime * 3) / 600), 0, fishSpeed*deltaTime));
+	entities[1]->Move(XMFLOAT3((sin(totalTime * 3) / 600), 0, fishSpeed*deltaTime));
 
-	if (entities[2]->GetPosition().z >= 30.f)
+	if (entities[1]->GetPosition().z >= 30.f)
 	{
-		entities[2]->SetPosition(9.f, -8.5f, -15.f);
+		entities[1]->SetPosition(9.f, -8.5f, -15.f);
 	}
 
 	if ((GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0)
@@ -1017,7 +1022,7 @@ void Game::Update(float deltaTime, float totalTime)
 	//if ((GetAsyncKeyState(VK_SPACE) & 0x8000) != 0) {
 	//	CreateRipple(0.0f, 0.0f, 50.0f, RIPPLE_DURATION);// , 2.0f);
 	//}
-	XMFLOAT3 pos = XMFLOAT3(0,0,0);
+	XMFLOAT3 pos = XMFLOAT3(0, 0, 0);
 
 	Vector3 tipPosition = GetTipPosition(*currentProjectile);
 	bool hitWater = (virtualVertices.HitWater(currentProjectile->GetPosition() + tipPosition));
@@ -1073,7 +1078,7 @@ void Game::Update(float deltaTime, float totalTime)
 	currentProjectile->Update(deltaTime, totalTime);
 
 	//Update entities
-	entities[1]->SetRotation(cos(totalTime) / 20, 180.f * XM_PI / 180, -sin(totalTime) / 20);
+	entities[0]->SetRotation(cos(totalTime) / 20, 180.f * XM_PI / 180, -sin(totalTime) / 20);
 
 	//Update ripples and Water shader (add support for multiple ripples later)
 	//Delete ripples afterward if they are at max duration
@@ -1113,16 +1118,15 @@ void Game::Draw(float deltaTime, float totalTime)
 	// Use our refraction render target and our regular depth buffer
 	context->OMSetRenderTargets(1, &refractionRTV, depthStencilView);
 
+	if (gameStarted) trees->Render(camera);
+
 	if (gameStarted) {
 		renderer->Draw(terrain.get());
 		fishes->Render(renderer);
 	}
-	
-	
-	
+
 	if (gameStarted)
 		DrawSky();
-
 
 	// Reset blend state if blending
 	context->OMSetRenderTargets(1, &postProcessRTV, 0);
@@ -1137,7 +1141,7 @@ void Game::Draw(float deltaTime, float totalTime)
 			renderer->Draw(entity);
 	}
 
-	if (gameStarted) trees->Render(camera);
+
 
 	ID3D11ShaderResourceView *const nullSRV[4] = { NULL };
 	context->PSSetShaderResources(0, 4, nullSRV);

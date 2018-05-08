@@ -235,6 +235,10 @@ void Resources::LoadResources()
 	shadowVS->LoadShaderFile(L"VS_Shadow.cso");
 	vertexShaders.insert(VertexShaderMapType("shadow", shadowVS));
 
+	auto shadowVSInstanced = new SimpleVertexShader(device, context);
+	shadowVSInstanced->LoadShaderFile(L"ShadowVSInstanced.cso");
+	vertexShaders.insert(VertexShaderMapType("shadowInstanced", shadowVSInstanced));
+
 	auto shadowPS = new SimplePixelShader(device, context);
 	shadowPS->LoadShaderFile(L"PS_Shadow.cso");
 	pixelShaders.insert(PixelShaderMapType("shadow", shadowPS));
