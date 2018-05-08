@@ -407,7 +407,7 @@ bool Terrain::Initialize(const char* filename, ID3D11Device * device, ID3D11Devi
 	{
 		for (i = 0; i<terrainWidth; i++)
 		{
-			heightMap[(terrainHeight * j) + i].y /= 15.0f;
+			heightMap[(terrainHeight * j) + i].y /= 12.0f;
 		}
 	}
 
